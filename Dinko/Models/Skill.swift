@@ -20,7 +20,7 @@ struct Skill: Identifiable, Hashable {
         name: String,
         parentSkillId: UUID? = nil,
         hierarchyLevel: Int = 0,
-        category: SkillCategory = .general,
+        category: SkillCategory = .dinking,
         description: String = "",
         createdDate: Date = Date(),
         updatedAt: Date = Date(),

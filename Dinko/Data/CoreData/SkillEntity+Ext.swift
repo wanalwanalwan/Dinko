@@ -7,7 +7,7 @@ extension SkillEntity {
             name: name ?? "",
             parentSkillId: parentSkillId,
             hierarchyLevel: Int(hierarchyLevel),
-            category: SkillCategory(rawValue: category ?? "general") ?? .general,
+            category: SkillCategory(rawValue: category ?? "dinking") ?? .dinking,
             description: descriptionText ?? "",
             createdDate: createdDate ?? Date(),
             updatedAt: updatedAt ?? Date(),

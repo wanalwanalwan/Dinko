@@ -67,9 +67,7 @@ struct SkillDetailView: View {
             }
         }
         .sheet(isPresented: $showingAddSubskill, onDismiss: {
-            if let viewModel {
-                Task { await viewModel.loadDetail() }
-            }
+            Task { await viewModel.loadDetail() }
         }) {
             AddEditSkillView(parentSkillId: skill.id)
         }
