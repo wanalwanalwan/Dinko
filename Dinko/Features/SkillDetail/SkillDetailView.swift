@@ -46,9 +46,7 @@ struct SkillDetailView: View {
                     ratingHistoryChart(viewModel)
                 }
 
-                if viewModel.hasSubskills {
-                    subskillsSection(viewModel)
-                }
+                subskillsSection(viewModel)
 
                 archiveButton(viewModel)
             }
@@ -167,6 +165,13 @@ struct SkillDetailView: View {
                     Image(systemName: "plus.circle.fill")
                         .foregroundStyle(AppColors.teal)
                 }
+            }
+
+            if viewModel.subskills.isEmpty {
+                Text("Break this skill into subskills to track progress in more detail.")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .padding(.vertical, AppSpacing.xxs)
             }
 
             ForEach(viewModel.subskills) { subskill in

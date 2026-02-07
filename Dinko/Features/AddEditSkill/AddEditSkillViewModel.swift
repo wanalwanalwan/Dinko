@@ -8,6 +8,7 @@ final class AddEditSkillViewModel {
     }
     var iconName: String = SkillCategory.dinking.iconName
     var skillDescription: String = ""
+    private(set) var subskills: [Skill] = []
     private(set) var errorMessage: String?
     private(set) var isSaving: Bool = false
 
@@ -16,6 +17,8 @@ final class AddEditSkillViewModel {
     private let parentSkillId: UUID?
 
     var isEditing: Bool { existingSkill != nil }
+    var isTopLevelSkill: Bool { existingSkill != nil && existingSkill?.parentSkillId == nil }
+    var skillId: UUID? { existingSkill?.id }
     var navigationTitle: String {
         if isEditing { return "Edit Skill" }
         return parentSkillId != nil ? "New Subskill" : "New Skill"
@@ -36,6 +39,18 @@ final class AddEditSkillViewModel {
             category = skill.category
             iconName = skill.category.iconName
             skillDescription = skill.description
+        }
+    }
+
+    func loadSubskills() async {
+        guard let skillId = existingSkill?.id else { return }
+        do {
+            let allSkills = try await skillRepository.fetchActive()
+            subskills = allSkills
+                .filter { $0.parentSkillId == skillId }
+                .sorted { $0.displayOrder < $1.displayOrder }
+        } catch {
+            // Silently fail — subskills are supplementary info
         }
     }
 

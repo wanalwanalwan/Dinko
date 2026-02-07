@@ -4,6 +4,7 @@ struct AddEditSkillView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: AddEditSkillViewModel?
+    @State private var showingAddSubskill = false
     let skill: Skill?
     let parentSkillId: UUID?
 
@@ -22,11 +23,13 @@ struct AddEditSkillView: View {
         }
         .task {
             if viewModel == nil {
-                viewModel = AddEditSkillViewModel(
+                let vm = AddEditSkillViewModel(
                     skill: skill,
                     parentSkillId: parentSkillId,
                     skillRepository: dependencies.skillRepository
                 )
+                viewModel = vm
+                await vm.loadSubskills()
             }
         }
     }
@@ -35,6 +38,10 @@ struct AddEditSkillView: View {
         NavigationStack {
             Form {
                 skillInfoSection(viewModel)
+
+                if viewModel.isTopLevelSkill {
+                    subskillsSection(viewModel)
+                }
 
                 if let error = viewModel.errorMessage {
                     Section {
@@ -59,6 +66,13 @@ struct AddEditSkillView: View {
                         }
                     }
                     .disabled(!viewModel.isValid || viewModel.isSaving)
+                }
+            }
+            .sheet(isPresented: $showingAddSubskill, onDismiss: {
+                Task { await viewModel.loadSubskills() }
+            }) {
+                if let skillId = viewModel.skillId {
+                    AddEditSkillView(parentSkillId: skillId)
                 }
             }
         }
@@ -90,6 +104,39 @@ struct AddEditSkillView: View {
         }
     }
 
+    // MARK: - Subskills
+
+    private func subskillsSection(_ viewModel: AddEditSkillViewModel) -> some View {
+        Section {
+            if viewModel.subskills.isEmpty {
+                Text("No subskills yet. Add subskills to break this skill into smaller parts.")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            ForEach(viewModel.subskills) { subskill in
+                HStack {
+                    Image(systemName: subskill.iconName)
+                        .font(.body)
+                        .foregroundStyle(AppColors.teal)
+                        .frame(width: 24)
+
+                    Text(subskill.name)
+                        .font(AppTypography.body)
+                }
+            }
+
+            Button {
+                showingAddSubskill = true
+            } label: {
+                Label("Add Subskill", systemImage: "plus.circle.fill")
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.teal)
+            }
+        } header: {
+            Text("Subskills")
+        }
+    }
 }
 
 #Preview {
