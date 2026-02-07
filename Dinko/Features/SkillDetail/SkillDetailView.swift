@@ -19,7 +19,7 @@ struct SkillDetailView: View {
                 ProgressView()
             }
         }
-        .navigationTitle(skill.name)
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             if viewModel == nil {
@@ -115,23 +115,22 @@ struct SkillDetailView: View {
     private func ratingHero(_ viewModel: SkillDetailViewModel) -> some View {
         let tier = SkillTier(rating: viewModel.latestRating)
         return VStack(spacing: AppSpacing.xs) {
-            Text(skill.iconName)
-                .font(.system(size: 56))
+            RatingBadge(rating: viewModel.latestRating, size: 160)
+                .padding(.bottom, AppSpacing.xxs)
 
-            Text("\(viewModel.latestRating)%")
-                .font(AppTypography.ratingLarge)
-                .foregroundStyle(AppColors.teal)
+            Text(skill.name)
+                .font(AppTypography.title)
+                .foregroundStyle(AppColors.textPrimary)
 
-            Text(tier.displayName)
-                .font(AppTypography.callout)
-                .fontWeight(.semibold)
+            Text(tier.displayName.uppercased())
+                .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundStyle(tier.color)
+                .padding(.horizontal, AppSpacing.xs)
+                .padding(.vertical, AppSpacing.xxxs)
+                .background(tier.color.opacity(0.15))
+                .clipShape(Capsule())
 
-            if viewModel.hasSubskills {
-                Text("average of \(viewModel.subskills.count) subskills")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textSecondary)
-            } else {
+            if !viewModel.hasSubskills {
                 Button {
                     showingRateSkill = true
                 } label: {
@@ -148,8 +147,6 @@ struct SkillDetailView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.lg)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
     // MARK: - Rating History Chart
@@ -191,11 +188,11 @@ struct SkillDetailView: View {
     // MARK: - Subskills
 
     private func subskillsSection(_ viewModel: SkillDetailViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Subskills")
-                    .font(AppTypography.headline)
-                    .foregroundStyle(AppColors.textPrimary)
+                Text("SUBSKILLS")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
 
                 Spacer()
 
@@ -206,6 +203,7 @@ struct SkillDetailView: View {
                         .foregroundStyle(AppColors.teal)
                 }
             }
+            .padding(.bottom, AppSpacing.xs)
 
             if viewModel.subskills.isEmpty {
                 Text("Break this skill into subskills to track progress in more detail.")
@@ -214,55 +212,45 @@ struct SkillDetailView: View {
                     .padding(.vertical, AppSpacing.xxs)
             }
 
-            ForEach(viewModel.subskills) { subskill in
+            ForEach(Array(viewModel.subskills.enumerated()), id: \.element.id) { index, subskill in
                 let rating = viewModel.subskillRatings[subskill.id] ?? 0
-                let subTier = SkillTier(rating: rating)
-                let delta = viewModel.subskillDeltas[subskill.id]
+
+                if index > 0 {
+                    Divider()
+                }
+
                 NavigationLink(value: subskill) {
-                    VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                        HStack {
+                    HStack(alignment: .center, spacing: AppSpacing.xs) {
+                        VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
                             Text(subskill.name)
                                 .font(AppTypography.headline)
                                 .foregroundStyle(AppColors.textPrimary)
 
-                            Spacer()
-
-                            if let delta, delta != 0 {
-                                Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
-                                    .font(AppTypography.trendValue)
-                                    .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
-                            }
-
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(AppColors.textSecondary)
+                            ProgressBar(progress: Double(rating) / 100.0)
                         }
 
-                        ProgressBar(progress: Double(rating) / 100.0)
+                        Text("\(rating)%")
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textPrimary)
 
-                        Text(subTier.displayName)
-                            .font(AppTypography.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(subTier.color)
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.textSecondary)
                     }
-                    .padding(AppSpacing.xs)
-                    .background(AppColors.background)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                    .padding(.vertical, AppSpacing.xs)
                 }
                 .buttonStyle(.plain)
             }
-
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
     // MARK: - Action Buttons
 
     private func actionButtons(_ viewModel: SkillDetailViewModel) -> some View {
-        VStack(spacing: AppSpacing.xs) {
+        VStack(spacing: 0) {
+            Divider()
+
             if viewModel.isParentSkill {
                 Button {
                     showingArchiveConfirm = true
@@ -272,12 +260,12 @@ struct SkillDetailView: View {
                         Text("Archive Skill")
                     }
                     .font(AppTypography.body)
-                    .foregroundStyle(AppColors.coral)
+                    .foregroundStyle(AppColors.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, AppSpacing.sm)
-                    .background(AppColors.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
                 }
+
+                Divider()
             }
 
             Button {
@@ -288,11 +276,9 @@ struct SkillDetailView: View {
                     Text("Delete Skill")
                 }
                 .font(AppTypography.body)
-                .foregroundStyle(.white)
+                .foregroundStyle(AppColors.coral)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.sm)
-                .background(AppColors.coral.opacity(0.9))
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
             }
         }
     }

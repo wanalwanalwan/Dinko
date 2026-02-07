@@ -8,6 +8,20 @@ struct SkillCard: View {
 
     private var tier: SkillTier { SkillTier(rating: rating) }
 
+    private var lastUpdatedText: String {
+        let calendar = Calendar.current
+        let days = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: skill.updatedAt),
+            to: calendar.startOfDay(for: Date())
+        ).day ?? 0
+        switch days {
+        case 0: return "Last updated today"
+        case 1: return "Last updated yesterday"
+        default: return "Last updated \(days) days ago"
+        }
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: AppSpacing.sm) {
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
@@ -15,32 +29,38 @@ struct SkillCard: View {
                     .font(AppTypography.headline)
                     .foregroundStyle(AppColors.textPrimary)
 
-                Text(tier.displayName)
-                    .font(AppTypography.caption)
-                    .fontWeight(.semibold)
+                Text(tier.displayName.uppercased())
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
                     .foregroundStyle(tier.color)
+                    .padding(.horizontal, AppSpacing.xxs)
+                    .padding(.vertical, AppSpacing.xxxs)
+                    .background(tier.color.opacity(0.15))
+                    .clipShape(Capsule())
 
-                ProgressBar(progress: Double(rating) / 100.0)
+                HStack(spacing: AppSpacing.xxxs) {
+                    Text(lastUpdatedText)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    if let delta, delta != 0 {
+                        Text("·")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppColors.teal)
+
+                        Text(delta > 0 ? "+\(delta)% this week" : "\(delta)% this week")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.teal)
+                    }
+                }
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: AppSpacing.xxs) {
-                Text(skill.iconName)
-                    .font(.title2)
-
-                if let delta {
-                    if delta > 0 {
-                        Text("+\(delta)%")
-                            .font(AppTypography.trendValue)
-                            .foregroundStyle(AppColors.successGreen)
-                    } else if delta < 0 {
-                        Text("\(delta)%")
-                            .font(AppTypography.trendValue)
-                            .foregroundStyle(AppColors.coral)
-                    }
-                }
-            }
+            RatingBadge(rating: rating)
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
@@ -59,7 +79,7 @@ struct SkillCard: View {
         SkillCard(
             skill: PreviewData.sampleDink,
             subskillCount: 2,
-            rating: 80,
+            rating: 45,
             delta: -2
         )
         SkillCard(
