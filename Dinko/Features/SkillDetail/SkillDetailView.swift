@@ -54,12 +54,11 @@ struct SkillDetailView: View {
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
-
-            Spacer().frame(height: AppSpacing.xl)
-
+        }
+        .safeAreaInset(edge: .bottom) {
             actionButtons(viewModel)
                 .padding(.horizontal, AppSpacing.sm)
-                .padding(.bottom, AppSpacing.lg)
+                .background(.background)
         }
         .refreshable {
             await viewModel.loadDetail()
