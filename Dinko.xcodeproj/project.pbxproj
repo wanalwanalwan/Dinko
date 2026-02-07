@@ -41,6 +41,14 @@
 		C1000001000000000000000D /* ProgressCheckerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000D /* ProgressCheckerRepository.swift */; };
 		C1000001000000000000000E /* SkillRatingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000E /* SkillRatingRepository.swift */; };
 		C1000001000000000000000F /* SessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000F /* SessionRepository.swift */; };
+		D10000010000000000000001 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000001 /* Persistence.swift */; };
+		D10000010000000000000002 /* SkillRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000002 /* SkillRepositoryImpl.swift */; };
+		D10000010000000000000003 /* ProgressCheckerRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000003 /* ProgressCheckerRepositoryImpl.swift */; };
+		D10000010000000000000004 /* SkillRatingRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000004 /* SkillRatingRepositoryImpl.swift */; };
+		D10000010000000000000005 /* SessionRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000005 /* SessionRepositoryImpl.swift */; };
+		D10000010000000000000006 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000006 /* DependencyContainer.swift */; };
+		D10000010000000000000010 /* SkillRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000010 /* SkillRepositoryTests.swift */; };
+		D10000010000000000000011 /* ProgressCheckerRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +106,14 @@
 		C2000001000000000000000D /* ProgressCheckerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressCheckerRepository.swift; sourceTree = "<group>"; };
 		C2000001000000000000000E /* SkillRatingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRatingRepository.swift; sourceTree = "<group>"; };
 		C2000001000000000000000F /* SessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRepository.swift; sourceTree = "<group>"; };
+		D20000010000000000000001 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		D20000010000000000000002 /* SkillRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRepositoryImpl.swift; sourceTree = "<group>"; };
+		D20000010000000000000003 /* ProgressCheckerRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressCheckerRepositoryImpl.swift; sourceTree = "<group>"; };
+		D20000010000000000000004 /* SkillRatingRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRatingRepositoryImpl.swift; sourceTree = "<group>"; };
+		D20000010000000000000005 /* SessionRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRepositoryImpl.swift; sourceTree = "<group>"; };
+		D20000010000000000000006 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
+		D20000010000000000000010 /* SkillRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRepositoryTests.swift; sourceTree = "<group>"; };
+		D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressCheckerRepositoryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +170,8 @@
 			isa = PBXGroup;
 			children = (
 				A20000010000000000000010 /* DinkoTests.swift */,
+				D20000010000000000000010 /* SkillRepositoryTests.swift */,
+				D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */,
 			);
 			path = DinkoTests;
 			sourceTree = "<group>";
@@ -257,6 +275,7 @@
 			isa = PBXGroup;
 			children = (
 				C20000010000000000000007 /* Dinko.xcdatamodeld */,
+				D20000010000000000000001 /* Persistence.swift */,
 				C20000010000000000000008 /* SkillEntity+Ext.swift */,
 				C20000010000000000000009 /* ProgressCheckerEntity+Ext.swift */,
 				C2000001000000000000000A /* SkillRatingEntity+Ext.swift */,
@@ -269,9 +288,14 @@
 			isa = PBXGroup;
 			children = (
 				C2000001000000000000000C /* SkillRepository.swift */,
+				D20000010000000000000002 /* SkillRepositoryImpl.swift */,
 				C2000001000000000000000D /* ProgressCheckerRepository.swift */,
+				D20000010000000000000003 /* ProgressCheckerRepositoryImpl.swift */,
 				C2000001000000000000000E /* SkillRatingRepository.swift */,
+				D20000010000000000000004 /* SkillRatingRepositoryImpl.swift */,
 				C2000001000000000000000F /* SessionRepository.swift */,
+				D20000010000000000000005 /* SessionRepositoryImpl.swift */,
+				D20000010000000000000006 /* DependencyContainer.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -479,6 +503,12 @@
 				C1000001000000000000000D /* ProgressCheckerRepository.swift in Sources */,
 				C1000001000000000000000E /* SkillRatingRepository.swift in Sources */,
 				C1000001000000000000000F /* SessionRepository.swift in Sources */,
+				D10000010000000000000001 /* Persistence.swift in Sources */,
+				D10000010000000000000002 /* SkillRepositoryImpl.swift in Sources */,
+				D10000010000000000000003 /* ProgressCheckerRepositoryImpl.swift in Sources */,
+				D10000010000000000000004 /* SkillRatingRepositoryImpl.swift in Sources */,
+				D10000010000000000000005 /* SessionRepositoryImpl.swift in Sources */,
+				D10000010000000000000006 /* DependencyContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -487,6 +517,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000010000000000000010 /* DinkoTests.swift in Sources */,
+				D10000010000000000000010 /* SkillRepositoryTests.swift in Sources */,
+				D10000010000000000000011 /* ProgressCheckerRepositoryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
