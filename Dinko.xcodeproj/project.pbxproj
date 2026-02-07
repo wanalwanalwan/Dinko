@@ -26,6 +26,21 @@
 		B1000001000000000000000A /* AchievementBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000A /* AchievementBadge.swift */; };
 		B1000001000000000000000B /* MotivationalBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000B /* MotivationalBanner.swift */; };
 		B1000001000000000000000C /* SkillCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000C /* SkillCard.swift */; };
+		C10000010000000000000001 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000001 /* Skill.swift */; };
+		C10000010000000000000002 /* ProgressChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000002 /* ProgressChecker.swift */; };
+		C10000010000000000000003 /* SkillRating.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000003 /* SkillRating.swift */; };
+		C10000010000000000000004 /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000004 /* Session.swift */; };
+		C10000010000000000000005 /* SkillCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000005 /* SkillCategory.swift */; };
+		C10000010000000000000006 /* SkillStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000006 /* SkillStatus.swift */; };
+		C10000010000000000000007 /* Dinko.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000007 /* Dinko.xcdatamodeld */; };
+		C10000010000000000000008 /* SkillEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000008 /* SkillEntity+Ext.swift */; };
+		C10000010000000000000009 /* ProgressCheckerEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000009 /* ProgressCheckerEntity+Ext.swift */; };
+		C1000001000000000000000A /* SkillRatingEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000A /* SkillRatingEntity+Ext.swift */; };
+		C1000001000000000000000B /* SessionEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000B /* SessionEntity+Ext.swift */; };
+		C1000001000000000000000C /* SkillRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000C /* SkillRepository.swift */; };
+		C1000001000000000000000D /* ProgressCheckerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000D /* ProgressCheckerRepository.swift */; };
+		C1000001000000000000000E /* SkillRatingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000E /* SkillRatingRepository.swift */; };
+		C1000001000000000000000F /* SessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001000000000000000F /* SessionRepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +83,21 @@
 		B2000001000000000000000A /* AchievementBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementBadge.swift; sourceTree = "<group>"; };
 		B2000001000000000000000B /* MotivationalBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotivationalBanner.swift; sourceTree = "<group>"; };
 		B2000001000000000000000C /* SkillCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCard.swift; sourceTree = "<group>"; };
+		C20000010000000000000001 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
+		C20000010000000000000002 /* ProgressChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressChecker.swift; sourceTree = "<group>"; };
+		C20000010000000000000003 /* SkillRating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRating.swift; sourceTree = "<group>"; };
+		C20000010000000000000004 /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
+		C20000010000000000000005 /* SkillCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCategory.swift; sourceTree = "<group>"; };
+		C20000010000000000000006 /* SkillStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillStatus.swift; sourceTree = "<group>"; };
+		C20000010000000000000007 /* Dinko.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = Dinko.xcdatamodeld; sourceTree = "<group>"; };
+		C20000010000000000000008 /* SkillEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SkillEntity+Ext.swift"; sourceTree = "<group>"; };
+		C20000010000000000000009 /* ProgressCheckerEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProgressCheckerEntity+Ext.swift"; sourceTree = "<group>"; };
+		C2000001000000000000000A /* SkillRatingEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SkillRatingEntity+Ext.swift"; sourceTree = "<group>"; };
+		C2000001000000000000000B /* SessionEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SessionEntity+Ext.swift"; sourceTree = "<group>"; };
+		C2000001000000000000000C /* SkillRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRepository.swift; sourceTree = "<group>"; };
+		C2000001000000000000000D /* ProgressCheckerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressCheckerRepository.swift; sourceTree = "<group>"; };
+		C2000001000000000000000E /* SkillRatingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRatingRepository.swift; sourceTree = "<group>"; };
+		C2000001000000000000000F /* SessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRepository.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -226,6 +256,11 @@
 		A70000010000000000000060 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
+				C20000010000000000000007 /* Dinko.xcdatamodeld */,
+				C20000010000000000000008 /* SkillEntity+Ext.swift */,
+				C20000010000000000000009 /* ProgressCheckerEntity+Ext.swift */,
+				C2000001000000000000000A /* SkillRatingEntity+Ext.swift */,
+				C2000001000000000000000B /* SessionEntity+Ext.swift */,
 			);
 			path = CoreData;
 			sourceTree = "<group>";
@@ -233,6 +268,10 @@
 		A70000010000000000000061 /* Repositories */ = {
 			isa = PBXGroup;
 			children = (
+				C2000001000000000000000C /* SkillRepository.swift */,
+				C2000001000000000000000D /* ProgressCheckerRepository.swift */,
+				C2000001000000000000000E /* SkillRatingRepository.swift */,
+				C2000001000000000000000F /* SessionRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -240,6 +279,12 @@
 		A70000010000000000000070 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C20000010000000000000001 /* Skill.swift */,
+				C20000010000000000000002 /* ProgressChecker.swift */,
+				C20000010000000000000003 /* SkillRating.swift */,
+				C20000010000000000000004 /* Session.swift */,
+				C20000010000000000000005 /* SkillCategory.swift */,
+				C20000010000000000000006 /* SkillStatus.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -419,6 +464,21 @@
 				B1000001000000000000000A /* AchievementBadge.swift in Sources */,
 				B1000001000000000000000B /* MotivationalBanner.swift in Sources */,
 				B1000001000000000000000C /* SkillCard.swift in Sources */,
+				C10000010000000000000001 /* Skill.swift in Sources */,
+				C10000010000000000000002 /* ProgressChecker.swift in Sources */,
+				C10000010000000000000003 /* SkillRating.swift in Sources */,
+				C10000010000000000000004 /* Session.swift in Sources */,
+				C10000010000000000000005 /* SkillCategory.swift in Sources */,
+				C10000010000000000000006 /* SkillStatus.swift in Sources */,
+				C10000010000000000000007 /* Dinko.xcdatamodeld in Sources */,
+				C10000010000000000000008 /* SkillEntity+Ext.swift in Sources */,
+				C10000010000000000000009 /* ProgressCheckerEntity+Ext.swift in Sources */,
+				C1000001000000000000000A /* SkillRatingEntity+Ext.swift in Sources */,
+				C1000001000000000000000B /* SessionEntity+Ext.swift in Sources */,
+				C1000001000000000000000C /* SkillRepository.swift in Sources */,
+				C1000001000000000000000D /* ProgressCheckerRepository.swift in Sources */,
+				C1000001000000000000000E /* SkillRatingRepository.swift in Sources */,
+				C1000001000000000000000F /* SessionRepository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
