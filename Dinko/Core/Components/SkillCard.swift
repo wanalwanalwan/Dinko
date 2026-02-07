@@ -1,0 +1,57 @@
+import SwiftUI
+
+struct SkillCard: View {
+    let skill: Skill
+    let subskillCount: Int
+    let completionPercentage: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack {
+                Text(skill.name)
+                    .font(AppTypography.headline)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                Text(skill.iconName)
+                    .font(.title2)
+            }
+
+            Text("\(subskillCount) subskills")
+                .font(AppTypography.caption)
+                .foregroundStyle(AppColors.textSecondary)
+
+            ProgressBar(progress: Double(completionPercentage) / 100.0)
+
+            Text("\(completionPercentage)% complete")
+                .font(AppTypography.caption)
+                .foregroundStyle(AppColors.textSecondary)
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+    }
+}
+
+#Preview {
+    VStack(spacing: 12) {
+        SkillCard(
+            skill: PreviewData.sampleServe,
+            subskillCount: 3,
+            completionPercentage: 35
+        )
+        SkillCard(
+            skill: PreviewData.sampleDink,
+            subskillCount: 2,
+            completionPercentage: 80
+        )
+        SkillCard(
+            skill: PreviewData.sampleVolley,
+            subskillCount: 0,
+            completionPercentage: 0
+        )
+    }
+    .padding()
+    .background(AppColors.background)
+}

@@ -1,0 +1,68 @@
+import SwiftUI
+
+struct SkillListView: View {
+    @Environment(\.dependencies) private var dependencies
+    @State private var viewModel: SkillListViewModel?
+
+    var body: some View {
+        Group {
+            if let viewModel {
+                skillListContent(viewModel)
+            } else {
+                ProgressView()
+            }
+        }
+        .navigationTitle("My Skills")
+        .task {
+            if viewModel == nil {
+                let vm = SkillListViewModel(
+                    skillRepository: dependencies.skillRepository,
+                    progressCheckerRepository: dependencies.progressCheckerRepository
+                )
+                viewModel = vm
+                await vm.loadSkills()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func skillListContent(_ viewModel: SkillListViewModel) -> some View {
+        if viewModel.skills.isEmpty {
+            emptyState
+        } else {
+            ScrollView {
+                LazyVStack(spacing: AppSpacing.xs) {
+                    ForEach(viewModel.skills) { skill in
+                        NavigationLink(value: skill) {
+                            SkillCard(
+                                skill: skill,
+                                subskillCount: viewModel.subskillCounts[skill.id] ?? 0,
+                                completionPercentage: viewModel.completionPercentages[skill.id] ?? 0
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.xxs)
+            }
+            .refreshable {
+                await viewModel.loadSkills()
+            }
+        }
+    }
+
+    private var emptyState: some View {
+        ContentUnavailableView(
+            "No Skills Yet",
+            systemImage: "figure.pickleball",
+            description: Text("Add your first skill to start tracking your progress.")
+        )
+    }
+}
+
+#Preview {
+    NavigationStack {
+        SkillListView()
+    }
+}
