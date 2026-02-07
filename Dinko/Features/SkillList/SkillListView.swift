@@ -62,7 +62,8 @@ struct SkillListView: View {
                             SkillCard(
                                 skill: skill,
                                 subskillCount: viewModel.subskillCounts[skill.id] ?? 0,
-                                rating: viewModel.latestRatings[skill.id] ?? 0
+                                rating: viewModel.latestRatings[skill.id] ?? 0,
+                                delta: viewModel.ratingDeltas[skill.id]
                             )
                         }
                         .buttonStyle(.plain)

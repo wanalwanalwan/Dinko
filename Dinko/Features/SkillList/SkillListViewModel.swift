@@ -5,6 +5,7 @@ final class SkillListViewModel {
     private(set) var skills: [Skill] = []
     private(set) var subskillCounts: [UUID: Int] = [:]
     private(set) var latestRatings: [UUID: Int] = [:]
+    private(set) var ratingDeltas: [UUID: Int] = [:]
     private(set) var errorMessage: String?
 
     private let skillRepository: SkillRepository
@@ -54,6 +55,44 @@ final class SkillListViewModel {
                 }
             }
             latestRatings = ratings
+
+            // Compute rating deltas (change from previous rating)
+            var deltas: [UUID: Int] = [:]
+            for skill in skills {
+                let childSkills = allSkills.filter { $0.parentSkillId == skill.id }
+                if childSkills.isEmpty {
+                    // Leaf skill: compare 2 most recent ratings
+                    let allRatings = try await skillRatingRepository.fetchForSkill(skill.id)
+                        .sorted { $0.date > $1.date }
+                    if allRatings.count >= 2 {
+                        deltas[skill.id] = allRatings[0].rating - allRatings[1].rating
+                    }
+                } else {
+                    // Parent skill: compare current average to previous average
+                    var currentTotal = 0
+                    var previousTotal = 0
+                    var hasHistory = false
+                    for child in childSkills {
+                        let childRatings = try await skillRatingRepository.fetchForSkill(child.id)
+                            .sorted { $0.date > $1.date }
+                        if childRatings.count >= 2 {
+                            currentTotal += childRatings[0].rating
+                            previousTotal += childRatings[1].rating
+                            hasHistory = true
+                        } else if let first = childRatings.first {
+                            currentTotal += first.rating
+                            previousTotal += first.rating
+                        }
+                    }
+                    if hasHistory && !childSkills.isEmpty {
+                        let currentAvg = currentTotal / childSkills.count
+                        let previousAvg = previousTotal / childSkills.count
+                        deltas[skill.id] = currentAvg - previousAvg
+                    }
+                }
+            }
+            ratingDeltas = deltas
+
             errorMessage = nil
         } catch {
             errorMessage = "Failed to load skills. Please try again."
