@@ -212,10 +212,6 @@ struct SkillDetailView: View {
             ForEach(viewModel.subskills) { subskill in
                 NavigationLink(value: subskill) {
                     HStack {
-                        Text(subskill.iconName)
-                            .font(.body)
-                            .frame(width: 24)
-
                         Text(subskill.name)
                             .font(AppTypography.body)
                             .foregroundStyle(AppColors.textPrimary)
