@@ -3,7 +3,7 @@ import SwiftUI
 struct SkillCard: View {
     let skill: Skill
     let subskillCount: Int
-    let completionPercentage: Int
+    let rating: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
@@ -23,9 +23,9 @@ struct SkillCard: View {
                 .font(AppTypography.caption)
                 .foregroundStyle(AppColors.textSecondary)
 
-            ProgressBar(progress: Double(completionPercentage) / 100.0)
+            ProgressBar(progress: Double(rating) / 100.0)
 
-            Text("\(completionPercentage)% complete")
+            Text("\(rating)%")
                 .font(AppTypography.caption)
                 .foregroundStyle(AppColors.textSecondary)
         }
@@ -40,17 +40,17 @@ struct SkillCard: View {
         SkillCard(
             skill: PreviewData.sampleServe,
             subskillCount: 3,
-            completionPercentage: 35
+            rating: 75
         )
         SkillCard(
             skill: PreviewData.sampleDink,
             subskillCount: 2,
-            completionPercentage: 80
+            rating: 80
         )
         SkillCard(
             skill: PreviewData.sampleVolley,
             subskillCount: 0,
-            completionPercentage: 0
+            rating: 0
         )
     }
     .padding()

@@ -3,52 +3,68 @@ import Foundation
 @Observable
 final class SkillDetailViewModel {
     private(set) var skill: Skill
-    private(set) var checkers: [ProgressChecker] = []
+    private(set) var subskills: [Skill] = []
+    private(set) var subskillRatings: [UUID: Int] = [:]
     private(set) var ratings: [SkillRating] = []
     private(set) var latestRating: Int = 0
+    private(set) var hasSubskills: Bool = false
     private(set) var errorMessage: String?
 
     private let skillRepository: SkillRepository
-    private let progressCheckerRepository: ProgressCheckerRepository
     private let skillRatingRepository: SkillRatingRepository
 
     init(
         skill: Skill,
         skillRepository: SkillRepository,
-        progressCheckerRepository: ProgressCheckerRepository,
         skillRatingRepository: SkillRatingRepository
     ) {
         self.skill = skill
         self.skillRepository = skillRepository
-        self.progressCheckerRepository = progressCheckerRepository
         self.skillRatingRepository = skillRatingRepository
     }
 
     func loadDetail() async {
         do {
-            checkers = try await progressCheckerRepository.fetchForSkill(skill.id)
+            // Load subskills
+            let allSkills = try await skillRepository.fetchActive()
+            subskills = allSkills
+                .filter { $0.parentSkillId == skill.id }
                 .sorted { $0.displayOrder < $1.displayOrder }
+            hasSubskills = !subskills.isEmpty
 
-            ratings = try await skillRatingRepository.fetchForSkill(skill.id)
-                .sorted { $0.date < $1.date }
+            // Load subskill ratings
+            var subRatings: [UUID: Int] = [:]
+            for sub in subskills {
+                if let latest = try await skillRatingRepository.fetchLatest(sub.id) {
+                    subRatings[sub.id] = latest.rating
+                } else {
+                    subRatings[sub.id] = 0
+                }
+            }
+            subskillRatings = subRatings
 
-            if let latest = try await skillRatingRepository.fetchLatest(skill.id) {
-                latestRating = latest.rating
+            if hasSubskills {
+                // Parent rating = average of subskill ratings
+                let rated = subRatings.values.filter { $0 > 0 }
+                latestRating = rated.isEmpty ? 0 : rated.reduce(0, +) / rated.count
+
+                // Build synthetic rating history from subskill averages
+                ratings = []
+            } else {
+                // Direct ratings
+                ratings = try await skillRatingRepository.fetchForSkill(skill.id)
+                    .sorted { $0.date < $1.date }
+
+                if let latest = try await skillRatingRepository.fetchLatest(skill.id) {
+                    latestRating = latest.rating
+                } else {
+                    latestRating = 0
+                }
             }
 
             errorMessage = nil
         } catch {
             errorMessage = "Failed to load skill details."
-        }
-    }
-
-    func toggleChecker(_ checker: ProgressChecker) async {
-        do {
-            try await progressCheckerRepository.toggleCompletion(checker.id)
-            checkers = try await progressCheckerRepository.fetchForSkill(skill.id)
-                .sorted { $0.displayOrder < $1.displayOrder }
-        } catch {
-            errorMessage = "Failed to update checker."
         }
     }
 

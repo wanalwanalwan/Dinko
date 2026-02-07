@@ -5,9 +5,11 @@ struct AddEditSkillView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: AddEditSkillViewModel?
     let skill: Skill?
+    let parentSkillId: UUID?
 
-    init(skill: Skill? = nil) {
+    init(skill: Skill? = nil, parentSkillId: UUID? = nil) {
         self.skill = skill
+        self.parentSkillId = parentSkillId
     }
 
     var body: some View {
@@ -20,13 +22,11 @@ struct AddEditSkillView: View {
         }
         .task {
             if viewModel == nil {
-                let vm = AddEditSkillViewModel(
+                viewModel = AddEditSkillViewModel(
                     skill: skill,
-                    skillRepository: dependencies.skillRepository,
-                    progressCheckerRepository: dependencies.progressCheckerRepository
+                    parentSkillId: parentSkillId,
+                    skillRepository: dependencies.skillRepository
                 )
-                viewModel = vm
-                await vm.loadExistingCheckers()
             }
         }
     }
@@ -36,7 +36,6 @@ struct AddEditSkillView: View {
             Form {
                 skillInfoSection(viewModel)
                 iconSection(viewModel)
-                checkersSection(viewModel)
 
                 if let error = viewModel.errorMessage {
                     Section {
@@ -123,38 +122,6 @@ struct AddEditSkillView: View {
                     }
                     .buttonStyle(.plain)
                 }
-            }
-        }
-    }
-
-    // MARK: - Checkers
-
-    private func checkersSection(_ viewModel: AddEditSkillViewModel) -> some View {
-        Section("Progress Checkers") {
-            ForEach(viewModel.checkerNames.indices, id: \.self) { index in
-                HStack {
-                    TextField("Checker \(index + 1)", text: Binding(
-                        get: { viewModel.checkerNames[index] },
-                        set: { viewModel.checkerNames[index] = $0 }
-                    ))
-
-                    if viewModel.checkerNames.count > 1 {
-                        Button {
-                            viewModel.removeChecker(at: index)
-                        } label: {
-                            Image(systemName: "minus.circle.fill")
-                                .foregroundStyle(AppColors.coral)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-
-            Button {
-                viewModel.addChecker()
-            } label: {
-                Label("Add Checker", systemImage: "plus.circle.fill")
-                    .foregroundStyle(AppColors.teal)
             }
         }
     }

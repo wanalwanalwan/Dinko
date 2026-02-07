@@ -6,6 +6,7 @@ struct SkillDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: SkillDetailViewModel?
     @State private var showingRateSkill = false
+    @State private var showingAddSubskill = false
     let skill: Skill
 
     var body: some View {
@@ -23,11 +24,15 @@ struct SkillDetailView: View {
                 let vm = SkillDetailViewModel(
                     skill: skill,
                     skillRepository: dependencies.skillRepository,
-                    progressCheckerRepository: dependencies.progressCheckerRepository,
                     skillRatingRepository: dependencies.skillRatingRepository
                 )
                 viewModel = vm
                 await vm.loadDetail()
+            }
+        }
+        .onAppear {
+            if let viewModel {
+                Task { await viewModel.loadDetail() }
             }
         }
     }
@@ -36,8 +41,15 @@ struct SkillDetailView: View {
         ScrollView {
             VStack(spacing: AppSpacing.lg) {
                 ratingHero(viewModel)
-                ratingHistoryChart(viewModel)
-                checkersSection(viewModel)
+
+                if !viewModel.hasSubskills {
+                    ratingHistoryChart(viewModel)
+                }
+
+                if viewModel.hasSubskills {
+                    subskillsSection(viewModel)
+                }
+
                 archiveButton(viewModel)
             }
             .padding(.horizontal, AppSpacing.sm)
@@ -54,6 +66,13 @@ struct SkillDetailView: View {
                 await viewModel.saveRating(rating, notes: notes)
             }
         }
+        .sheet(isPresented: $showingAddSubskill, onDismiss: {
+            if let viewModel {
+                Task { await viewModel.loadDetail() }
+            }
+        }) {
+            AddEditSkillView(parentSkillId: skill.id)
+        }
     }
 
     // MARK: - Rating Hero
@@ -68,22 +87,28 @@ struct SkillDetailView: View {
                 .font(AppTypography.ratingLarge)
                 .foregroundStyle(AppColors.teal)
 
-            Text("out of 100%")
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
+            if viewModel.hasSubskills {
+                Text("average of \(viewModel.subskills.count) subskills")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            } else {
+                Text("out of 100%")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
 
-            Button {
-                showingRateSkill = true
-            } label: {
-                Text("Rate Skill")
-                    .font(AppTypography.callout)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.vertical, AppSpacing.xxs)
-                    .background(AppColors.teal)
-                    .clipShape(Capsule())
+                Button {
+                    showingRateSkill = true
+                } label: {
+                    Text("Rate Skill")
+                        .font(AppTypography.callout)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.vertical, AppSpacing.xxs)
+                        .background(AppColors.teal)
+                        .clipShape(Capsule())
+                }
+                .padding(.top, AppSpacing.xxs)
             }
-            .padding(.top, AppSpacing.xxs)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.lg)
@@ -127,29 +152,61 @@ struct SkillDetailView: View {
         }
     }
 
-    // MARK: - Checkers
+    // MARK: - Subskills
 
-    private func checkersSection(_ viewModel: SkillDetailViewModel) -> some View {
+    private func subskillsSection(_ viewModel: SkillDetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("Progress Checkers")
-                .font(AppTypography.headline)
-                .foregroundStyle(AppColors.textPrimary)
+            HStack {
+                Text("Subskills")
+                    .font(AppTypography.headline)
+                    .foregroundStyle(AppColors.textPrimary)
 
-            if viewModel.checkers.isEmpty {
-                Text("No checkers yet.")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .padding(.vertical, AppSpacing.xxs)
-            } else {
-                ForEach(viewModel.checkers) { checker in
-                    CheckerItem(
-                        name: checker.name,
-                        isCompleted: checker.isCompleted
-                    ) {
-                        Task { await viewModel.toggleChecker(checker) }
-                    }
+                Spacer()
+
+                Button {
+                    showingAddSubskill = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(AppColors.teal)
                 }
             }
+
+            ForEach(viewModel.subskills) { subskill in
+                NavigationLink(value: subskill) {
+                    HStack {
+                        Image(systemName: subskill.iconName)
+                            .font(.body)
+                            .foregroundStyle(AppColors.teal)
+                            .frame(width: 24)
+
+                        Text(subskill.name)
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Spacer()
+
+                        let rating = viewModel.subskillRatings[subskill.id] ?? 0
+                        Text("\(rating)%")
+                            .font(AppTypography.ratingBadge)
+                            .foregroundStyle(rating > 0 ? AppColors.teal : AppColors.textSecondary)
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding(.vertical, AppSpacing.xxs)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Button {
+                showingAddSubskill = true
+            } label: {
+                Label("Add Subskill", systemImage: "plus.circle.fill")
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.teal)
+            }
+            .padding(.top, AppSpacing.xxxs)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(AppSpacing.sm)

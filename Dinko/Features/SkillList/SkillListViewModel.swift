@@ -4,41 +4,56 @@ import Foundation
 final class SkillListViewModel {
     private(set) var skills: [Skill] = []
     private(set) var subskillCounts: [UUID: Int] = [:]
-    private(set) var completionPercentages: [UUID: Int] = [:]
+    private(set) var latestRatings: [UUID: Int] = [:]
     private(set) var errorMessage: String?
 
     private let skillRepository: SkillRepository
-    private let progressCheckerRepository: ProgressCheckerRepository
+    private let skillRatingRepository: SkillRatingRepository
 
-    init(skillRepository: SkillRepository, progressCheckerRepository: ProgressCheckerRepository) {
+    init(skillRepository: SkillRepository, skillRatingRepository: SkillRatingRepository) {
         self.skillRepository = skillRepository
-        self.progressCheckerRepository = progressCheckerRepository
+        self.skillRatingRepository = skillRatingRepository
     }
 
     func loadSkills() async {
         do {
             let allSkills = try await skillRepository.fetchActive()
-            skills = allSkills.sorted { $0.displayOrder < $1.displayOrder }
 
-            // Compute subskill counts: count children where parentSkillId matches
+            // Only show top-level skills (no parent)
+            skills = allSkills
+                .filter { $0.parentSkillId == nil }
+                .sorted { $0.displayOrder < $1.displayOrder }
+
+            // Compute subskill counts
             var counts: [UUID: Int] = [:]
-            for skill in allSkills {
+            for skill in skills {
                 counts[skill.id] = allSkills.filter { $0.parentSkillId == skill.id }.count
             }
             subskillCounts = counts
 
-            // Compute completion percentages from checkers
-            var percentages: [UUID: Int] = [:]
+            // Compute ratings: if has subskills, average of subskill ratings; otherwise latest direct rating
+            var ratings: [UUID: Int] = [:]
             for skill in skills {
-                let checkers = try await progressCheckerRepository.fetchForSkill(skill.id)
-                if checkers.isEmpty {
-                    percentages[skill.id] = 0
+                let childSkills = allSkills.filter { $0.parentSkillId == skill.id }
+                if childSkills.isEmpty {
+                    if let latest = try await skillRatingRepository.fetchLatest(skill.id) {
+                        ratings[skill.id] = latest.rating
+                    } else {
+                        ratings[skill.id] = 0
+                    }
                 } else {
-                    let completed = checkers.filter(\.isCompleted).count
-                    percentages[skill.id] = (completed * 100) / checkers.count
+                    var total = 0
+                    var count = 0
+                    for child in childSkills {
+                        if let latest = try await skillRatingRepository.fetchLatest(child.id) {
+                            total += latest.rating
+                            count += 1
+                        }
+                    }
+                    ratings[skill.id] = count > 0 ? total / count : 0
                 }
             }
-            completionPercentages = percentages
+            latestRatings = ratings
             errorMessage = nil
         } catch {
             errorMessage = "Failed to load skills. Please try again."

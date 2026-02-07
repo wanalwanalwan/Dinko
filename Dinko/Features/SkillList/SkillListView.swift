@@ -37,7 +37,7 @@ struct SkillListView: View {
             if viewModel == nil {
                 let vm = SkillListViewModel(
                     skillRepository: dependencies.skillRepository,
-                    progressCheckerRepository: dependencies.progressCheckerRepository
+                    skillRatingRepository: dependencies.skillRatingRepository
                 )
                 viewModel = vm
                 await vm.loadSkills()
@@ -62,7 +62,7 @@ struct SkillListView: View {
                             SkillCard(
                                 skill: skill,
                                 subskillCount: viewModel.subskillCounts[skill.id] ?? 0,
-                                completionPercentage: viewModel.completionPercentages[skill.id] ?? 0
+                                rating: viewModel.latestRatings[skill.id] ?? 0
                             )
                         }
                         .buttonStyle(.plain)
