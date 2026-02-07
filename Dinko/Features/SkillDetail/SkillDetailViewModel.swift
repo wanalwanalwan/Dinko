@@ -52,6 +52,22 @@ final class SkillDetailViewModel {
         }
     }
 
+    func saveRating(_ rating: Int, notes: String?) async -> Bool {
+        do {
+            let newRating = SkillRating(
+                skillId: skill.id,
+                rating: rating,
+                notes: notes
+            )
+            try await skillRatingRepository.save(newRating)
+            await loadDetail()
+            return true
+        } catch {
+            errorMessage = "Failed to save rating."
+            return false
+        }
+    }
+
     func archiveSkill() async {
         do {
             try await skillRepository.archive(skill.id)

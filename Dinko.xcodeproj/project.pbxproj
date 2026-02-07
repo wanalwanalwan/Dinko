@@ -55,6 +55,7 @@
 		F10000010000000000000002 /* SkillDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000010000000000000002 /* SkillDetailView.swift */; };
 		G10000010000000000000001 /* AddEditSkillViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000010000000000000001 /* AddEditSkillViewModel.swift */; };
 		G10000010000000000000002 /* AddEditSkillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000010000000000000002 /* AddEditSkillView.swift */; };
+		H10000010000000000000001 /* RateSkillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000001 /* RateSkillView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -126,6 +127,7 @@
 		F20000010000000000000002 /* SkillDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillDetailView.swift; sourceTree = "<group>"; };
 		G20000010000000000000001 /* AddEditSkillViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditSkillViewModel.swift; sourceTree = "<group>"; };
 		G20000010000000000000002 /* AddEditSkillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditSkillView.swift; sourceTree = "<group>"; };
+		H20000010000000000000001 /* RateSkillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateSkillView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -349,6 +351,7 @@
 			children = (
 				F20000010000000000000001 /* SkillDetailViewModel.swift */,
 				F20000010000000000000002 /* SkillDetailView.swift */,
+				H20000010000000000000001 /* RateSkillView.swift */,
 			);
 			path = SkillDetail;
 			sourceTree = "<group>";
@@ -533,6 +536,7 @@
 				F10000010000000000000002 /* SkillDetailView.swift in Sources */,
 				G10000010000000000000001 /* AddEditSkillViewModel.swift in Sources */,
 				G10000010000000000000002 /* AddEditSkillView.swift in Sources */,
+				H10000010000000000000001 /* RateSkillView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

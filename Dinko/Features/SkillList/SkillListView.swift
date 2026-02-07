@@ -43,6 +43,11 @@ struct SkillListView: View {
                 await vm.loadSkills()
             }
         }
+        .onAppear {
+            if let viewModel {
+                Task { await viewModel.loadSkills() }
+            }
+        }
     }
 
     @ViewBuilder

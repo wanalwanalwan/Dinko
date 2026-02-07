@@ -5,6 +5,7 @@ struct SkillDetailView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: SkillDetailViewModel?
+    @State private var showingRateSkill = false
     let skill: Skill
 
     var body: some View {
@@ -45,6 +46,14 @@ struct SkillDetailView: View {
         .refreshable {
             await viewModel.loadDetail()
         }
+        .sheet(isPresented: $showingRateSkill) {
+            RateSkillView(
+                skillName: skill.name,
+                currentRating: viewModel.latestRating
+            ) { rating, notes in
+                await viewModel.saveRating(rating, notes: notes)
+            }
+        }
     }
 
     // MARK: - Rating Hero
@@ -61,6 +70,19 @@ struct SkillDetailView: View {
             Text("out of 100%")
                 .font(AppTypography.caption)
                 .foregroundStyle(AppColors.textSecondary)
+
+            Button {
+                showingRateSkill = true
+            } label: {
+                Text("Rate Skill")
+                    .font(AppTypography.callout)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.vertical, AppSpacing.xxs)
+                    .background(AppColors.teal)
+                    .clipShape(Capsule())
+            }
+            .padding(.top, AppSpacing.xxs)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.lg)
