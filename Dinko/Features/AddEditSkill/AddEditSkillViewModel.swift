@@ -3,8 +3,10 @@ import Foundation
 @Observable
 final class AddEditSkillViewModel {
     var name: String = ""
-    var category: SkillCategory = .general
-    var iconName: String = "figure.pickleball"
+    var category: SkillCategory = .dinking {
+        didSet { iconName = category.iconName }
+    }
+    var iconName: String = SkillCategory.dinking.iconName
     var skillDescription: String = ""
     private(set) var errorMessage: String?
     private(set) var isSaving: Bool = false
@@ -32,7 +34,7 @@ final class AddEditSkillViewModel {
         if let skill {
             name = skill.name
             category = skill.category
-            iconName = skill.iconName
+            iconName = skill.category.iconName
             skillDescription = skill.description
         }
     }
@@ -47,7 +49,7 @@ final class AddEditSkillViewModel {
                 var updated = existing
                 updated.name = name.trimmingCharacters(in: .whitespaces)
                 updated.category = category
-                updated.iconName = iconName
+                updated.iconName = category.iconName
                 updated.description = skillDescription.trimmingCharacters(in: .whitespaces)
                 updated.updatedAt = Date()
                 try await skillRepository.save(updated)
@@ -58,7 +60,7 @@ final class AddEditSkillViewModel {
                     hierarchyLevel: parentSkillId != nil ? 1 : 0,
                     category: category,
                     description: skillDescription.trimmingCharacters(in: .whitespaces),
-                    iconName: iconName
+                    iconName: category.iconName
                 )
                 try await skillRepository.save(newSkill)
             }

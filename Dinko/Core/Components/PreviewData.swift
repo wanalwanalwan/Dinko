@@ -5,38 +5,38 @@ enum PreviewData {
 
     static let sampleServe = Skill(
         name: "Serve",
-        category: .offense,
-        iconName: "figure.pickleball"
+        category: .serves,
+        iconName: SkillCategory.serves.iconName
     )
 
     static let sampleDink = Skill(
         name: "Dink",
-        category: .strategy,
-        iconName: "figure.pickleball"
+        category: .dinking,
+        iconName: SkillCategory.dinking.iconName
     )
 
     static let sampleVolley = Skill(
         name: "Volley",
         category: .offense,
-        iconName: "figure.pickleball"
+        iconName: SkillCategory.offense.iconName
     )
 
     static let sampleThirdShot = Skill(
         name: "Third Shot Drop",
-        category: .strategy,
-        iconName: "figure.pickleball"
+        category: .drops,
+        iconName: SkillCategory.drops.iconName
     )
 
     static let sampleFootwork = Skill(
-        name: "Footwork",
-        category: .movement,
-        iconName: "figure.run"
+        name: "Drive Accuracy",
+        category: .drives,
+        iconName: SkillCategory.drives.iconName
     )
 
     static let sampleStrategy = Skill(
         name: "Court Strategy",
         category: .strategy,
-        iconName: "brain.head.profile"
+        iconName: SkillCategory.strategy.iconName
     )
 
     static let allSampleSkills = [sampleServe, sampleDink, sampleVolley, sampleThirdShot, sampleFootwork, sampleStrategy]
