@@ -3,6 +3,7 @@ import SwiftUI
 struct SkillListView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: SkillListViewModel?
+    @State private var showingAddSkill = false
 
     var body: some View {
         Group {
@@ -15,6 +16,22 @@ struct SkillListView: View {
         .navigationTitle("My Skills")
         .navigationDestination(for: Skill.self) { skill in
             SkillDetailView(skill: skill)
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingAddSkill = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddSkill, onDismiss: {
+            if let viewModel {
+                Task { await viewModel.loadSkills() }
+            }
+        }) {
+            AddEditSkillView()
         }
         .task {
             if viewModel == nil {
