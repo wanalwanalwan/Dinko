@@ -40,25 +40,29 @@ struct SkillDetailView: View {
     }
 
     private func detailContent(_ viewModel: SkillDetailViewModel) -> some View {
-        ScrollView {
-            VStack(spacing: AppSpacing.lg) {
-                ratingHero(viewModel)
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: AppSpacing.lg) {
+                    ratingHero(viewModel)
 
-                if !viewModel.hasSubskills {
-                    ratingHistoryChart(viewModel)
-                }
+                    if !viewModel.hasSubskills {
+                        ratingHistoryChart(viewModel)
+                    }
 
-                if viewModel.isParentSkill {
-                    subskillsSection(viewModel)
+                    if viewModel.isParentSkill {
+                        subskillsSection(viewModel)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    actionButtons(viewModel)
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.bottom, AppSpacing.lg)
                 }
-            }
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.top, AppSpacing.xxs)
-        }
-        .safeAreaInset(edge: .bottom) {
-            actionButtons(viewModel)
                 .padding(.horizontal, AppSpacing.sm)
-                .background(.background)
+                .padding(.top, AppSpacing.xxs)
+                .frame(minHeight: geometry.size.height)
+            }
         }
         .refreshable {
             await viewModel.loadDetail()
