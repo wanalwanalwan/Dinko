@@ -13,6 +13,9 @@ struct SkillListView: View {
             }
         }
         .navigationTitle("My Skills")
+        .navigationDestination(for: Skill.self) { skill in
+            SkillDetailView(skill: skill)
+        }
         .task {
             if viewModel == nil {
                 let vm = SkillListViewModel(
