@@ -14,8 +14,9 @@ struct SkillCard: View {
 
                 Spacer()
 
-                Text(skill.iconName)
+                Image(systemName: skill.iconName)
                     .font(.title2)
+                    .foregroundStyle(AppColors.teal)
             }
 
             Text("\(subskillCount) subskills")

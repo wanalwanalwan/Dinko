@@ -60,8 +60,9 @@ struct SkillDetailView: View {
 
     private func ratingHero(_ viewModel: SkillDetailViewModel) -> some View {
         VStack(spacing: AppSpacing.xs) {
-            Text(skill.iconName)
+            Image(systemName: skill.iconName)
                 .font(.system(size: 56))
+                .foregroundStyle(AppColors.teal)
 
             Text("\(viewModel.latestRating)%")
                 .font(AppTypography.ratingLarge)
