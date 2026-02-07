@@ -1,6 +1,48 @@
 import Foundation
 
 enum PreviewData {
+    // MARK: - Domain Model Previews
+
+    static let sampleServe = Skill(
+        name: "Serve",
+        category: .offense,
+        iconName: "figure.pickleball"
+    )
+
+    static let sampleDink = Skill(
+        name: "Dink",
+        category: .strategy,
+        iconName: "figure.pickleball"
+    )
+
+    static let sampleVolley = Skill(
+        name: "Volley",
+        category: .offense,
+        iconName: "figure.pickleball"
+    )
+
+    static let sampleThirdShot = Skill(
+        name: "Third Shot Drop",
+        category: .strategy,
+        iconName: "figure.pickleball"
+    )
+
+    static let sampleFootwork = Skill(
+        name: "Footwork",
+        category: .movement,
+        iconName: "figure.run"
+    )
+
+    static let sampleStrategy = Skill(
+        name: "Court Strategy",
+        category: .strategy,
+        iconName: "brain.head.profile"
+    )
+
+    static let allSampleSkills = [sampleServe, sampleDink, sampleVolley, sampleThirdShot, sampleFootwork, sampleStrategy]
+
+    // MARK: - Legacy Preview Models (used by other components)
+
     static let serveSkill = SkillPreview(
         name: "Serve",
         iconName: "figure.pickleball",

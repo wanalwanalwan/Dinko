@@ -49,6 +49,8 @@
 		D10000010000000000000006 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000006 /* DependencyContainer.swift */; };
 		D10000010000000000000010 /* SkillRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000010 /* SkillRepositoryTests.swift */; };
 		D10000010000000000000011 /* ProgressCheckerRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */; };
+		E10000010000000000000001 /* SkillListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000001 /* SkillListViewModel.swift */; };
+		E10000010000000000000002 /* SkillListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000002 /* SkillListView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -114,6 +116,8 @@
 		D20000010000000000000006 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
 		D20000010000000000000010 /* SkillRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRepositoryTests.swift; sourceTree = "<group>"; };
 		D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressCheckerRepositoryTests.swift; sourceTree = "<group>"; };
+		E20000010000000000000001 /* SkillListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListViewModel.swift; sourceTree = "<group>"; };
+		E20000010000000000000002 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -326,6 +330,8 @@
 		A70000010000000000000081 /* SkillList */ = {
 			isa = PBXGroup;
 			children = (
+				E20000010000000000000001 /* SkillListViewModel.swift */,
+				E20000010000000000000002 /* SkillListView.swift */,
 			);
 			path = SkillList;
 			sourceTree = "<group>";
@@ -509,6 +515,8 @@
 				D10000010000000000000004 /* SkillRatingRepositoryImpl.swift in Sources */,
 				D10000010000000000000005 /* SessionRepositoryImpl.swift in Sources */,
 				D10000010000000000000006 /* DependencyContainer.swift in Sources */,
+				E10000010000000000000001 /* SkillListViewModel.swift in Sources */,
+				E10000010000000000000002 /* SkillListView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
