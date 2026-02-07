@@ -13,7 +13,7 @@ struct SkillListView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("My Skills")
+        .navigationTitle("My Progress")
         .navigationDestination(for: Skill.self) { skill in
             SkillDetailView(skill: skill)
         }

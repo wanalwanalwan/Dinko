@@ -7,6 +7,8 @@ struct SkillDetailView: View {
     @State private var viewModel: SkillDetailViewModel?
     @State private var showingRateSkill = false
     @State private var showingAddSubskill = false
+    @State private var showingArchiveConfirm = false
+    @State private var showingDeleteConfirm = false
     let skill: Skill
 
     var body: some View {
@@ -48,10 +50,13 @@ struct SkillDetailView: View {
 
                 subskillsSection(viewModel)
 
-                archiveButton(viewModel)
+                Spacer().frame(height: AppSpacing.xs)
+
+                actionButtons(viewModel)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
+            .padding(.bottom, AppSpacing.lg)
         }
         .refreshable {
             await viewModel.loadDetail()
@@ -68,6 +73,37 @@ struct SkillDetailView: View {
             Task { await viewModel.loadDetail() }
         }) {
             AddEditSkillView(parentSkillId: skill.id)
+        }
+        .alert("Archive Skill", isPresented: $showingArchiveConfirm) {
+            Button("Archive", role: .destructive) {
+                Task {
+                    await viewModel.archiveSkill()
+                    dismiss()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if viewModel.hasSubskills {
+                Text("This will archive \"\(skill.name)\" and all its subskills. You can restore them later.")
+            } else {
+                Text("This will archive \"\(skill.name)\". You can restore it later.")
+            }
+        }
+        .alert("Delete Skill", isPresented: $showingDeleteConfirm) {
+            Button("Delete", role: .destructive) {
+                Task {
+                    if await viewModel.deleteSkill() {
+                        dismiss()
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if viewModel.hasSubskills {
+                Text("This will permanently delete \"\(skill.name)\" and all its subskills. This cannot be undone.")
+            } else {
+                Text("This will permanently delete \"\(skill.name)\". This cannot be undone.")
+            }
         }
     }
 
@@ -202,14 +238,6 @@ struct SkillDetailView: View {
                 .buttonStyle(.plain)
             }
 
-            Button {
-                showingAddSubskill = true
-            } label: {
-                Label("Add Subskill", systemImage: "plus.circle.fill")
-                    .font(AppTypography.callout)
-                    .foregroundStyle(AppColors.teal)
-            }
-            .padding(.top, AppSpacing.xxxs)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(AppSpacing.sm)
@@ -217,23 +245,42 @@ struct SkillDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
-    // MARK: - Archive
+    // MARK: - Action Buttons
 
-    private func archiveButton(_ viewModel: SkillDetailViewModel) -> some View {
-        Button(role: .destructive) {
-            Task {
-                await viewModel.archiveSkill()
-                dismiss()
+    private func actionButtons(_ viewModel: SkillDetailViewModel) -> some View {
+        VStack(spacing: AppSpacing.xs) {
+            if viewModel.isParentSkill {
+                Button {
+                    showingArchiveConfirm = true
+                } label: {
+                    HStack(spacing: AppSpacing.xxs) {
+                        Image(systemName: "archivebox")
+                        Text("Archive Skill")
+                    }
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.coral)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.sm)
+                    .background(AppColors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+                }
             }
-        } label: {
-            Text("Archive Skill")
+
+            Button {
+                showingDeleteConfirm = true
+            } label: {
+                HStack(spacing: AppSpacing.xxs) {
+                    Image(systemName: "trash")
+                    Text("Delete Skill")
+                }
                 .font(AppTypography.body)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.xs)
+                .padding(.vertical, AppSpacing.sm)
+                .background(AppColors.coral.opacity(0.9))
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            }
         }
-        .buttonStyle(.borderedProminent)
-        .tint(AppColors.coral)
-        .padding(.top, AppSpacing.xs)
     }
 }
 

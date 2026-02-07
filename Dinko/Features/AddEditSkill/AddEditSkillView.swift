@@ -26,7 +26,8 @@ struct AddEditSkillView: View {
                 let vm = AddEditSkillViewModel(
                     skill: skill,
                     parentSkillId: parentSkillId,
-                    skillRepository: dependencies.skillRepository
+                    skillRepository: dependencies.skillRepository,
+                    skillRatingRepository: dependencies.skillRatingRepository
                 )
                 viewModel = vm
                 await vm.loadSubskills()
@@ -39,8 +40,16 @@ struct AddEditSkillView: View {
             Form {
                 skillInfoSection(viewModel)
 
-                if viewModel.isTopLevelSkill {
-                    subskillsSection(viewModel)
+                if viewModel.showInitialRating {
+                    initialRatingSection(viewModel)
+                }
+
+                if viewModel.showInlineSubskills {
+                    inlineSubskillsSection(viewModel)
+                }
+
+                if viewModel.showExistingSubskills {
+                    existingSubskillsSection(viewModel)
                 }
 
                 if let error = viewModel.errorMessage {
@@ -104,9 +113,103 @@ struct AddEditSkillView: View {
         }
     }
 
-    // MARK: - Subskills
+    // MARK: - Initial Rating
 
-    private func subskillsSection(_ viewModel: AddEditSkillViewModel) -> some View {
+    private func initialRatingSection(_ viewModel: AddEditSkillViewModel) -> some View {
+        Section {
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                HStack {
+                    Text("Rating")
+                    Spacer()
+                    Text("\(Int(viewModel.initialRating))%")
+                        .font(AppTypography.callout)
+                        .foregroundStyle(AppColors.teal)
+                }
+
+                Slider(
+                    value: Binding(
+                        get: { viewModel.initialRating },
+                        set: { viewModel.initialRating = $0 }
+                    ),
+                    in: 0...100,
+                    step: 1
+                )
+                .tint(AppColors.teal)
+
+                Text("Leave at 0 to skip initial rating")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        } header: {
+            Text("Initial Rating")
+        }
+    }
+
+    // MARK: - Inline Subskills (Create Mode)
+
+    private func inlineSubskillsSection(_ viewModel: AddEditSkillViewModel) -> some View {
+        Section {
+            if viewModel.pendingSubskills.isEmpty {
+                Text("Add subskills to break this skill into smaller parts.")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            ForEach(Binding(
+                get: { viewModel.pendingSubskills },
+                set: { viewModel.pendingSubskills = $0 }
+            )) { $subskill in
+                VStack(spacing: AppSpacing.xxs) {
+                    HStack {
+                        Image(systemName: viewModel.iconName)
+                            .font(.body)
+                            .foregroundStyle(AppColors.teal)
+                            .frame(width: 24)
+
+                        Text(subskill.name)
+                            .font(AppTypography.body)
+
+                        Spacer()
+
+                        Text("\(Int(subskill.rating))%")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.teal)
+                            .frame(width: 40, alignment: .trailing)
+                    }
+
+                    Slider(value: $subskill.rating, in: 0...100, step: 1)
+                        .tint(AppColors.teal)
+                }
+            }
+            .onDelete { indexSet in
+                let subskills = viewModel.pendingSubskills
+                for index in indexSet {
+                    viewModel.removePendingSubskill(subskills[index])
+                }
+            }
+
+            HStack {
+                TextField("Subskill name", text: Binding(
+                    get: { viewModel.newSubskillName },
+                    set: { viewModel.newSubskillName = $0 }
+                ))
+
+                Button {
+                    viewModel.addPendingSubskill()
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(AppColors.teal)
+                }
+                .disabled(viewModel.newSubskillName.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        } header: {
+            Text("Subskills")
+        }
+    }
+
+    // MARK: - Existing Subskills (Edit Mode)
+
+    private func existingSubskillsSection(_ viewModel: AddEditSkillViewModel) -> some View {
         Section {
             if viewModel.subskills.isEmpty {
                 Text("No subskills yet. Add subskills to break this skill into smaller parts.")

@@ -10,6 +10,8 @@ final class SkillDetailViewModel {
     private(set) var hasSubskills: Bool = false
     private(set) var errorMessage: String?
 
+    var isParentSkill: Bool { skill.parentSkillId == nil }
+
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
 
@@ -86,11 +88,31 @@ final class SkillDetailViewModel {
 
     func archiveSkill() async {
         do {
+            // Archive the parent skill
             try await skillRepository.archive(skill.id)
+            // Also archive all subskills
+            for subskill in subskills {
+                try await skillRepository.archive(subskill.id)
+            }
             skill.status = .archived
             skill.archivedDate = Date()
         } catch {
             errorMessage = "Failed to archive skill."
+        }
+    }
+
+    func deleteSkill() async -> Bool {
+        do {
+            // Delete all subskills first
+            for subskill in subskills {
+                try await skillRepository.delete(subskill.id)
+            }
+            // Delete the skill itself
+            try await skillRepository.delete(skill.id)
+            return true
+        } catch {
+            errorMessage = "Failed to delete skill."
+            return false
         }
     }
 }
