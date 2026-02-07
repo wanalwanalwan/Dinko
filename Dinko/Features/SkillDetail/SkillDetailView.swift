@@ -123,10 +123,6 @@ struct SkillDetailView: View {
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColors.textSecondary)
             } else {
-                Text("out of 100%")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textSecondary)
-
                 Button {
                     showingRateSkill = true
                 } label: {
