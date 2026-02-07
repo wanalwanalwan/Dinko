@@ -210,24 +210,30 @@ struct SkillDetailView: View {
             }
 
             ForEach(viewModel.subskills) { subskill in
+                let rating = viewModel.subskillRatings[subskill.id] ?? 0
                 NavigationLink(value: subskill) {
-                    HStack {
-                        Text(subskill.name)
-                            .font(AppTypography.body)
-                            .foregroundStyle(AppColors.textPrimary)
+                    VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                        HStack {
+                            Text(subskill.name)
+                                .font(AppTypography.headline)
+                                .foregroundStyle(AppColors.textPrimary)
 
-                        Spacer()
+                            Spacer()
 
-                        let rating = viewModel.subskillRatings[subskill.id] ?? 0
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+
+                        ProgressBar(progress: Double(rating) / 100.0)
+
                         Text("\(rating)%")
-                            .font(AppTypography.ratingBadge)
-                            .foregroundStyle(rating > 0 ? AppColors.teal : AppColors.textSecondary)
-
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
+                            .font(AppTypography.caption)
                             .foregroundStyle(AppColors.textSecondary)
                     }
-                    .padding(.vertical, AppSpacing.xxs)
+                    .padding(AppSpacing.xs)
+                    .background(AppColors.background)
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
                 }
                 .buttonStyle(.plain)
             }
