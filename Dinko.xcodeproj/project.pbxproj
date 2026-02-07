@@ -51,6 +51,8 @@
 		D10000010000000000000011 /* ProgressCheckerRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */; };
 		E10000010000000000000001 /* SkillListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000001 /* SkillListViewModel.swift */; };
 		E10000010000000000000002 /* SkillListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000002 /* SkillListView.swift */; };
+		F10000010000000000000001 /* SkillDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000010000000000000001 /* SkillDetailViewModel.swift */; };
+		F10000010000000000000002 /* SkillDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000010000000000000002 /* SkillDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +120,8 @@
 		D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressCheckerRepositoryTests.swift; sourceTree = "<group>"; };
 		E20000010000000000000001 /* SkillListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListViewModel.swift; sourceTree = "<group>"; };
 		E20000010000000000000002 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
+		F20000010000000000000001 /* SkillDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillDetailViewModel.swift; sourceTree = "<group>"; };
+		F20000010000000000000002 /* SkillDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -339,6 +343,8 @@
 		A70000010000000000000082 /* SkillDetail */ = {
 			isa = PBXGroup;
 			children = (
+				F20000010000000000000001 /* SkillDetailViewModel.swift */,
+				F20000010000000000000002 /* SkillDetailView.swift */,
 			);
 			path = SkillDetail;
 			sourceTree = "<group>";
@@ -517,6 +523,8 @@
 				D10000010000000000000006 /* DependencyContainer.swift in Sources */,
 				E10000010000000000000001 /* SkillListViewModel.swift in Sources */,
 				E10000010000000000000002 /* SkillListView.swift in Sources */,
+				F10000010000000000000001 /* SkillDetailViewModel.swift in Sources */,
+				F10000010000000000000002 /* SkillDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
