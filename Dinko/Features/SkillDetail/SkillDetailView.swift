@@ -48,7 +48,9 @@ struct SkillDetailView: View {
                     ratingHistoryChart(viewModel)
                 }
 
-                subskillsSection(viewModel)
+                if viewModel.isParentSkill {
+                    subskillsSection(viewModel)
+                }
 
                 Spacer().frame(height: AppSpacing.xs)
 
