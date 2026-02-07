@@ -108,8 +108,8 @@ final class AddEditSkillViewModel {
                     hierarchyLevel: parentSkillId != nil ? 1 : 0,
                     category: category,
                     description: skillDescription.trimmingCharacters(in: .whitespaces),
-                    iconName: category.iconName,
-                    autoCalculateRating: !pendingSubskills.isEmpty
+                    autoCalculateRating: !pendingSubskills.isEmpty,
+                    iconName: category.iconName
                 )
                 try await skillRepository.save(newSkill)
 
@@ -121,8 +121,8 @@ final class AddEditSkillViewModel {
                         hierarchyLevel: 1,
                         category: category,
                         description: "",
-                        iconName: category.iconName,
-                        displayOrder: index
+                        displayOrder: index,
+                        iconName: category.iconName
                     )
                     try await skillRepository.save(subskill)
 
