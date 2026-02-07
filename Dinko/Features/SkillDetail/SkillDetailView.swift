@@ -113,13 +113,19 @@ struct SkillDetailView: View {
     // MARK: - Rating Hero
 
     private func ratingHero(_ viewModel: SkillDetailViewModel) -> some View {
-        VStack(spacing: AppSpacing.xs) {
+        let tier = SkillTier(rating: viewModel.latestRating)
+        return VStack(spacing: AppSpacing.xs) {
             Text(skill.iconName)
                 .font(.system(size: 56))
 
             Text("\(viewModel.latestRating)%")
                 .font(AppTypography.ratingLarge)
                 .foregroundStyle(AppColors.teal)
+
+            Text(tier.displayName)
+                .font(AppTypography.callout)
+                .fontWeight(.semibold)
+                .foregroundStyle(tier.color)
 
             if viewModel.hasSubskills {
                 Text("average of \(viewModel.subskills.count) subskills")
@@ -210,6 +216,8 @@ struct SkillDetailView: View {
 
             ForEach(viewModel.subskills) { subskill in
                 let rating = viewModel.subskillRatings[subskill.id] ?? 0
+                let subTier = SkillTier(rating: rating)
+                let delta = viewModel.subskillDeltas[subskill.id]
                 NavigationLink(value: subskill) {
                     VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                         HStack {
@@ -219,6 +227,12 @@ struct SkillDetailView: View {
 
                             Spacer()
 
+                            if let delta, delta != 0 {
+                                Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
+                                    .font(AppTypography.trendValue)
+                                    .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
+                            }
+
                             Image(systemName: "chevron.right")
                                 .font(.caption)
                                 .foregroundStyle(AppColors.textSecondary)
@@ -226,9 +240,10 @@ struct SkillDetailView: View {
 
                         ProgressBar(progress: Double(rating) / 100.0)
 
-                        Text("\(rating)%")
+                        Text(subTier.displayName)
                             .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(subTier.color)
                     }
                     .padding(AppSpacing.xs)
                     .background(AppColors.background)

@@ -56,6 +56,7 @@
 		G10000010000000000000001 /* AddEditSkillViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000010000000000000001 /* AddEditSkillViewModel.swift */; };
 		G10000010000000000000002 /* AddEditSkillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000010000000000000002 /* AddEditSkillView.swift */; };
 		H10000010000000000000001 /* RateSkillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000001 /* RateSkillView.swift */; };
+		I10000010000000000000001 /* SkillTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000001 /* SkillTier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +129,7 @@
 		G20000010000000000000001 /* AddEditSkillViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditSkillViewModel.swift; sourceTree = "<group>"; };
 		G20000010000000000000002 /* AddEditSkillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditSkillView.swift; sourceTree = "<group>"; };
 		H20000010000000000000001 /* RateSkillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateSkillView.swift; sourceTree = "<group>"; };
+		I20000010000000000000001 /* SkillTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTier.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -323,6 +325,7 @@
 				C20000010000000000000004 /* Session.swift */,
 				C20000010000000000000005 /* SkillCategory.swift */,
 				C20000010000000000000006 /* SkillStatus.swift */,
+				I20000010000000000000001 /* SkillTier.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -537,6 +540,7 @@
 				G10000010000000000000001 /* AddEditSkillViewModel.swift in Sources */,
 				G10000010000000000000002 /* AddEditSkillView.swift in Sources */,
 				H10000010000000000000001 /* RateSkillView.swift in Sources */,
+				I10000010000000000000001 /* SkillTier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

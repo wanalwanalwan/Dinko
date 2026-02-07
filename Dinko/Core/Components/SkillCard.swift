@@ -4,29 +4,43 @@ struct SkillCard: View {
     let skill: Skill
     let subskillCount: Int
     let rating: Int
+    var delta: Int?
+
+    private var tier: SkillTier { SkillTier(rating: rating) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            HStack {
+        HStack(alignment: .center, spacing: AppSpacing.sm) {
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Text(skill.name)
                     .font(AppTypography.headline)
                     .foregroundStyle(AppColors.textPrimary)
 
-                Spacer()
+                Text(tier.displayName)
+                    .font(AppTypography.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(tier.color)
 
-                Text(skill.iconName)
-                    .font(.title2)
+                ProgressBar(progress: Double(rating) / 100.0)
             }
 
-            Text("\(subskillCount) subskills")
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
+            Spacer()
 
-            ProgressBar(progress: Double(rating) / 100.0)
+            VStack(alignment: .trailing, spacing: AppSpacing.xxs) {
+                Text(skill.iconName)
+                    .font(.title2)
 
-            Text("\(rating)%")
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
+                if let delta {
+                    if delta > 0 {
+                        Text("+\(delta)%")
+                            .font(AppTypography.trendValue)
+                            .foregroundStyle(AppColors.successGreen)
+                    } else if delta < 0 {
+                        Text("\(delta)%")
+                            .font(AppTypography.trendValue)
+                            .foregroundStyle(AppColors.coral)
+                    }
+                }
+            }
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
@@ -39,17 +53,20 @@ struct SkillCard: View {
         SkillCard(
             skill: PreviewData.sampleServe,
             subskillCount: 3,
-            rating: 75
+            rating: 75,
+            delta: 3
         )
         SkillCard(
             skill: PreviewData.sampleDink,
             subskillCount: 2,
-            rating: 80
+            rating: 80,
+            delta: -2
         )
         SkillCard(
             skill: PreviewData.sampleVolley,
             subskillCount: 0,
-            rating: 0
+            rating: 0,
+            delta: nil
         )
     }
     .padding()

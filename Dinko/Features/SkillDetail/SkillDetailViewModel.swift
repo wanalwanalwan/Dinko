@@ -5,6 +5,7 @@ final class SkillDetailViewModel {
     private(set) var skill: Skill
     private(set) var subskills: [Skill] = []
     private(set) var subskillRatings: [UUID: Int] = [:]
+    private(set) var subskillDeltas: [UUID: Int] = [:]
     private(set) var ratings: [SkillRating] = []
     private(set) var latestRating: Int = 0
     private(set) var hasSubskills: Bool = false
@@ -44,6 +45,17 @@ final class SkillDetailViewModel {
                 }
             }
             subskillRatings = subRatings
+
+            // Compute subskill deltas
+            var deltas: [UUID: Int] = [:]
+            for sub in subskills {
+                let allRatings = try await skillRatingRepository.fetchForSkill(sub.id)
+                    .sorted { $0.date > $1.date }
+                if allRatings.count >= 2 {
+                    deltas[sub.id] = allRatings[0].rating - allRatings[1].rating
+                }
+            }
+            subskillDeltas = deltas
 
             if hasSubskills {
                 // Parent rating = average of subskill ratings
