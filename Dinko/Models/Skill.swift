@@ -28,7 +28,7 @@ struct Skill: Identifiable, Hashable {
         archivedDate: Date? = nil,
         displayOrder: Int = 0,
         autoCalculateRating: Bool = false,
-        iconName: String = "figure.pickleball"
+        iconName: String = "🥒"
     ) {
         self.id = id
         self.name = name

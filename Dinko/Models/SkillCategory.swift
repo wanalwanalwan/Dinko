@@ -17,13 +17,13 @@ enum SkillCategory: String, CaseIterable, Codable, Identifiable {
 
     var iconName: String {
         switch self {
-        case .dinking: return "figure.pickleball"
-        case .drops: return "arrow.down.right.circle.fill"
-        case .drives: return "bolt.fill"
-        case .defense: return "shield.fill"
-        case .offense: return "flame.fill"
-        case .strategy: return "brain.head.profile"
-        case .serves: return "arrow.up.forward"
+        case .dinking: return "🥒"
+        case .drops: return "⬇️"
+        case .drives: return "🚀"
+        case .defense: return "🛡️"
+        case .offense: return "🔥"
+        case .strategy: return "♟️"
+        case .serves: return "🎯"
         }
     }
 }

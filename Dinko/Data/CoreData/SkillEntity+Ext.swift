@@ -15,7 +15,7 @@ extension SkillEntity {
             archivedDate: archivedDate,
             displayOrder: Int(displayOrder),
             autoCalculateRating: autoCalculateRating,
-            iconName: iconName ?? "figure.pickleball"
+            iconName: iconName ?? "🥒"
         )
     }
 

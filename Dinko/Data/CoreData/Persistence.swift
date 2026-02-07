@@ -12,7 +12,7 @@ struct PersistenceController {
         skill.name = "Serve"
         skill.category = "offense"
         skill.status = "active"
-        skill.iconName = "figure.pickleball"
+        skill.iconName = "🎯"
         skill.createdDate = Date()
         skill.updatedAt = Date()
         skill.displayOrder = 0

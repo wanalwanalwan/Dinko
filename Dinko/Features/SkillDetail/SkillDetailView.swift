@@ -111,9 +111,8 @@ struct SkillDetailView: View {
 
     private func ratingHero(_ viewModel: SkillDetailViewModel) -> some View {
         VStack(spacing: AppSpacing.xs) {
-            Image(systemName: skill.iconName)
+            Text(skill.iconName)
                 .font(.system(size: 56))
-                .foregroundStyle(AppColors.teal)
 
             Text("\(viewModel.latestRating)%")
                 .font(AppTypography.ratingLarge)
@@ -213,9 +212,8 @@ struct SkillDetailView: View {
             ForEach(viewModel.subskills) { subskill in
                 NavigationLink(value: subskill) {
                     HStack {
-                        Image(systemName: subskill.iconName)
+                        Text(subskill.iconName)
                             .font(.body)
-                            .foregroundStyle(AppColors.teal)
                             .frame(width: 24)
 
                         Text(subskill.name)

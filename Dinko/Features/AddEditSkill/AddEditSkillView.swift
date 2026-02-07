@@ -161,9 +161,8 @@ struct AddEditSkillView: View {
             )) { $subskill in
                 VStack(spacing: AppSpacing.xxs) {
                     HStack {
-                        Image(systemName: viewModel.iconName)
+                        Text(viewModel.iconName)
                             .font(.body)
-                            .foregroundStyle(AppColors.teal)
                             .frame(width: 24)
 
                         Text(subskill.name)
@@ -219,9 +218,8 @@ struct AddEditSkillView: View {
 
             ForEach(viewModel.subskills) { subskill in
                 HStack {
-                    Image(systemName: subskill.iconName)
+                    Text(subskill.iconName)
                         .font(.body)
-                        .foregroundStyle(AppColors.teal)
                         .frame(width: 24)
 
                     Text(subskill.name)
