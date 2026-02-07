@@ -51,14 +51,15 @@ struct SkillDetailView: View {
                 if viewModel.isParentSkill {
                     subskillsSection(viewModel)
                 }
-
-                Spacer().frame(height: AppSpacing.xs)
-
-                actionButtons(viewModel)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
-            .padding(.bottom, AppSpacing.lg)
+
+            Spacer().frame(height: AppSpacing.xl)
+
+            actionButtons(viewModel)
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.lg)
         }
         .refreshable {
             await viewModel.loadDetail()
