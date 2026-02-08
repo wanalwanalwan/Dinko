@@ -8,7 +8,7 @@ final class SessionRepositoryImpl: SessionRepository {
     }
 
     func fetchAll() async throws -> [Session] {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SessionEntity.fetchRequest()
             request.sortDescriptors = [NSSortDescriptor(keyPath: \SessionEntity.date, ascending: false)]
@@ -18,7 +18,7 @@ final class SessionRepositoryImpl: SessionRepository {
     }
 
     func fetchById(_ id: UUID) async throws -> Session? {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SessionEntity.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", id as CVarArg)

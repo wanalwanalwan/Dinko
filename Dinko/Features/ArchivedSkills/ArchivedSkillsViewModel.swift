@@ -1,10 +1,11 @@
 import Foundation
 
+@MainActor
 @Observable
 final class ArchivedSkillsViewModel {
     private(set) var skills: [Skill] = []
     private(set) var latestRatings: [UUID: Int] = [:]
-    private(set) var errorMessage: String?
+    var errorMessage: String?
 
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository

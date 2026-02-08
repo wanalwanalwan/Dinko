@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 @Observable
 final class SkillDetailViewModel {
     private(set) var skill: Skill
@@ -9,7 +10,7 @@ final class SkillDetailViewModel {
     private(set) var ratings: [SkillRating] = []
     private(set) var latestRating: Int = 0
     private(set) var hasSubskills: Bool = false
-    private(set) var errorMessage: String?
+    var errorMessage: String?
 
     var isParentSkill: Bool { skill.parentSkillId == nil }
 

@@ -3,7 +3,7 @@
     <entity name="SkillEntity" representedClassName="SkillEntity" syncable="YES" codeGenerationType="class">
         <attribute name="archivedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="autoCalculateRating" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="category" attributeType="String" defaultValueString="general"/>
+        <attribute name="category" attributeType="String" defaultValueString="dinking"/>
         <attribute name="createdDate" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="descriptionText" optional="YES" attributeType="String"/>
         <attribute name="displayOrder" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

@@ -8,7 +8,7 @@ final class SkillRepositoryImpl: SkillRepository {
     }
 
     func fetchAll() async throws -> [Skill] {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SkillEntity.fetchRequest()
             request.sortDescriptors = [NSSortDescriptor(keyPath: \SkillEntity.displayOrder, ascending: true)]
@@ -18,7 +18,7 @@ final class SkillRepositoryImpl: SkillRepository {
     }
 
     func fetchActive() async throws -> [Skill] {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SkillEntity.fetchRequest()
             request.predicate = NSPredicate(format: "status == %@", "active")
@@ -29,7 +29,7 @@ final class SkillRepositoryImpl: SkillRepository {
     }
 
     func fetchArchived() async throws -> [Skill] {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SkillEntity.fetchRequest()
             request.predicate = NSPredicate(format: "status == %@", "archived")
@@ -40,7 +40,7 @@ final class SkillRepositoryImpl: SkillRepository {
     }
 
     func fetchById(_ id: UUID) async throws -> Skill? {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SkillEntity.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", id as CVarArg)

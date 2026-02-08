@@ -16,6 +16,14 @@ struct ArchivedSkillsView: View {
         .navigationDestination(for: Skill.self) { skill in
             SkillDetailView(skill: skill)
         }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel?.errorMessage != nil },
+            set: { if !$0 { viewModel?.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(viewModel?.errorMessage ?? "")
+        }
         .task {
             if viewModel == nil {
                 let vm = ArchivedSkillsViewModel(

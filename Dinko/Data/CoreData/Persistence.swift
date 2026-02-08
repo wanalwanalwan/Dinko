@@ -44,17 +44,29 @@ struct PersistenceController {
     }()
 
     let container: NSPersistentContainer
+    private(set) var loadError: NSError?
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "Dinko")
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         }
+        var storeError: NSError?
         container.loadPersistentStores { _, error in
             if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                storeError = error
+                // Fall back to in-memory store so the app doesn't crash
+                let description = NSPersistentStoreDescription()
+                description.type = NSInMemoryStoreType
+                container.persistentStoreDescriptions = [description]
+                container.loadPersistentStores { _, fallbackError in
+                    if fallbackError != nil {
+                        // In-memory fallback also failed; app will show error state
+                    }
+                }
             }
         }
+        loadError = storeError
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }

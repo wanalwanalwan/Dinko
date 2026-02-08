@@ -95,6 +95,14 @@ struct SkillDetailView: View {
                 Text("This will archive \"\(skill.name)\". You can restore it later.")
             }
         }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel?.errorMessage != nil },
+            set: { if !$0 { viewModel?.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(viewModel?.errorMessage ?? "")
+        }
         .alert("Delete Skill", isPresented: $showingDeleteConfirm) {
             Button("Delete", role: .destructive) {
                 Task {

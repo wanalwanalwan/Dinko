@@ -8,7 +8,7 @@ final class ProgressCheckerRepositoryImpl: ProgressCheckerRepository {
     }
 
     func fetchForSkill(_ skillId: UUID) async throws -> [ProgressChecker] {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = ProgressCheckerEntity.fetchRequest()
             request.predicate = NSPredicate(format: "skillId == %@", skillId as CVarArg)

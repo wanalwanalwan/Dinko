@@ -1,12 +1,13 @@
 import Foundation
 
+@MainActor
 @Observable
 final class SkillListViewModel {
     private(set) var skills: [Skill] = []
     private(set) var subskillCounts: [UUID: Int] = [:]
     private(set) var latestRatings: [UUID: Int] = [:]
     private(set) var ratingDeltas: [UUID: Int] = [:]
-    private(set) var errorMessage: String?
+    var errorMessage: String?
 
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository

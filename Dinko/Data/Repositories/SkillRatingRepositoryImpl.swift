@@ -8,7 +8,7 @@ final class SkillRatingRepositoryImpl: SkillRatingRepository {
     }
 
     func fetchForSkill(_ skillId: UUID) async throws -> [SkillRating] {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SkillRatingEntity.fetchRequest()
             request.predicate = NSPredicate(format: "skillId == %@", skillId as CVarArg)
@@ -19,7 +19,7 @@ final class SkillRatingRepositoryImpl: SkillRatingRepository {
     }
 
     func fetchLatest(_ skillId: UUID) async throws -> SkillRating? {
-        let context = persistence.container.viewContext
+        let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SkillRatingEntity.fetchRequest()
             request.predicate = NSPredicate(format: "skillId == %@", skillId as CVarArg)

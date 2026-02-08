@@ -6,6 +6,7 @@ struct PendingSubskill: Identifiable {
     var rating: Double = 0
 }
 
+@MainActor
 @Observable
 final class AddEditSkillViewModel {
     var name: String = ""
