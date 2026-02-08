@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -File - <<'PS1'\nCopy-Item -Path \"C:\\\\Users\\\\mimia\\\\OneDrive\\\\Desktop\\\\icon-1770543722228-2.png\" -Destination \"C:\\\\Users\\\\mimia\\\\Dinko\\\\Dinko\\\\Assets.xcassets\\\\AppIcon.appiconset\\\\appicon.png\" -Force\nCopy-Item -Path \"C:\\\\Users\\\\mimia\\\\OneDrive\\\\Desktop\\\\icon-1770543722228-2.png\" -Destination \"C:\\\\Users\\\\mimia\\\\Dinko\\\\Dinko\\\\Assets.xcassets\\\\AppIconImage.imageset\\\\appicon.png\" -Force\nWrite-Host \"Done\"\nPS1)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}
