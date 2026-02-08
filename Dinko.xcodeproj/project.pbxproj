@@ -57,6 +57,8 @@
 		G10000010000000000000002 /* AddEditSkillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000010000000000000002 /* AddEditSkillView.swift */; };
 		H10000010000000000000001 /* RateSkillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000001 /* RateSkillView.swift */; };
 		I10000010000000000000001 /* SkillTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000001 /* SkillTier.swift */; };
+		J10000010000000000000001 /* ArchivedSkillsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000001 /* ArchivedSkillsViewModel.swift */; };
+		J10000010000000000000002 /* ArchivedSkillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* ArchivedSkillsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -130,6 +132,8 @@
 		G20000010000000000000002 /* AddEditSkillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditSkillView.swift; sourceTree = "<group>"; };
 		H20000010000000000000001 /* RateSkillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateSkillView.swift; sourceTree = "<group>"; };
 		I20000010000000000000001 /* SkillTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTier.swift; sourceTree = "<group>"; };
+		J20000010000000000000001 /* ArchivedSkillsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedSkillsViewModel.swift; sourceTree = "<group>"; };
+		J20000010000000000000002 /* ArchivedSkillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedSkillsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -336,6 +340,7 @@
 				A70000010000000000000081 /* SkillList */,
 				A70000010000000000000082 /* SkillDetail */,
 				A70000010000000000000083 /* AddEditSkill */,
+				A70000010000000000000084 /* ArchivedSkills */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -366,6 +371,15 @@
 				G20000010000000000000002 /* AddEditSkillView.swift */,
 			);
 			path = AddEditSkill;
+			sourceTree = "<group>";
+		};
+		A70000010000000000000084 /* ArchivedSkills */ = {
+			isa = PBXGroup;
+			children = (
+				J20000010000000000000001 /* ArchivedSkillsViewModel.swift */,
+				J20000010000000000000002 /* ArchivedSkillsView.swift */,
+			);
+			path = ArchivedSkills;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -541,6 +555,8 @@
 				G10000010000000000000002 /* AddEditSkillView.swift in Sources */,
 				H10000010000000000000001 /* RateSkillView.swift in Sources */,
 				I10000010000000000000001 /* SkillTier.swift in Sources */,
+				J10000010000000000000001 /* ArchivedSkillsViewModel.swift in Sources */,
+				J10000010000000000000002 /* ArchivedSkillsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

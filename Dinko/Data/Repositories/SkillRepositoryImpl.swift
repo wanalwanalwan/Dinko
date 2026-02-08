@@ -28,6 +28,17 @@ final class SkillRepositoryImpl: SkillRepository {
         }
     }
 
+    func fetchArchived() async throws -> [Skill] {
+        let context = persistence.container.viewContext
+        return try await context.perform {
+            let request = SkillEntity.fetchRequest()
+            request.predicate = NSPredicate(format: "status == %@", "archived")
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \SkillEntity.archivedDate, ascending: false)]
+            let entities = try context.fetch(request)
+            return entities.map { $0.toDomain() }
+        }
+    }
+
     func fetchById(_ id: UUID) async throws -> Skill? {
         let context = persistence.container.viewContext
         return try await context.perform {

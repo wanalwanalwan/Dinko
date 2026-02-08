@@ -3,6 +3,7 @@ import Foundation
 protocol SkillRepository {
     func fetchAll() async throws -> [Skill]
     func fetchActive() async throws -> [Skill]
+    func fetchArchived() async throws -> [Skill]
     func fetchById(_ id: UUID) async throws -> Skill?
     func save(_ skill: Skill) async throws
     func delete(_ id: UUID) async throws
