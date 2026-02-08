@@ -28,8 +28,8 @@ final class SkillDetailViewModel {
 
     func loadDetail() async {
         do {
-            // Load subskills
-            let allSkills = try await skillRepository.fetchActive()
+            // Load subskills (use fetchAll so archived subskills are included)
+            let allSkills = try await skillRepository.fetchAll()
             subskills = allSkills
                 .filter { $0.parentSkillId == skill.id }
                 .sorted { $0.displayOrder < $1.displayOrder }

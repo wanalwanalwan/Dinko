@@ -101,7 +101,7 @@ private struct ArchivedSkillCard: View {
                 RatingBadge(
                     rating: rating,
                     size: 44,
-                    ringColor: tier.color,
+                    ringColor: isWeapon ? AppColors.successGreen : tier.color,
                     showCheckmark: isWeapon
                 )
             }

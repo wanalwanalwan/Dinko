@@ -133,7 +133,7 @@ struct SkillDetailView: View {
                 .background(tier.color.opacity(0.15))
                 .clipShape(Capsule())
 
-            if !viewModel.hasSubskills {
+            if !viewModel.hasSubskills && skill.status == .active {
                 Button {
                     showingRateSkill = true
                 } label: {
@@ -199,11 +199,13 @@ struct SkillDetailView: View {
 
                 Spacer()
 
-                Button {
-                    showingAddSubskill = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(AppColors.teal)
+                if skill.status == .active {
+                    Button {
+                        showingAddSubskill = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(AppColors.teal)
+                    }
                 }
             }
             .padding(.bottom, AppSpacing.xs)
