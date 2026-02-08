@@ -1,25 +1,35 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        TabView {
-            NavigationStack {
-                SkillListView()
-            }
-            .tabItem {
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                Text("Progress")
-            }
+    @State private var showSplash = true
 
-            NavigationStack {
-                ArchivedSkillsView()
+    var body: some View {
+        ZStack {
+            TabView {
+                NavigationStack {
+                    SkillListView()
+                }
+                .tabItem {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    Text("Progress")
+                }
+
+                NavigationStack {
+                    ArchivedSkillsView()
+                }
+                .tabItem {
+                    Image(systemName: "archivebox")
+                    Text("Archived")
+                }
             }
-            .tabItem {
-                Image(systemName: "archivebox")
-                Text("Archived")
+            .tint(AppColors.teal)
+
+            if showSplash {
+                SplashScreenView {
+                    showSplash = false
+                }
             }
         }
-        .tint(AppColors.teal)
     }
 }
 

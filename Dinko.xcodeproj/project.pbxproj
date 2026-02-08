@@ -59,6 +59,7 @@
 		I10000010000000000000001 /* SkillTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000001 /* SkillTier.swift */; };
 		J10000010000000000000001 /* ArchivedSkillsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000001 /* ArchivedSkillsViewModel.swift */; };
 		J10000010000000000000002 /* ArchivedSkillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* ArchivedSkillsView.swift */; };
+		K10000010000000000000001 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = K20000010000000000000001 /* SplashScreenView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,6 +135,7 @@
 		I20000010000000000000001 /* SkillTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTier.swift; sourceTree = "<group>"; };
 		J20000010000000000000001 /* ArchivedSkillsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedSkillsViewModel.swift; sourceTree = "<group>"; };
 		J20000010000000000000002 /* ArchivedSkillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedSkillsView.swift; sourceTree = "<group>"; };
+		K20000010000000000000001 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -227,6 +229,7 @@
 			isa = PBXGroup;
 			children = (
 				A20000010000000000000002 /* ContentView.swift */,
+				K20000010000000000000001 /* SplashScreenView.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -514,6 +517,7 @@
 			files = (
 				A10000010000000000000001 /* DinkoApp.swift in Sources */,
 				A10000010000000000000002 /* ContentView.swift in Sources */,
+				K10000010000000000000001 /* SplashScreenView.swift in Sources */,
 				B10000010000000000000001 /* Color+Hex.swift in Sources */,
 				B10000010000000000000002 /* Colors.swift in Sources */,
 				B10000010000000000000003 /* Typography.swift in Sources */,
