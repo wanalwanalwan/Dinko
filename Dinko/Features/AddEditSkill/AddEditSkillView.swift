@@ -64,7 +64,7 @@ struct AddEditSkillView: View {
                 .padding(.top, AppSpacing.xs)
                 .padding(.bottom, AppSpacing.xl)
             }
-            .background(AppColors.background)
+            .background(AppColors.cardBackground)
             .navigationTitle(viewModel.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -151,7 +151,7 @@ struct AddEditSkillView: View {
                             .foregroundStyle(AppColors.textSecondary)
                     }
                     .padding(AppSpacing.xs)
-                    .background(AppColors.background)
+                    .background(AppColors.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xxs))
                 }
             }
@@ -181,7 +181,7 @@ struct AddEditSkillView: View {
             }
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
+        .background(AppColors.background)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
@@ -218,7 +218,7 @@ struct AddEditSkillView: View {
                 .foregroundStyle(AppColors.textSecondary)
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
+        .background(AppColors.background)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
@@ -262,7 +262,7 @@ struct AddEditSkillView: View {
                 .disabled(viewModel.newSubskillName.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             .padding(AppSpacing.xs)
-            .background(AppColors.cardBackground)
+            .background(AppColors.background)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
 
             // Pending subskill chips
@@ -290,7 +290,7 @@ struct AddEditSkillView: View {
                 }
                 .padding(.vertical, AppSpacing.xs)
                 .padding(.horizontal, AppSpacing.xxs)
-                .background(AppColors.cardBackground)
+                .background(AppColors.background)
                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
             }
         }
@@ -331,7 +331,7 @@ struct AddEditSkillView: View {
                 }
                 .padding(.vertical, AppSpacing.xs)
                 .padding(.horizontal, AppSpacing.xxs)
-                .background(AppColors.cardBackground)
+                .background(AppColors.background)
                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
             }
 
