@@ -12,6 +12,7 @@ final class SkillRepositoryImpl: SkillRepository {
         return try await context.perform {
             let request = SkillEntity.fetchRequest()
             request.sortDescriptors = [NSSortDescriptor(keyPath: \SkillEntity.displayOrder, ascending: true)]
+            request.fetchLimit = 500
             let entities = try context.fetch(request)
             return entities.map { $0.toDomain() }
         }
@@ -23,6 +24,7 @@ final class SkillRepositoryImpl: SkillRepository {
             let request = SkillEntity.fetchRequest()
             request.predicate = NSPredicate(format: "status == %@", "active")
             request.sortDescriptors = [NSSortDescriptor(keyPath: \SkillEntity.displayOrder, ascending: true)]
+            request.fetchLimit = 500
             let entities = try context.fetch(request)
             return entities.map { $0.toDomain() }
         }
@@ -34,6 +36,7 @@ final class SkillRepositoryImpl: SkillRepository {
             let request = SkillEntity.fetchRequest()
             request.predicate = NSPredicate(format: "status == %@", "archived")
             request.sortDescriptors = [NSSortDescriptor(keyPath: \SkillEntity.archivedDate, ascending: false)]
+            request.fetchLimit = 500
             let entities = try context.fetch(request)
             return entities.map { $0.toDomain() }
         }

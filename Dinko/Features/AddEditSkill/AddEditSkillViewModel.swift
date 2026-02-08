@@ -34,7 +34,10 @@ final class AddEditSkillViewModel {
         if isEditing { return "Edit Skill" }
         return parentSkillId != nil ? "New Subskill" : "New Skill"
     }
-    var isValid: Bool { !name.trimmingCharacters(in: .whitespaces).isEmpty }
+    var isValid: Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        return !trimmed.isEmpty && trimmed.count <= 200
+    }
 
     /// Show inline subskill creation when creating a new top-level skill
     var showInlineSubskills: Bool { !isEditing && parentSkillId == nil }

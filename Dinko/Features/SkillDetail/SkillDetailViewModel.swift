@@ -84,10 +84,11 @@ final class SkillDetailViewModel {
     }
 
     func saveRating(_ rating: Int, notes: String?) async -> Bool {
+        let clampedRating = min(max(rating, 0), 100)
         do {
             let newRating = SkillRating(
                 skillId: skill.id,
-                rating: rating,
+                rating: clampedRating,
                 notes: notes
             )
             try await skillRatingRepository.save(newRating)
@@ -107,9 +108,12 @@ final class SkillDetailViewModel {
             for subskill in subskills {
                 try await skillRepository.archive(subskill.id)
             }
+            // Only update local state after repo confirms success
             skill.status = .archived
             skill.archivedDate = Date()
         } catch {
+            // Reload to get the true state from the database
+            await loadDetail()
             errorMessage = "Failed to archive skill."
         }
     }

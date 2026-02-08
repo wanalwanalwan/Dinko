@@ -72,7 +72,7 @@ struct RateSkillView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         isSaving = true
-                        Task {
+                        Task { @MainActor in
                             let trimmedNotes = notes.trimmingCharacters(in: .whitespaces)
                             let success = await onSave(Int(rating), trimmedNotes.isEmpty ? nil : trimmedNotes)
                             isSaving = false

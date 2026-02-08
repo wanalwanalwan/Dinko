@@ -31,27 +31,27 @@ struct SplashScreenView: View {
                 .opacity(iconOpacity)
         }
         .opacity(backgroundOpacity)
-        .onAppear {
+        .task {
             // Phase 1: Zoom in with spring
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                 iconScale = 1.0
             }
 
             // Phase 2: Hold, then fade out
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    iconScale = 1.15
-                    iconOpacity = 0.0
-                }
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    backgroundOpacity = 0.0
-                }
+            try? await Task.sleep(for: .seconds(1.2))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                iconScale = 1.15
+                iconOpacity = 0.0
+            }
+            withAnimation(.easeInOut(duration: 0.6)) {
+                backgroundOpacity = 0.0
             }
 
             // Phase 3: Complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.9) {
-                onFinished()
-            }
+            try? await Task.sleep(for: .seconds(0.7))
+            guard !Task.isCancelled else { return }
+            onFinished()
         }
     }
 }

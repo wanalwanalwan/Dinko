@@ -214,6 +214,7 @@ struct SkillDetailView: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundStyle(AppColors.teal)
                     }
+                    .accessibilityLabel("Add Subskill")
                 }
             }
             .padding(.bottom, AppSpacing.xs)

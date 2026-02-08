@@ -12,6 +12,7 @@ final class SessionRepositoryImpl: SessionRepository {
         return try await context.perform {
             let request = SessionEntity.fetchRequest()
             request.sortDescriptors = [NSSortDescriptor(keyPath: \SessionEntity.date, ascending: false)]
+            request.fetchLimit = 500
             let entities = try context.fetch(request)
             return entities.map { $0.toDomain() }
         }

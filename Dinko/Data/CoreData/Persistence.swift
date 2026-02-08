@@ -37,7 +37,9 @@ struct PersistenceController {
         do {
             try viewContext.save()
         } catch {
+            #if DEBUG
             fatalError("Preview PersistenceController save error: \(error)")
+            #endif
         }
 
         return controller

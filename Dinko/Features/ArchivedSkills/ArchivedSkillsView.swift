@@ -87,14 +87,18 @@ private struct ArchivedSkillCard: View {
     let skill: Skill
     let rating: Int
 
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, yyyy"
+        return formatter
+    }()
+
     private var tier: SkillTier { SkillTier(rating: rating) }
     private var isWeapon: Bool { tier == .weapon }
 
     private var completedDateText: String {
         guard let date = skill.archivedDate else { return "" }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter.string(from: date)
+        return Self.dateFormatter.string(from: date)
     }
 
     var body: some View {

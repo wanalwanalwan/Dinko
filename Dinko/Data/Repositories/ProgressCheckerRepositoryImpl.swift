@@ -13,6 +13,7 @@ final class ProgressCheckerRepositoryImpl: ProgressCheckerRepository {
             let request = ProgressCheckerEntity.fetchRequest()
             request.predicate = NSPredicate(format: "skillId == %@", skillId as CVarArg)
             request.sortDescriptors = [NSSortDescriptor(keyPath: \ProgressCheckerEntity.displayOrder, ascending: true)]
+            request.fetchLimit = 500
             let entities = try context.fetch(request)
             return entities.map { $0.toDomain() }
         }
