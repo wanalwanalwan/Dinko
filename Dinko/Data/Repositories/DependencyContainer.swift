@@ -7,7 +7,10 @@ final class DependencyContainer {
     let skillRatingRepository: SkillRatingRepository
     let sessionRepository: SessionRepository
 
+    let persistenceError: NSError?
+
     init(persistence: PersistenceController = .shared) {
+        self.persistenceError = persistence.loadError
         self.skillRepository = SkillRepositoryImpl(persistence: persistence)
         self.progressCheckerRepository = ProgressCheckerRepositoryImpl(persistence: persistence)
         self.skillRatingRepository = SkillRatingRepositoryImpl(persistence: persistence)
