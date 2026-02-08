@@ -1,6 +1,6 @@
 import CoreData
 
-class PersistenceController {
+final class PersistenceController {
     static let shared = PersistenceController()
 
     static var preview: PersistenceController = {
@@ -50,18 +50,19 @@ class PersistenceController {
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "Dinko")
+        let persistentContainer = container
         if inMemory {
-            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+            persistentContainer.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         }
         var storeError: NSError?
-        container.loadPersistentStores { _, error in
+        persistentContainer.loadPersistentStores { _, error in
             if let error = error as NSError? {
                 storeError = error
                 // Fall back to in-memory store so the app doesn't crash
                 let description = NSPersistentStoreDescription()
                 description.type = NSInMemoryStoreType
-                container.persistentStoreDescriptions = [description]
-                container.loadPersistentStores { _, fallbackError in
+                persistentContainer.persistentStoreDescriptions = [description]
+                persistentContainer.loadPersistentStores { _, fallbackError in
                     if fallbackError != nil {
                         // In-memory fallback also failed; app will show error state
                     }
@@ -69,8 +70,8 @@ class PersistenceController {
             }
         }
         loadError = storeError
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 
     func newBackgroundContext() -> NSManagedObjectContext {
