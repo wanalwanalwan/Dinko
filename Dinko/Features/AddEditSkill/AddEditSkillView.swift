@@ -188,38 +188,54 @@ struct AddEditSkillView: View {
     // MARK: - Starting Level Card
 
     private func startingLevelCard(_ viewModel: AddEditSkillViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("Starting Level")
-                .font(AppTypography.headline)
-                .foregroundStyle(AppColors.textPrimary)
+        let isAutoCalculated = viewModel.hasSubskillRatings
+        let displayRating = isAutoCalculated ? viewModel.averageSubskillRating : Int(viewModel.initialRating)
 
-            Text("Give yourself an honest baseline")
+        return VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack {
+                Text("Starting Level")
+                    .font(AppTypography.headline)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                if isAutoCalculated {
+                    Text("· avg of subskills")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+
+            Text(isAutoCalculated
+                 ? "Computed from your subskill ratings below"
+                 : "Give yourself an honest baseline")
                 .font(AppTypography.caption)
                 .foregroundStyle(AppColors.textSecondary)
 
-            Text("\(Int(viewModel.initialRating))%")
+            Text("\(displayRating)%")
                 .font(AppTypography.ratingLarge)
                 .foregroundStyle(AppColors.teal)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.xxs)
 
-            Slider(
-                value: Binding(
-                    get: { viewModel.initialRating },
-                    set: { viewModel.initialRating = $0 }
-                ),
-                in: 0...100,
-                step: 1
-            )
-            .tint(AppColors.teal)
+            if !isAutoCalculated {
+                Slider(
+                    value: Binding(
+                        get: { viewModel.initialRating },
+                        set: { viewModel.initialRating = $0 }
+                    ),
+                    in: 0...100,
+                    step: 1
+                )
+                .tint(AppColors.teal)
 
-            Text("You can skip this and rate later")
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
+                Text("You can skip this and rate later")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
         }
         .padding(AppSpacing.sm)
         .background(AppColors.background)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .animation(.easeInOut(duration: 0.2), value: isAutoCalculated)
     }
 
     // MARK: - Break It Down (Inline Subskills)
@@ -265,28 +281,42 @@ struct AddEditSkillView: View {
             .background(AppColors.background)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
 
-            // Pending subskill chips
-            ForEach(viewModel.pendingSubskills) { subskill in
-                HStack(spacing: 0) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(AppColors.teal)
-                        .frame(width: 4)
+            // Pending subskill chips with rating
+            ForEach(Binding(
+                get: { viewModel.pendingSubskills },
+                set: { viewModel.pendingSubskills = $0 }
+            )) { $subskill in
+                VStack(spacing: AppSpacing.xxs) {
+                    HStack(spacing: 0) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(AppColors.teal)
+                            .frame(width: 4)
 
-                    Text(subskill.name)
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textPrimary)
-                        .padding(.leading, AppSpacing.xs)
+                        Text(subskill.name)
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textPrimary)
+                            .padding(.leading, AppSpacing.xs)
 
-                    Spacer()
+                        Spacer()
 
-                    Button {
-                        viewModel.removePendingSubskill(subskill)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                            .padding(AppSpacing.xxs)
+                        Text("\(Int(subskill.rating))%")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.teal)
+                            .frame(width: 36, alignment: .trailing)
+
+                        Button {
+                            viewModel.removePendingSubskill(subskill)
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .padding(AppSpacing.xxs)
+                        }
                     }
+
+                    Slider(value: $subskill.rating, in: 0...100, step: 1)
+                        .tint(AppColors.teal)
+                        .padding(.leading, AppSpacing.xs)
                 }
                 .padding(.vertical, AppSpacing.xs)
                 .padding(.horizontal, AppSpacing.xxs)

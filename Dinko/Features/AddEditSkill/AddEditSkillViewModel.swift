@@ -44,6 +44,16 @@ final class AddEditSkillViewModel {
     /// Show initial rating slider when creating any new skill (not editing)
     var showInitialRating: Bool { !isEditing }
 
+    /// Whether subskills drive the parent rating
+    var hasSubskillRatings: Bool { !pendingSubskills.isEmpty }
+
+    /// Average of pending subskill ratings (0 if none rated)
+    var averageSubskillRating: Int {
+        guard !pendingSubskills.isEmpty else { return 0 }
+        let total = pendingSubskills.reduce(0.0) { $0 + $1.rating }
+        return Int(total / Double(pendingSubskills.count))
+    }
+
     init(
         skill: Skill? = nil,
         parentSkillId: UUID? = nil,

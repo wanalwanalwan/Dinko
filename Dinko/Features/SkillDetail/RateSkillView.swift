@@ -58,9 +58,14 @@ struct RateSkillView: View {
             }
             .padding(.horizontal, AppSpacing.lg)
             .background(AppColors.cardBackground)
-            .navigationTitle("Rate \(skillName)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Rate \(skillName)")
+                        .font(AppTypography.headline)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
