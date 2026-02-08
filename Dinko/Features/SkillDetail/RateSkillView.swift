@@ -26,26 +26,38 @@ struct RateSkillView: View {
                     .font(AppTypography.ratingLarge)
                     .foregroundStyle(AppColors.teal)
 
-                Slider(value: $rating, in: 0...100, step: 1) {
-                    Text("Rating")
-                } minimumValueLabel: {
-                    Text("0")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                } maximumValueLabel: {
-                    Text("100")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-                .tint(AppColors.teal)
+                VStack(spacing: AppSpacing.xxxs) {
+                    HStack {
+                        Text("0")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Spacer()
+                        Text("100")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
 
-                TextField("Notes (optional)", text: $notes, axis: .vertical)
-                    .lineLimit(2...4)
-                    .textFieldStyle(.roundedBorder)
+                    Slider(value: $rating, in: 0...100, step: 1)
+                        .tint(AppColors.teal)
+                }
+
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    TextField("Notes (optional)", text: $notes, axis: .vertical)
+                        .font(AppTypography.body)
+                        .lineLimit(3...6)
+                        .padding(AppSpacing.xs)
+                        .background(AppColors.background)
+                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+
+                    Text("Record what went well or what you'd like to improve")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.teal)
+                }
 
                 Spacer()
             }
             .padding(.horizontal, AppSpacing.lg)
+            .background(AppColors.cardBackground)
             .navigationTitle("Rate \(skillName)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
