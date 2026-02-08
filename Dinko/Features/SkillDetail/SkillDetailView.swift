@@ -96,12 +96,12 @@ struct SkillDetailView: View {
             }
         }
         .alert("Error", isPresented: Binding(
-            get: { viewModel?.errorMessage != nil },
-            set: { if !$0 { viewModel?.errorMessage = nil } }
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
         )) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(viewModel?.errorMessage ?? "")
+            Text(viewModel.errorMessage ?? "")
         }
         .alert("Delete Skill", isPresented: $showingDeleteConfirm) {
             Button("Delete", role: .destructive) {
