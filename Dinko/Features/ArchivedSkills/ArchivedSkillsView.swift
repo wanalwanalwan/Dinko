@@ -126,16 +126,14 @@ private struct ArchivedSkillCard: View {
                 .background(tier.color.opacity(0.15))
                 .clipShape(Capsule())
 
-            HStack {
-                Text("Completed")
+            HStack(spacing: AppSpacing.xxxs) {
+                Text("Archived")
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColors.textSecondary)
 
-                Spacer()
-
                 Text(completedDateText)
                     .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textPrimary)
+                    .foregroundStyle(AppColors.textSecondary)
             }
             .padding(.top, AppSpacing.xxxs)
         }
