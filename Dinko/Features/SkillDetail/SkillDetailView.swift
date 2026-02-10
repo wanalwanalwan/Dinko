@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 
 struct SkillDetailView: View {
     @Environment(\.dependencies) private var dependencies
@@ -52,7 +51,6 @@ struct SkillDetailView: View {
                         subskillsSection(viewModel)
                     }
 
-                    ratingHistoryChart(viewModel)
                     ratingNotesSection(viewModel)
 
                     Spacer(minLength: 0)
@@ -143,6 +141,26 @@ struct SkillDetailView: View {
                 .background(tier.color.opacity(0.15))
                 .clipShape(Capsule())
 
+            HStack(spacing: AppSpacing.xxxs) {
+                Text(viewModel.lastUpdatedText)
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+
+                if let delta = viewModel.weeklyDelta, delta != 0 {
+                    Text("·")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Image(systemName: delta > 0 ? "arrow.up.right" : "arrow.down.right")
+                        .font(.system(size: 10))
+                        .foregroundStyle(delta > 0 ? AppColors.teal : AppColors.coral)
+
+                    Text(delta > 0 ? "+\(delta)% this week" : "\(delta)% this week")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(delta > 0 ? AppColors.teal : AppColors.coral)
+                }
+            }
+
             if !viewModel.hasSubskills && skill.status == .active {
                 Button {
                     showingRateSkill = true
@@ -160,42 +178,6 @@ struct SkillDetailView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.lg)
-    }
-
-    // MARK: - Rating History Chart
-
-    @ViewBuilder
-    private func ratingHistoryChart(_ viewModel: SkillDetailViewModel) -> some View {
-        if viewModel.chartRatings.count >= 2 {
-            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                Text("Rating History")
-                    .font(AppTypography.headline)
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Chart {
-                    ForEach(viewModel.chartRatings) { rating in
-                        LineMark(
-                            x: .value("Date", rating.date),
-                            y: .value("Rating", rating.rating)
-                        )
-                        .foregroundStyle(AppColors.coral)
-                        .interpolationMethod(.linear)
-
-                        PointMark(
-                            x: .value("Date", rating.date),
-                            y: .value("Rating", rating.rating)
-                        )
-                        .foregroundStyle(AppColors.coral)
-                        .symbolSize(30)
-                    }
-                }
-                .chartYScale(domain: 0...100)
-                .frame(height: 200)
-            }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        }
     }
 
     // MARK: - Subskills

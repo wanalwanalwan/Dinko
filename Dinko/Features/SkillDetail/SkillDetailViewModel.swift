@@ -9,26 +9,24 @@ final class SkillDetailViewModel {
     private(set) var subskillDeltas: [UUID: Int] = [:]
     private(set) var ratings: [SkillRating] = []
     private(set) var latestRating: Int = 0
+    private(set) var weeklyDelta: Int?
     private(set) var hasSubskills: Bool = false
     var errorMessage: String?
 
     var isParentSkill: Bool { skill.parentSkillId == nil }
 
-    /// Ratings deduplicated to the last entry per calendar day, for chart display
-    var chartRatings: [SkillRating] {
+    var lastUpdatedText: String {
         let calendar = Calendar.current
-        var lastPerDay: [DateComponents: SkillRating] = [:]
-        for rating in ratings {
-            let day = calendar.dateComponents([.year, .month, .day], from: rating.date)
-            if let existing = lastPerDay[day] {
-                if rating.date >= existing.date {
-                    lastPerDay[day] = rating
-                }
-            } else {
-                lastPerDay[day] = rating
-            }
+        let days = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: skill.updatedAt),
+            to: calendar.startOfDay(for: Date())
+        ).day ?? 0
+        switch days {
+        case 0: return "Last updated today"
+        case 1: return "Last updated yesterday"
+        default: return "Last updated \(days) days ago"
         }
-        return lastPerDay.values.sorted { $0.date < $1.date }
     }
 
     private let skillRepository: SkillRepository
@@ -79,41 +77,7 @@ final class SkillDetailViewModel {
                 // Parent rating = average of subskill ratings
                 let rated = subRatings.values.filter { $0 > 0 }
                 latestRating = rated.isEmpty ? 0 : rated.reduce(0, +) / rated.count
-
-                // Build synthetic rating history from subskill averages per date
-                var allSubRatings: [SkillRating] = []
-                for sub in subskills {
-                    let subHistory = try await skillRatingRepository.fetchForSkill(sub.id)
-                    allSubRatings.append(contentsOf: subHistory)
-                }
-
-                let calendar = Calendar.current
-                // Get all unique dates across subskills
-                let uniqueDays = Set(allSubRatings.map { calendar.startOfDay(for: $0.date) })
-                    .sorted()
-
-                var syntheticRatings: [SkillRating] = []
-                for day in uniqueDays {
-                    // For each day, compute the average using the latest known rating for each subskill up to that day
-                    var dayAverages: [Int] = []
-                    for sub in subskills {
-                        let subHistory = allSubRatings
-                            .filter { $0.skillId == sub.id && $0.date <= calendar.date(byAdding: .day, value: 1, to: day)! }
-                            .sorted { $0.date < $1.date }
-                        if let latest = subHistory.last {
-                            dayAverages.append(latest.rating)
-                        }
-                    }
-                    if !dayAverages.isEmpty {
-                        let avg = dayAverages.reduce(0, +) / dayAverages.count
-                        syntheticRatings.append(SkillRating(
-                            skillId: skill.id,
-                            rating: avg,
-                            date: day
-                        ))
-                    }
-                }
-                ratings = syntheticRatings
+                ratings = []
             } else {
                 // Direct ratings
                 ratings = try await skillRatingRepository.fetchForSkill(skill.id)
@@ -124,6 +88,16 @@ final class SkillDetailViewModel {
                 } else {
                     latestRating = 0
                 }
+            }
+
+            // Compute weekly delta for this skill
+            let calendar = Calendar.current
+            let oneWeekAgo = calendar.date(byAdding: .weekOfYear, value: -1, to: Date())!
+            let recentRatings = ratings.filter { $0.date >= oneWeekAgo }.sorted { $0.date < $1.date }
+            if let oldest = recentRatings.first, let newest = recentRatings.last, oldest.id != newest.id {
+                weeklyDelta = newest.rating - oldest.rating
+            } else {
+                weeklyDelta = nil
             }
 
             errorMessage = nil
