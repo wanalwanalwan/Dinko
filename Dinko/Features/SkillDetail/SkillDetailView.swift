@@ -182,10 +182,10 @@ struct SkillDetailView: View {
     // MARK: - Subskills
 
     private func subskillsSection(_ viewModel: SkillDetailViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("SUBSKILLS")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
 
                 Spacer()
@@ -194,72 +194,52 @@ struct SkillDetailView: View {
                     Button {
                         showingAddSubskill = true
                     } label: {
-                        HStack(spacing: AppSpacing.xxxs) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 11, weight: .semibold))
-                            Text("Add")
-                                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        }
-                        .foregroundStyle(AppColors.teal)
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(AppColors.teal)
                     }
                     .accessibilityLabel("Add Subskill")
                 }
             }
+            .padding(.bottom, AppSpacing.xs)
 
             if viewModel.subskills.isEmpty {
-                VStack(spacing: AppSpacing.xxs) {
-                    Image(systemName: "square.stack.3d.up")
-                        .font(.system(size: 24))
-                        .foregroundStyle(AppColors.textSecondary.opacity(0.4))
-
-                    Text("Break this skill into subskills\nto track progress in more detail.")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.md)
+                Text("Break this skill into subskills to track progress in more detail.")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .padding(.vertical, AppSpacing.xxs)
             }
 
-            ForEach(viewModel.subskills) { subskill in
+            ForEach(Array(viewModel.subskills.enumerated()), id: \.element.id) { index, subskill in
                 let rating = viewModel.subskillRatings[subskill.id] ?? 0
-                let tier = SkillTier(rating: rating)
+
+                if index > 0 {
+                    Divider()
+                }
 
                 NavigationLink(value: subskill) {
-                    HStack(spacing: AppSpacing.sm) {
-                        // Left accent bar
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(tier.color.opacity(0.5))
-                            .frame(width: 3)
+                    HStack(alignment: .center, spacing: AppSpacing.xs) {
+                        VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                            Text(subskill.name)
+                                .font(AppTypography.headline)
+                                .foregroundStyle(AppColors.textPrimary)
 
-                        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                            HStack {
-                                Text(subskill.name)
-                                    .font(AppTypography.headline)
-                                    .foregroundStyle(AppColors.textPrimary)
-
-                                Spacer()
-
-                                Text("\(rating)%")
-                                    .font(.system(size: 15, weight: .bold, design: .rounded))
-                                    .foregroundStyle(tier.color)
-                            }
-
-                            ProgressBar(progress: Double(rating) / 100.0, tint: tier.color)
+                            ProgressBar(progress: Double(rating) / 100.0, tint: SkillTier(rating: rating).color)
                         }
 
+                        Text("\(rating)%")
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textPrimary)
+
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                            .font(.caption)
+                            .foregroundStyle(AppColors.textSecondary)
                     }
                     .padding(.vertical, AppSpacing.xs)
-                    .padding(.horizontal, AppSpacing.sm)
-                    .background(AppColors.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
                 }
                 .buttonStyle(.plain)
             }
         }
+        .padding(AppSpacing.sm)
     }
 
     // MARK: - Notes Section
