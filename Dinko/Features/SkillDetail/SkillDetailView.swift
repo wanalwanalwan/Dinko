@@ -45,12 +45,11 @@ struct SkillDetailView: View {
                 VStack(spacing: AppSpacing.lg) {
                     ratingHero(viewModel)
 
-                    notesSection(viewModel)
-
                     if viewModel.isParentSkill {
                         subskillsSection(viewModel)
                     }
 
+                    notesSection(viewModel)
                     ratingNotesSection(viewModel)
 
                     Spacer(minLength: 0)
@@ -248,40 +247,37 @@ struct SkillDetailView: View {
     private func notesSection(_ viewModel: SkillDetailViewModel) -> some View {
         NavigationLink {
             SkillNotesView(
-                skillName: skill.name,
                 notes: viewModel.skill.description
             ) { updatedNotes in
                 await viewModel.updateNotes(updatedNotes)
             }
         } label: {
-            HStack {
+            HStack(spacing: AppSpacing.xxs) {
                 Image(systemName: "note.text")
-                    .font(.caption)
-                    .foregroundStyle(AppColors.teal)
+                    .font(.system(size: 11))
+                    .foregroundStyle(AppColors.textSecondary)
 
-                Text("Notes")
-                    .font(AppTypography.headline)
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Spacer()
-
-                if !viewModel.skill.description.isEmpty {
+                if viewModel.skill.description.isEmpty {
+                    Text("Add notes...")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                } else {
                     Text(viewModel.skill.description)
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColors.textSecondary)
                         .lineLimit(1)
-                        .frame(maxWidth: 140, alignment: .trailing)
                 }
 
+                Spacer()
+
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(AppColors.textSecondary)
+                    .font(.system(size: 10))
+                    .foregroundStyle(AppColors.textSecondary.opacity(0.5))
             }
         }
         .buttonStyle(.plain)
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.vertical, AppSpacing.xs)
     }
 
     // MARK: - Rating Notes Section
