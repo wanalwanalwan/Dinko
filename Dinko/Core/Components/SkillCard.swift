@@ -60,7 +60,7 @@ struct SkillCard: View {
 
             Spacer()
 
-            RatingBadge(rating: rating)
+            RatingBadge(rating: rating, ringColor: tier.color)
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)

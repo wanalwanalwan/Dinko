@@ -61,7 +61,7 @@ struct RateSkillView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Rate \(skillName)")
+                    Text("Update Mastery")
                         .font(AppTypography.headline)
                         .lineLimit(1)
                         .truncationMode(.tail)

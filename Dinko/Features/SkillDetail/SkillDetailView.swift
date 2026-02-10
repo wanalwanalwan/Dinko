@@ -9,6 +9,8 @@ struct SkillDetailView: View {
     @State private var showingAddSubskill = false
     @State private var showingArchiveConfirm = false
     @State private var showingDeleteConfirm = false
+    @State private var notesExpanded = false
+    @State private var ratingNotesExpanded = false
     let skill: Skill
 
     var body: some View {
@@ -46,11 +48,16 @@ struct SkillDetailView: View {
                     ratingHero(viewModel)
 
                     if !viewModel.hasSubskills {
+                        notesSection()
                         ratingHistoryChart(viewModel)
+                        ratingNotesSection(viewModel)
                     }
 
                     if viewModel.isParentSkill {
                         subskillsSection(viewModel)
+                        if viewModel.hasSubskills {
+                            notesSection()
+                        }
                     }
 
                     Spacer(minLength: 0)
@@ -126,7 +133,7 @@ struct SkillDetailView: View {
     private func ratingHero(_ viewModel: SkillDetailViewModel) -> some View {
         let tier = SkillTier(rating: viewModel.latestRating)
         return VStack(spacing: AppSpacing.xs) {
-            RatingBadge(rating: viewModel.latestRating, size: 160)
+            RatingBadge(rating: viewModel.latestRating, size: 160, ringColor: tier.color)
                 .padding(.bottom, AppSpacing.xxs)
 
             Text(skill.name)
@@ -145,7 +152,7 @@ struct SkillDetailView: View {
                 Button {
                     showingRateSkill = true
                 } label: {
-                    Text("Rate Skill")
+                    Text("Update Mastery")
                         .font(AppTypography.callout)
                         .foregroundStyle(.white)
                         .padding(.horizontal, AppSpacing.lg)
@@ -164,20 +171,20 @@ struct SkillDetailView: View {
 
     @ViewBuilder
     private func ratingHistoryChart(_ viewModel: SkillDetailViewModel) -> some View {
-        if viewModel.ratings.count >= 2 {
+        if viewModel.chartRatings.count >= 2 {
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Rating History")
                     .font(AppTypography.headline)
                     .foregroundStyle(AppColors.textPrimary)
 
                 Chart {
-                    ForEach(viewModel.ratings) { rating in
+                    ForEach(viewModel.chartRatings) { rating in
                         LineMark(
                             x: .value("Date", rating.date),
                             y: .value("Rating", rating.rating)
                         )
                         .foregroundStyle(AppColors.coral)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.linear)
 
                         PointMark(
                             x: .value("Date", rating.date),
@@ -257,6 +264,122 @@ struct SkillDetailView: View {
             }
         }
         .padding(AppSpacing.sm)
+    }
+
+    // MARK: - Notes Section
+
+    @ViewBuilder
+    private func notesSection() -> some View {
+        if !skill.description.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        notesExpanded.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "note.text")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.teal)
+
+                        Text("Notes")
+                            .font(AppTypography.headline)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Spacer()
+
+                        Image(systemName: notesExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                if notesExpanded {
+                    Text(skill.description)
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .padding(.top, AppSpacing.xs)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+    }
+
+    // MARK: - Rating Notes Section
+
+    @ViewBuilder
+    private func ratingNotesSection(_ viewModel: SkillDetailViewModel) -> some View {
+        let ratingsWithNotes = viewModel.ratings
+            .filter { $0.notes != nil && !$0.notes!.isEmpty }
+            .sorted { $0.date > $1.date }
+
+        if !ratingsWithNotes.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        ratingNotesExpanded.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "text.bubble")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.teal)
+
+                        Text("Rating Notes")
+                            .font(AppTypography.headline)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Spacer()
+
+                        Text("\(ratingsWithNotes.count)")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+
+                        Image(systemName: ratingNotesExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                if ratingNotesExpanded {
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        ForEach(ratingsWithNotes) { rating in
+                            VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                                HStack {
+                                    Text("\(rating.rating)%")
+                                        .font(AppTypography.callout)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(AppColors.teal)
+
+                                    Spacer()
+
+                                    Text(rating.date, style: .date)
+                                        .font(AppTypography.caption)
+                                        .foregroundStyle(AppColors.textSecondary)
+                                }
+
+                                Text(rating.notes!)
+                                    .font(AppTypography.body)
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                            .padding(AppSpacing.xs)
+                            .background(AppColors.background)
+                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                        }
+                    }
+                    .padding(.top, AppSpacing.xs)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
     }
 
     // MARK: - Action Buttons

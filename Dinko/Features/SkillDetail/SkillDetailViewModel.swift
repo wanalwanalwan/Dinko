@@ -14,6 +14,23 @@ final class SkillDetailViewModel {
 
     var isParentSkill: Bool { skill.parentSkillId == nil }
 
+    /// Ratings deduplicated to the last entry per calendar day, for chart display
+    var chartRatings: [SkillRating] {
+        let calendar = Calendar.current
+        var lastPerDay: [DateComponents: SkillRating] = [:]
+        for rating in ratings {
+            let day = calendar.dateComponents([.year, .month, .day], from: rating.date)
+            if let existing = lastPerDay[day] {
+                if rating.date >= existing.date {
+                    lastPerDay[day] = rating
+                }
+            } else {
+                lastPerDay[day] = rating
+            }
+        }
+        return lastPerDay.values.sorted { $0.date < $1.date }
+    }
+
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
 
