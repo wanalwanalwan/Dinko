@@ -9,7 +9,6 @@ struct SkillDetailView: View {
     @State private var showingAddSubskill = false
     @State private var showingArchiveConfirm = false
     @State private var showingDeleteConfirm = false
-    @State private var notesExpanded = false
     @State private var ratingNotesExpanded = false
     let skill: Skill
 
@@ -47,18 +46,14 @@ struct SkillDetailView: View {
                 VStack(spacing: AppSpacing.lg) {
                     ratingHero(viewModel)
 
-                    if !viewModel.hasSubskills {
-                        notesSection()
-                        ratingHistoryChart(viewModel)
-                        ratingNotesSection(viewModel)
-                    }
+                    notesSection(viewModel)
 
                     if viewModel.isParentSkill {
                         subskillsSection(viewModel)
-                        if viewModel.hasSubskills {
-                            notesSection()
-                        }
                     }
+
+                    ratingHistoryChart(viewModel)
+                    ratingNotesSection(viewModel)
 
                     Spacer(minLength: 0)
 
@@ -268,45 +263,43 @@ struct SkillDetailView: View {
 
     // MARK: - Notes Section
 
-    @ViewBuilder
-    private func notesSection() -> some View {
-        if !skill.description.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        notesExpanded.toggle()
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "note.text")
-                            .font(.caption)
-                            .foregroundStyle(AppColors.teal)
-
-                        Text("Notes")
-                            .font(AppTypography.headline)
-                            .foregroundStyle(AppColors.textPrimary)
-
-                        Spacer()
-
-                        Image(systemName: notesExpanded ? "chevron.up" : "chevron.down")
-                            .font(.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                }
-                .buttonStyle(.plain)
-
-                if notesExpanded {
-                    Text(skill.description)
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .padding(.top, AppSpacing.xs)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
+    private func notesSection(_ viewModel: SkillDetailViewModel) -> some View {
+        NavigationLink {
+            SkillNotesView(
+                skillName: skill.name,
+                notes: viewModel.skill.description
+            ) { updatedNotes in
+                await viewModel.updateNotes(updatedNotes)
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        } label: {
+            HStack {
+                Image(systemName: "note.text")
+                    .font(.caption)
+                    .foregroundStyle(AppColors.teal)
+
+                Text("Notes")
+                    .font(AppTypography.headline)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                if !viewModel.skill.description.isEmpty {
+                    Text(viewModel.skill.description)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .lineLimit(1)
+                        .frame(maxWidth: 140, alignment: .trailing)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
         }
+        .buttonStyle(.plain)
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
     // MARK: - Rating Notes Section

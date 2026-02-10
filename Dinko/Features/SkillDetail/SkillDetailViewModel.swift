@@ -80,8 +80,40 @@ final class SkillDetailViewModel {
                 let rated = subRatings.values.filter { $0 > 0 }
                 latestRating = rated.isEmpty ? 0 : rated.reduce(0, +) / rated.count
 
-                // Build synthetic rating history from subskill averages
-                ratings = []
+                // Build synthetic rating history from subskill averages per date
+                var allSubRatings: [SkillRating] = []
+                for sub in subskills {
+                    let subHistory = try await skillRatingRepository.fetchForSkill(sub.id)
+                    allSubRatings.append(contentsOf: subHistory)
+                }
+
+                let calendar = Calendar.current
+                // Get all unique dates across subskills
+                let uniqueDays = Set(allSubRatings.map { calendar.startOfDay(for: $0.date) })
+                    .sorted()
+
+                var syntheticRatings: [SkillRating] = []
+                for day in uniqueDays {
+                    // For each day, compute the average using the latest known rating for each subskill up to that day
+                    var dayAverages: [Int] = []
+                    for sub in subskills {
+                        let subHistory = allSubRatings
+                            .filter { $0.skillId == sub.id && $0.date <= calendar.date(byAdding: .day, value: 1, to: day)! }
+                            .sorted { $0.date < $1.date }
+                        if let latest = subHistory.last {
+                            dayAverages.append(latest.rating)
+                        }
+                    }
+                    if !dayAverages.isEmpty {
+                        let avg = dayAverages.reduce(0, +) / dayAverages.count
+                        syntheticRatings.append(SkillRating(
+                            skillId: skill.id,
+                            rating: avg,
+                            date: day
+                        ))
+                    }
+                }
+                ratings = syntheticRatings
             } else {
                 // Direct ratings
                 ratings = try await skillRatingRepository.fetchForSkill(skill.id)
@@ -114,6 +146,18 @@ final class SkillDetailViewModel {
         } catch {
             errorMessage = "Failed to save rating."
             return false
+        }
+    }
+
+    func updateNotes(_ notes: String) async {
+        var updated = skill
+        updated.description = notes
+        updated.updatedAt = Date()
+        do {
+            try await skillRepository.save(updated)
+            skill = updated
+        } catch {
+            errorMessage = "Failed to save notes."
         }
     }
 
