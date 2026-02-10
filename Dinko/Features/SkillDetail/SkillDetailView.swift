@@ -223,7 +223,7 @@ struct SkillDetailView: View {
                                 .font(AppTypography.headline)
                                 .foregroundStyle(AppColors.textPrimary)
 
-                            ProgressBar(progress: Double(rating) / 100.0)
+                            ProgressBar(progress: Double(rating) / 100.0, tint: SkillTier(rating: rating).color)
                         }
 
                         Text("\(rating)%")

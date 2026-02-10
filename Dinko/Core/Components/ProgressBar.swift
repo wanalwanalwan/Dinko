@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProgressBar: View {
     let progress: Double
+    var tint: Color = AppColors.teal
 
     var body: some View {
         GeometryReader { geometry in
@@ -11,7 +12,7 @@ struct ProgressBar: View {
                     .frame(height: 8)
 
                 Capsule()
-                    .fill(AppColors.teal)
+                    .fill(tint)
                     .frame(width: geometry.size.width * min(max(progress, 0), 1), height: 8)
             }
         }
