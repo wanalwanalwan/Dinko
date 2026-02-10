@@ -63,7 +63,7 @@ struct SkillCard: View {
             RatingBadge(rating: rating, ringColor: tier.color)
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
+        .background(tier.color.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 }
