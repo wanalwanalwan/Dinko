@@ -252,32 +252,53 @@ struct SkillDetailView: View {
                 await viewModel.updateNotes(updatedNotes)
             }
         } label: {
-            HStack(spacing: AppSpacing.xxs) {
-                Image(systemName: "note.text")
-                    .font(.system(size: 11))
-                    .foregroundStyle(AppColors.textSecondary)
+            HStack(spacing: 0) {
+                // Teal accent bar
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(AppColors.teal.opacity(0.4))
+                    .frame(width: 3)
 
-                if viewModel.skill.description.isEmpty {
-                    Text("Add notes...")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                } else {
-                    Text(viewModel.skill.description)
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .lineLimit(1)
+                VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                    HStack {
+                        Text("MY NOTES")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                    }
+
+                    if viewModel.skill.description.isEmpty {
+                        HStack(spacing: AppSpacing.xxs) {
+                            Image(systemName: "square.and.pencil")
+                                .font(.system(size: 13))
+                                .foregroundStyle(AppColors.teal.opacity(0.6))
+
+                            Text("Tap to add notes about this skill...")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                        .padding(.top, AppSpacing.xxxs)
+                    } else {
+                        Text(viewModel.skill.description)
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textPrimary.opacity(0.7))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .padding(.top, AppSpacing.xxxs)
+                    }
                 }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 10))
-                    .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                .padding(.leading, AppSpacing.xs)
             }
+            .padding(.vertical, AppSpacing.xs)
+            .padding(.horizontal, AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, AppSpacing.sm)
-        .padding(.vertical, AppSpacing.xs)
     }
 
     // MARK: - Rating Notes Section
