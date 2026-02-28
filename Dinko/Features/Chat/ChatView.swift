@@ -19,7 +19,7 @@ struct ChatView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button(role: .destructive) {
-                        Task { await authViewModel.signOut() }
+                        Task { await authViewModel?.signOut() }
                     } label: {
                         Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                     }
@@ -35,7 +35,7 @@ struct ChatView: View {
                     skillRepository: dependencies.skillRepository,
                     skillRatingRepository: dependencies.skillRatingRepository
                 )
-                vm.authToken = authViewModel.accessToken
+                vm.authToken = authViewModel?.accessToken ?? ""
                 viewModel = vm
                 await vm.loadStats()
             }
