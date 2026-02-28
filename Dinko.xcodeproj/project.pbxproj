@@ -62,6 +62,15 @@
 		J10000010000000000000002 /* ArchivedSkillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* ArchivedSkillsView.swift */; };
 		K10000010000000000000001 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = K20000010000000000000001 /* SplashScreenView.swift */; };
 		L10000010000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = L20000010000000000000001 /* PrivacyInfo.xcprivacy */; };
+		E10000020000000000000001 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000001 /* ChatMessage.swift */; };
+		E10000020000000000000002 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000002 /* SupabaseConfig.swift */; };
+		E10000020000000000000003 /* AgentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000003 /* AgentService.swift */; };
+		E10000020000000000000004 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000004 /* ChatViewModel.swift */; };
+		E10000020000000000000005 /* SessionPreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000005 /* SessionPreviewCard.swift */; };
+		E10000020000000000000006 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000006 /* ChatView.swift */; };
+		F10000000000000000000001 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* AuthService.swift */; };
+		F10000000000000000000002 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* AuthViewModel.swift */; };
+		F10000000000000000000003 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000003 /* AuthView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -140,6 +149,15 @@
 		J20000010000000000000002 /* ArchivedSkillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedSkillsView.swift; sourceTree = "<group>"; };
 		K20000010000000000000001 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		L20000010000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		E20000020000000000000001 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		E20000020000000000000002 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		E20000020000000000000003 /* AgentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentService.swift; sourceTree = "<group>"; };
+		E20000020000000000000004 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		E20000020000000000000005 /* SessionPreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPreviewCard.swift; sourceTree = "<group>"; };
+		E20000020000000000000006 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		F20000000000000000000001 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		F20000000000000000000002 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		F20000000000000000000003 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +203,7 @@
 				A70000010000000000000020 /* Core */,
 				A70000010000000000000050 /* Data */,
 				A70000010000000000000070 /* Models */,
+				E70000020000000000000002 /* Networking */,
 				A70000010000000000000080 /* Features */,
 				A20000010000000000000003 /* Assets.xcassets */,
 				L20000010000000000000001 /* PrivacyInfo.xcprivacy */,
@@ -338,6 +357,7 @@
 				C20000010000000000000005 /* SkillCategory.swift */,
 				C20000010000000000000006 /* SkillStatus.swift */,
 				I20000010000000000000001 /* SkillTier.swift */,
+				E20000020000000000000001 /* ChatMessage.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -349,6 +369,8 @@
 				A70000010000000000000082 /* SkillDetail */,
 				A70000010000000000000083 /* AddEditSkill */,
 				A70000010000000000000084 /* ArchivedSkills */,
+				F70000000000000000000001 /* Auth */,
+				E70000020000000000000001 /* Chat */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -389,6 +411,35 @@
 				J20000010000000000000002 /* ArchivedSkillsView.swift */,
 			);
 			path = ArchivedSkills;
+			sourceTree = "<group>";
+		};
+		E70000020000000000000001 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				E20000020000000000000004 /* ChatViewModel.swift */,
+				E20000020000000000000005 /* SessionPreviewCard.swift */,
+				E20000020000000000000006 /* ChatView.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		F70000000000000000000001 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				F20000000000000000000002 /* AuthViewModel.swift */,
+				F20000000000000000000003 /* AuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		E70000020000000000000002 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				E20000020000000000000002 /* SupabaseConfig.swift */,
+				E20000020000000000000003 /* AgentService.swift */,
+				F20000000000000000000001 /* AuthService.swift */,
+			);
+			path = Networking;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -569,6 +620,15 @@
 				I10000010000000000000001 /* SkillTier.swift in Sources */,
 				J10000010000000000000001 /* ArchivedSkillsViewModel.swift in Sources */,
 				J10000010000000000000002 /* ArchivedSkillsView.swift in Sources */,
+				E10000020000000000000001 /* ChatMessage.swift in Sources */,
+				E10000020000000000000002 /* SupabaseConfig.swift in Sources */,
+				E10000020000000000000003 /* AgentService.swift in Sources */,
+				E10000020000000000000004 /* ChatViewModel.swift in Sources */,
+				E10000020000000000000005 /* SessionPreviewCard.swift in Sources */,
+				E10000020000000000000006 /* ChatView.swift in Sources */,
+				F10000000000000000000001 /* AuthService.swift in Sources */,
+				F10000000000000000000002 /* AuthViewModel.swift in Sources */,
+				F10000000000000000000003 /* AuthView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

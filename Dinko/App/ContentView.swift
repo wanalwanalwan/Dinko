@@ -7,6 +7,14 @@ struct ContentView: View {
         ZStack {
             TabView {
                 NavigationStack {
+                    ChatView()
+                }
+                .tabItem {
+                    Image(systemName: "bubble.left.and.text.bubble.right")
+                    Text("Coach")
+                }
+
+                NavigationStack {
                     SkillListView()
                 }
                 .tabItem {

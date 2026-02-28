@@ -1,0 +1,162 @@
+import Foundation
+
+/// Calls the dinkit-agent Supabase Edge Function
+final class AgentService {
+    private let session = URLSession.shared
+
+    struct LogSessionResponse: Codable {
+        let sessionId: String
+        let extraction: ExtractionData
+        let skillUpdates: [SkillUpdate]
+        let drillRecommendations: [DrillRecommendation]
+        let roadmapUpdates: RoadmapUpdates?
+
+        enum CodingKeys: String, CodingKey {
+            case sessionId = "session_id"
+            case extraction
+            case skillUpdates = "skill_updates"
+            case drillRecommendations = "drill_recommendations"
+            case roadmapUpdates = "roadmap_updates"
+        }
+    }
+
+    struct ConfirmResponse: Codable {
+        let confirmed: Bool
+        let sessionId: String
+
+        enum CodingKeys: String, CodingKey {
+            case confirmed
+            case sessionId = "session_id"
+        }
+    }
+
+    struct ErrorResponse: Codable {
+        let error: String
+    }
+
+    struct SkillSnapshotPayload: Codable {
+        let id: String
+        let name: String
+        let category: String
+        let currentRating: Int
+        let parentSkillId: String?
+        let subskills: [SubskillPayload]
+
+        enum CodingKeys: String, CodingKey {
+            case id, name, category
+            case currentRating = "current_rating"
+            case parentSkillId = "parent_skill_id"
+            case subskills
+        }
+    }
+
+    struct SubskillPayload: Codable {
+        let id: String
+        let name: String
+        let currentRating: Int
+
+        enum CodingKeys: String, CodingKey {
+            case id, name
+            case currentRating = "current_rating"
+        }
+    }
+
+    /// Log a session note and get AI analysis preview
+    func logSession(
+        note: String,
+        skills: [SkillSnapshotPayload],
+        authToken: String
+    ) async throws -> LogSessionResponse {
+        let body: [String: Any] = [
+            "action": "log_session",
+            "note": note,
+            "skills": skills.map { skill in
+                var dict: [String: Any] = [
+                    "id": skill.id,
+                    "name": skill.name,
+                    "category": skill.category,
+                    "current_rating": skill.currentRating,
+                    "subskills": skill.subskills.map { sub in
+                        [
+                            "id": sub.id,
+                            "name": sub.name,
+                            "current_rating": sub.currentRating,
+                        ] as [String: Any]
+                    },
+                ]
+                if let parentId = skill.parentSkillId {
+                    dict["parent_skill_id"] = parentId
+                }
+                return dict
+            },
+        ]
+
+        return try await post(body: body, authToken: authToken)
+    }
+
+    /// Confirm a session to apply changes to DB
+    func confirmSession(
+        sessionId: String,
+        roadmapUpdates: RoadmapUpdates?,
+        authToken: String
+    ) async throws -> ConfirmResponse {
+        var body: [String: Any] = [
+            "action": "confirm_session",
+            "session_id": sessionId,
+        ]
+
+        if let roadmap = roadmapUpdates {
+            let encoder = JSONEncoder()
+            let roadmapData = try encoder.encode(roadmap)
+            let roadmapDict = try JSONSerialization.jsonObject(with: roadmapData)
+            body["roadmap_updates"] = roadmapDict
+        }
+
+        return try await post(body: body, authToken: authToken)
+    }
+
+    // MARK: - Private
+
+    private func post<T: Codable>(body: [String: Any], authToken: String) async throws -> T {
+        guard let url = URL(string: SupabaseConfig.agentFunctionURL) else {
+            throw AgentError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AgentError.invalidResponse
+        }
+
+        if httpResponse.statusCode != 200 {
+            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                throw AgentError.server(errorResponse.error)
+            }
+            throw AgentError.server("Request failed with status \(httpResponse.statusCode)")
+        }
+
+        let decoder = JSONDecoder()
+        return try decoder.decode(T.self, from: data)
+    }
+}
+
+enum AgentError: LocalizedError {
+    case invalidURL
+    case invalidResponse
+    case server(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL: "Invalid server URL"
+        case .invalidResponse: "Invalid response from server"
+        case .server(let message): message
+        }
+    }
+}
