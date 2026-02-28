@@ -35,7 +35,7 @@ struct DinkoApp: App {
 // MARK: - Environment Key for AuthViewModel
 
 private struct AuthViewModelKey: EnvironmentKey {
-    static let defaultValue = AuthViewModel()
+    nonisolated(unsafe) static let defaultValue = AuthViewModel()
 }
 
 extension EnvironmentValues {
