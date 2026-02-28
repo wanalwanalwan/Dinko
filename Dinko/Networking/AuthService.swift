@@ -15,9 +15,9 @@ final class AuthService {
     // MARK: - Response Types
 
     struct AuthResponse: Codable {
-        let accessToken: String
-        let refreshToken: String
-        let expiresIn: Int
+        let accessToken: String?
+        let refreshToken: String?
+        let expiresIn: Int?
         let user: AuthUser
 
         enum CodingKeys: String, CodingKey {
@@ -26,6 +26,9 @@ final class AuthService {
             case expiresIn = "expires_in"
             case user
         }
+
+        /// True when Supabase returned tokens (email confirmed or autoconfirm enabled)
+        var hasSession: Bool { accessToken != nil }
     }
 
     struct AuthUser: Codable {
@@ -58,9 +61,42 @@ final class AuthService {
 
     // MARK: - Sign Up
 
+    /// Sign up may return tokens (autoconfirm) or just a user (email confirmation required).
+    /// When confirmation is required, returns an AuthResponse with nil tokens.
     func signUp(email: String, password: String) async throws -> AuthResponse {
         let body: [String: String] = ["email": email, "password": password]
-        return try await post(path: "/signup", body: body)
+
+        guard let url = URL(string: "\(baseURL)/signup") else {
+            throw AuthServiceError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+
+        if httpResponse.statusCode != 200 {
+            if let authError = try? JSONDecoder().decode(AuthError.self, from: data) {
+                throw AuthServiceError.server(authError.message)
+            }
+            throw AuthServiceError.server("Sign up failed with status \(httpResponse.statusCode)")
+        }
+
+        // Try full session response first (autoconfirm enabled)
+        if let fullResponse = try? JSONDecoder().decode(AuthResponse.self, from: data) {
+            return fullResponse
+        }
+
+        // Fallback: confirmation required — response is just the user object
+        let user = try JSONDecoder().decode(AuthUser.self, from: data)
+        return AuthResponse(accessToken: nil, refreshToken: nil, expiresIn: nil, user: user)
     }
 
     // MARK: - Sign In
@@ -91,8 +127,12 @@ final class AuthService {
     // MARK: - Session Persistence (Keychain for tokens, UserDefaults for user info)
 
     func saveSession(_ response: AuthResponse) {
-        KeychainHelper.save(key: keychainAccountAccess, value: response.accessToken)
-        KeychainHelper.save(key: keychainAccountRefresh, value: response.refreshToken)
+        if let access = response.accessToken {
+            KeychainHelper.save(key: keychainAccountAccess, value: access)
+        }
+        if let refresh = response.refreshToken {
+            KeychainHelper.save(key: keychainAccountRefresh, value: refresh)
+        }
         if let data = try? JSONEncoder().encode(response.user) {
             UserDefaults.standard.set(data, forKey: userDefaultsUserKey)
         }

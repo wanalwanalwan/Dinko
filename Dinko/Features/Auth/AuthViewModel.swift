@@ -22,8 +22,9 @@ final class AuthViewModel {
         // Try refreshing the token (access tokens expire after 1 hour)
         do {
             let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
+            guard response.hasSession else { return }
             authService.saveSession(response)
-            accessToken = response.accessToken
+            accessToken = response.accessToken ?? ""
             userId = response.user.id
             isAuthenticated = true
         } catch {
@@ -57,10 +58,16 @@ final class AuthViewModel {
                 response = try await authService.signIn(email: trimmedEmail, password: trimmedPassword)
             }
 
-            authService.saveSession(response)
-            accessToken = response.accessToken
-            userId = response.user.id
-            isAuthenticated = true
+            if response.hasSession {
+                authService.saveSession(response)
+                accessToken = response.accessToken ?? ""
+                userId = response.user.id
+                isAuthenticated = true
+            } else {
+                // Email confirmation required — sign up succeeded but no session yet
+                errorMessage = "Check your email to confirm your account, then sign in."
+                isSignUp = false
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
