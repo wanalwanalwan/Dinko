@@ -61,7 +61,7 @@ final class ChatViewModel {
             let response = try await agentService.logSession(
                 note: text,
                 skills: snapshots,
-                authToken: await getAuthToken()
+                authToken: getAuthToken()
             )
 
             // Replace loading bubble with preview
@@ -108,7 +108,7 @@ final class ChatViewModel {
             _ = try await agentService.confirmSession(
                 sessionId: preview.sessionId,
                 roadmapUpdates: preview.roadmapUpdates,
-                authToken: await getAuthToken()
+                authToken: getAuthToken()
             )
 
             // Apply rating changes locally to CoreData
@@ -213,17 +213,8 @@ final class ChatViewModel {
         return snapshots
     }
 
-    private func getAuthToken() async -> String {
+    private func getAuthToken() -> String {
         guard let saved = authService.loadSavedSession() else { return "" }
-        do {
-            let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
-            if response.hasSession {
-                authService.saveSession(response)
-                return response.accessToken ?? ""
-            }
-        } catch {
-            // Refresh failed — try the saved access token as fallback
-        }
         return saved.accessToken
     }
 
