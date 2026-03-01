@@ -36,7 +36,7 @@ struct ChatView: View {
                     skillRatingRepository: dependencies.skillRatingRepository,
                     drillRepository: dependencies.drillRepository
                 )
-                vm.authTokenProvider = { [weak authViewModel] in authViewModel?.accessToken ?? "" }
+                vm.authViewModel = authViewModel
                 viewModel = vm
                 await vm.loadStats()
             }

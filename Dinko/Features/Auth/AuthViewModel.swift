@@ -75,6 +75,23 @@ final class AuthViewModel {
         isLoading = false
     }
 
+    /// Returns a fresh access token, refreshing if needed
+    func freshAccessToken() async -> String {
+        // If we have a saved refresh token, try to refresh
+        guard let saved = authService.loadSavedSession() else { return accessToken }
+
+        do {
+            let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
+            guard response.hasSession else { return accessToken }
+            authService.saveSession(response)
+            accessToken = response.accessToken ?? accessToken
+            return accessToken
+        } catch {
+            // Refresh failed — return whatever we have
+            return accessToken
+        }
+    }
+
     func signOut() async {
         await authService.signOut(accessToken: accessToken)
         authService.clearSession()
