@@ -122,6 +122,21 @@ final class AgentService {
     // MARK: - Private
 
     private func post<T: Codable>(body: [String: Any], authToken: String) async throws -> T {
+        // First attempt
+        let result: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: authToken)
+
+        // If 401, try refreshing the token and retry once
+        if result.1.statusCode == 401 {
+            if let freshToken = await refreshToken(), !freshToken.isEmpty {
+                let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: freshToken)
+                return try decodeResponse(data: retry.0, statusCode: retry.1.statusCode)
+            }
+        }
+
+        return try decodeResponse(data: result.0, statusCode: result.1.statusCode)
+    }
+
+    private func executeRequest(body: [String: Any], authToken: String) async throws -> (Data, HTTPURLResponse) {
         guard let url = URL(string: SupabaseConfig.agentFunctionURL) else {
             throw AgentError.invalidURL
         }
@@ -139,15 +154,30 @@ final class AgentService {
             throw AgentError.invalidResponse
         }
 
-        if httpResponse.statusCode != 200 {
+        return (data, httpResponse)
+    }
+
+    private func decodeResponse<T: Codable>(data: Data, statusCode: Int) throws -> T {
+        if statusCode != 200 {
             if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
                 throw AgentError.server(errorResponse.error)
             }
-            throw AgentError.server("Request failed with status \(httpResponse.statusCode)")
+            throw AgentError.server("Request failed with status \(statusCode)")
         }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
 
-        let decoder = JSONDecoder()
-        return try decoder.decode(T.self, from: data)
+    private func refreshToken() async -> String? {
+        let authService = AuthService.shared
+        guard let saved = authService.loadSavedSession() else { return nil }
+        do {
+            let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
+            if response.hasSession {
+                authService.saveSession(response)
+                return response.accessToken
+            }
+        } catch {}
+        return nil
     }
 }
 
