@@ -14,7 +14,7 @@ struct ChatView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("DinkIt")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -83,18 +83,23 @@ struct ChatView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        GeometryReader { geo in
-            VStack(spacing: AppSpacing.xs) {
-                Image(systemName: "figure.pickleball")
-                    .font(.system(size: 52))
-                    .foregroundStyle(AppColors.teal.opacity(0.4))
+        VStack(spacing: AppSpacing.sm) {
+            Spacer()
+                .frame(height: 60)
 
-                Text("How can I help you?")
-                    .font(AppTypography.title)
-                    .foregroundStyle(AppColors.textPrimary)
-            }
-            .frame(maxWidth: .infinity)
-            .offset(y: geo.size.height * 0.3)
+            Image(systemName: "bubble.left.and.text.bubble.right")
+                .font(.system(size: 48))
+                .foregroundStyle(AppColors.teal.opacity(0.5))
+
+            Text("How was your session?")
+                .font(AppTypography.title)
+                .foregroundStyle(AppColors.textPrimary)
+
+            Text("Describe your pickleball session and I'll analyze your skills, suggest drills, and update your progress.")
+                .font(AppTypography.callout)
+                .foregroundStyle(AppColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppSpacing.lg)
         }
     }
 
