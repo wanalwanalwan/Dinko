@@ -36,7 +36,6 @@ struct ChatView: View {
                     skillRatingRepository: dependencies.skillRatingRepository,
                     drillRepository: dependencies.drillRepository
                 )
-                vm.authViewModel = authViewModel
                 viewModel = vm
                 await vm.loadStats()
             }

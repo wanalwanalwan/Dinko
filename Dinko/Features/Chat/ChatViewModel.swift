@@ -16,8 +16,7 @@ final class ChatViewModel {
     private(set) var totalSkills = 0
     private(set) var weeklyFocusTitle: String?
 
-    // Auth — reference to get fresh tokens before each API call
-    weak var authViewModel: AuthViewModel?
+    private let authService = AuthService.shared
 
     init(
         skillRepository: SkillRepository,
@@ -62,7 +61,7 @@ final class ChatViewModel {
             let response = try await agentService.logSession(
                 note: text,
                 skills: snapshots,
-                authToken: await authViewModel?.freshAccessToken() ?? ""
+                authToken: await getAuthToken()
             )
 
             // Replace loading bubble with preview
@@ -109,7 +108,7 @@ final class ChatViewModel {
             _ = try await agentService.confirmSession(
                 sessionId: preview.sessionId,
                 roadmapUpdates: preview.roadmapUpdates,
-                authToken: await authViewModel?.freshAccessToken() ?? ""
+                authToken: await getAuthToken()
             )
 
             // Apply rating changes locally to CoreData
@@ -212,6 +211,20 @@ final class ChatViewModel {
         }
 
         return snapshots
+    }
+
+    private func getAuthToken() async -> String {
+        guard let saved = authService.loadSavedSession() else { return "" }
+        do {
+            let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
+            if response.hasSession {
+                authService.saveSession(response)
+                return response.accessToken ?? ""
+            }
+        } catch {
+            // Refresh failed — try the saved access token as fallback
+        }
+        return saved.accessToken
     }
 
     private func replaceMessage(id: UUID, with message: ChatMessage) {
