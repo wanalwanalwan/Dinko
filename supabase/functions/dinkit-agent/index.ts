@@ -91,7 +91,16 @@ const SENTIMENT_MULTIPLIER: Record<string, number> = {
   very_positive: 1.5,
 };
 
-const MAX_DELTA_PER_SKILL = 10;
+// Intensity multiplier: intensity 1-5 maps to how much to scale the delta
+const INTENSITY_MULTIPLIER: Record<number, number> = {
+  1: 0.5,
+  2: 1.0,
+  3: 1.5,
+  4: 2.5,
+  5: 4.0,
+};
+
+const MAX_DELTA_PER_SKILL = 30;
 
 // Tier boundaries for milestones
 const TIER_BOUNDARIES = [25, 50, 75, 100];
@@ -102,8 +111,12 @@ async function callClaude(
   apiKey: string,
   system: string,
   userMessage: string,
-  maxTokens = 1024
+  maxTokens = 1024,
+  fast = false
 ): Promise<string> {
+  const model = fast
+    ? "claude-haiku-4-5-20251001"
+    : "claude-sonnet-4-5-20250929";
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -112,7 +125,7 @@ async function callClaude(
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-5-20250929",
+      model,
       max_tokens: maxTokens,
       system,
       messages: [{ role: "user", content: userMessage }],
@@ -127,6 +140,76 @@ async function callClaude(
   const data = await response.json();
   const text = data.content[0].text;
   return text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+}
+
+// ---------- Intent Classification (heuristic, no API call) ----------
+
+type Intent = "session_log" | "create_subskills";
+
+function classifyIntent(note: string): Intent {
+  const lower = note.toLowerCase();
+  const subskillPatterns = [
+    /create\s+(sub\s*skills?|breakdowns?)/,
+    /suggest\s+(sub\s*skills?|breakdowns?)/,
+    /break\s*(down|up)\s+.*(skill|into)/,
+    /add\s+sub\s*skills?\s+(for|to)/,
+    /what\s+(sub\s*skills?|components?)\s+(should|could|can)/,
+    /generate\s+sub\s*skills?/,
+    /sub\s*skills?\s+for\s+/,
+  ];
+  for (const pattern of subskillPatterns) {
+    if (pattern.test(lower)) return "create_subskills";
+  }
+  return "session_log";
+}
+
+// ---------- Subskill Generation ----------
+
+interface SubskillSuggestion {
+  name: string;
+  description: string;
+  suggested_rating: number;
+  parent_skill_id: string;
+}
+
+async function generateSubskills(
+  note: string,
+  skills: SkillSnapshot[],
+  apiKey: string
+): Promise<SubskillSuggestion[]> {
+  const skillList = skills
+    .map((s) => {
+      const subs =
+        s.subskills.length > 0
+          ? ` (existing subskills: ${s.subskills.map((sub) => sub.name).join(", ")})`
+          : "";
+      return `- ${s.name} [${s.category}] id:${s.id} — ${s.current_rating}%${subs}`;
+    })
+    .join("\n");
+
+  const systemPrompt = `You are a pickleball coaching assistant. The user wants to create subskills for one of their tracked skills.
+
+Current skills:
+${skillList || "(no skills yet)"}
+
+Based on the user's request, identify which parent skill they're referring to and generate 3-5 subskills.
+
+Rules:
+- Each subskill should be a specific, measurable aspect of the parent skill
+- Don't duplicate existing subskills
+- Suggest a starting rating based on the parent skill's current rating (adjust up/down based on typical relative difficulty)
+- Use the parent skill's ID as parent_skill_id
+
+Respond ONLY with valid JSON:
+[{
+  "name": "string",
+  "description": "string (1-2 sentence description)",
+  "suggested_rating": number (0-100),
+  "parent_skill_id": "string (UUID of the parent skill)"
+}]`;
+
+  const cleaned = await callClaude(apiKey, systemPrompt, note, 1024);
+  return JSON.parse(cleaned) as SubskillSuggestion[];
 }
 
 // ---------- Pass 1: Extraction (Claude API) ----------
@@ -206,8 +289,30 @@ function computeDeltas(
 
     let totalDelta = 0;
     for (const mention of mentions) {
-      const multiplier = SENTIMENT_MULTIPLIER[mention.sentiment] ?? 0;
-      totalDelta += BASE_INCREMENT * multiplier * frequencyDecay;
+      const sentimentMult = SENTIMENT_MULTIPLIER[mention.sentiment] ?? 0;
+      const intensityMult = INTENSITY_MULTIPLIER[mention.intensity] ?? 1.0;
+      totalDelta += BASE_INCREMENT * sentimentMult * intensityMult * frequencyDecay;
+    }
+
+    // Rating gap scaling: bigger jumps when far from implied target
+    // If very positive + high intensity at low rating, the gap amplifies the delta
+    const bestMention = mentions.reduce((best, m) => {
+      const score = (SENTIMENT_MULTIPLIER[m.sentiment] ?? 0) * m.intensity;
+      const bestScore = (SENTIMENT_MULTIPLIER[best.sentiment] ?? 0) * best.intensity;
+      return score > bestScore ? m : best;
+    }, mentions[0]);
+
+    if (bestMention && totalDelta > 0) {
+      const currentRating = skill.current_rating;
+      // At low ratings, strong positive signals should move more
+      // gapBoost: 1.0 at rating 100, up to 2.0 at rating 0
+      const gapBoost = 1.0 + (100 - currentRating) / 100;
+      totalDelta *= gapBoost;
+    } else if (bestMention && totalDelta < 0) {
+      const currentRating = skill.current_rating;
+      // At high ratings, strong negative signals should move more
+      const gapBoost = 1.0 + currentRating / 100;
+      totalDelta *= gapBoost;
     }
 
     totalDelta = Math.max(
@@ -422,12 +527,13 @@ async function updateRoadmap(
           .eq("id", existing.id);
       }
 
-      // LLM generates the narrative
+      // LLM generates the narrative (fast model — simple text generation)
       const focusNarrative = await callClaude(
         apiKey,
         `You are a pickleball coach writing a brief weekly focus theme. Be encouraging and specific. Respond with JSON only: {"title": "string (catchy 3-5 word title)", "description": "string (2-3 sentence coaching narrative)"}`,
         `The player needs to focus on "${focusSkillName}" this week.${biggestDrop ? ` It dropped ${Math.abs(biggestDrop.delta)}% in their last session.` : ` It's their lowest-rated mentioned skill.`}`,
-        256
+        256,
+        true
       );
       const parsed = JSON.parse(focusNarrative);
 
@@ -502,7 +608,8 @@ async function updateRoadmap(
       `You are a pickleball coach writing milestone descriptions. Be encouraging. Respond with JSON only — an array matching the input order:
 [{"title": "string (catchy milestone title)", "description": "string (1-2 sentence motivational description)"}]`,
       `Generate milestone titles and descriptions for:\n${milestonePrompt}`,
-      512
+      512,
+      true
     );
     const narratives = JSON.parse(narrativeResult) as {
       title: string;
@@ -619,29 +726,59 @@ Deno.serve(async (req: Request) => {
 
       const userSkills: SkillSnapshot[] = skills ?? [];
 
-      // Pass 1: Extraction
-      const extraction = await extractSession(note, userSkills, anthropicKey);
+      // Classify intent (heuristic — no API call)
+      const intent = classifyIntent(note);
 
-      // Pass 2: Scoring
-      const sessionsThisWeek = await getSessionsThisWeek(supabase, user.id);
+      if (intent === "create_subskills") {
+        // Generate subskill suggestions instead of running the session pipeline
+        const subskillSuggestions = await generateSubskills(
+          note,
+          userSkills,
+          anthropicKey
+        );
+
+        // Save a session log for tracking
+        const { data: session, error: insertError } = await supabase
+          .from("session_logs")
+          .insert({
+            user_id: user.id,
+            raw_note: note,
+            extracted_json: { mentions: [], new_skill_suggestions: [], session_duration_minutes: null, session_type: null },
+            applied_deltas: [],
+            drill_recommendations: [],
+            user_confirmed: false,
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          throw new Error(`Failed to save session: ${insertError.message}`);
+        }
+
+        return jsonResponse({
+          session_id: session.id,
+          extraction: { mentions: [], new_skill_suggestions: [], session_duration_minutes: null, session_type: null },
+          skill_updates: [],
+          drill_recommendations: [],
+          roadmap_updates: null,
+          subskill_suggestions: subskillSuggestions,
+        });
+      }
+
+      // Pass 1: Extraction + session count (parallel — independent)
+      const [extraction, sessionsThisWeek] = await Promise.all([
+        extractSession(note, userSkills, anthropicKey),
+        getSessionsThisWeek(supabase, user.id),
+      ]);
+
+      // Pass 2: Scoring (deterministic, instant)
       const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
 
-      // Pass 3: Drill Generation
-      const drillRecommendations = await generateDrills(
-        extraction,
-        skillDeltas,
-        userSkills,
-        anthropicKey
-      );
-
-      // Pass 4: Roadmap Update
-      const roadmapUpdates = await updateRoadmap(
-        skillDeltas,
-        userSkills,
-        supabase,
-        user.id,
-        anthropicKey
-      );
+      // Pass 3 + 4: Drill generation + Roadmap update (parallel — both only need extraction + deltas)
+      const [drillRecommendations, roadmapUpdates] = await Promise.all([
+        generateDrills(extraction, skillDeltas, userSkills, anthropicKey),
+        updateRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
+      ]);
 
       // Save session log (unconfirmed) with all pipeline outputs
       const { data: session, error: insertError } = await supabase

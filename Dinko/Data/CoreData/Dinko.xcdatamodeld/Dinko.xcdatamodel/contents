@@ -39,6 +39,22 @@
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="skill" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SkillEntity" inverseName="ratings" inverseEntity="SkillEntity"/>
     </entity>
+    <entity name="DrillEntity" representedClassName="DrillEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="createdDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="drillDescription" optional="YES" attributeType="String"/>
+        <attribute name="durationMinutes" attributeType="Integer 16" defaultValueString="10" usesScalarValueType="YES"/>
+        <attribute name="equipment" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="playerCount" attributeType="Integer 16" defaultValueString="1" usesScalarValueType="YES"/>
+        <attribute name="priority" attributeType="String" defaultValueString="medium"/>
+        <attribute name="reason" optional="YES" attributeType="String"/>
+        <attribute name="skillId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="status" attributeType="String" defaultValueString="pending"/>
+        <attribute name="syncStatus" attributeType="String" defaultValueString="pending"/>
+        <attribute name="targetSubskill" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
     <entity name="SessionEntity" representedClassName="SessionEntity" syncable="YES" codeGenerationType="class">
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="duration" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

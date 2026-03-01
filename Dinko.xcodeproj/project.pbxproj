@@ -71,6 +71,10 @@
 		F10000000000000000000001 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* AuthService.swift */; };
 		F10000000000000000000002 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* AuthViewModel.swift */; };
 		F10000000000000000000003 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000003 /* AuthView.swift */; };
+		E30000010000000000000001 /* Drill.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000001 /* Drill.swift */; };
+		E30000010000000000000002 /* DrillEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000002 /* DrillEntity+Ext.swift */; };
+		E30000010000000000000003 /* DrillRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000003 /* DrillRepository.swift */; };
+		E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000004 /* DrillRepositoryImpl.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -158,6 +162,10 @@
 		F20000000000000000000001 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		F20000000000000000000003 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		E30000020000000000000001 /* Drill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drill.swift; sourceTree = "<group>"; };
+		E30000020000000000000002 /* DrillEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DrillEntity+Ext.swift"; sourceTree = "<group>"; };
+		E30000020000000000000003 /* DrillRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRepository.swift; sourceTree = "<group>"; };
+		E30000020000000000000004 /* DrillRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRepositoryImpl.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -327,6 +335,7 @@
 				C20000010000000000000009 /* ProgressCheckerEntity+Ext.swift */,
 				C2000001000000000000000A /* SkillRatingEntity+Ext.swift */,
 				C2000001000000000000000B /* SessionEntity+Ext.swift */,
+				E30000020000000000000002 /* DrillEntity+Ext.swift */,
 			);
 			path = CoreData;
 			sourceTree = "<group>";
@@ -343,6 +352,8 @@
 				C2000001000000000000000F /* SessionRepository.swift */,
 				D20000010000000000000005 /* SessionRepositoryImpl.swift */,
 				D20000010000000000000006 /* DependencyContainer.swift */,
+				E30000020000000000000003 /* DrillRepository.swift */,
+				E30000020000000000000004 /* DrillRepositoryImpl.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -358,6 +369,7 @@
 				C20000010000000000000006 /* SkillStatus.swift */,
 				I20000010000000000000001 /* SkillTier.swift */,
 				E20000020000000000000001 /* ChatMessage.swift */,
+				E30000020000000000000001 /* Drill.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -629,6 +641,10 @@
 				F10000000000000000000001 /* AuthService.swift in Sources */,
 				F10000000000000000000002 /* AuthViewModel.swift in Sources */,
 				F10000000000000000000003 /* AuthView.swift in Sources */,
+				E30000010000000000000001 /* Drill.swift in Sources */,
+				E30000010000000000000002 /* DrillEntity+Ext.swift in Sources */,
+				E30000010000000000000003 /* DrillRepository.swift in Sources */,
+				E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

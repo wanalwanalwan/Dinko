@@ -10,6 +10,7 @@ final class AgentService {
         let skillUpdates: [SkillUpdate]
         let drillRecommendations: [DrillRecommendation]
         let roadmapUpdates: RoadmapUpdates?
+        let subskillSuggestions: [SubskillSuggestion]?
 
         enum CodingKeys: String, CodingKey {
             case sessionId = "session_id"
@@ -17,6 +18,7 @@ final class AgentService {
             case skillUpdates = "skill_updates"
             case drillRecommendations = "drill_recommendations"
             case roadmapUpdates = "roadmap_updates"
+            case subskillSuggestions = "subskill_suggestions"
         }
     }
 

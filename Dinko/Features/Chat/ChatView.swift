@@ -33,7 +33,8 @@ struct ChatView: View {
             if viewModel == nil {
                 let vm = ChatViewModel(
                     skillRepository: dependencies.skillRepository,
-                    skillRatingRepository: dependencies.skillRatingRepository
+                    skillRatingRepository: dependencies.skillRatingRepository,
+                    drillRepository: dependencies.drillRepository
                 )
                 vm.authToken = authViewModel?.accessToken ?? ""
                 viewModel = vm

@@ -26,7 +26,8 @@ struct SkillDetailView: View {
                 let vm = SkillDetailViewModel(
                     skill: skill,
                     skillRepository: dependencies.skillRepository,
-                    skillRatingRepository: dependencies.skillRatingRepository
+                    skillRatingRepository: dependencies.skillRatingRepository,
+                    drillRepository: dependencies.drillRepository
                 )
                 viewModel = vm
                 await vm.loadDetail()
@@ -50,6 +51,7 @@ struct SkillDetailView: View {
                     }
 
                     notesSection(viewModel)
+                    drillsSection(viewModel)
                     ratingNotesSection(viewModel)
 
                     Spacer(minLength: 0)
@@ -299,6 +301,146 @@ struct SkillDetailView: View {
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Drills Section
+
+    @State private var expandedDrillId: UUID?
+
+    @ViewBuilder
+    private func drillsSection(_ viewModel: SkillDetailViewModel) -> some View {
+        let pendingDrills = viewModel.drills.filter { $0.status == .pending }
+
+        if !pendingDrills.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Image(systemName: "figure.run")
+                        .font(.caption)
+                        .foregroundStyle(AppColors.teal)
+
+                    Text("DRILLS")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Spacer()
+
+                    Text("\(pendingDrills.count)")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .padding(.bottom, AppSpacing.xs)
+
+                ForEach(Array(pendingDrills.enumerated()), id: \.element.id) { index, drill in
+                    if index > 0 {
+                        Divider()
+                    }
+
+                    drillRow(drill, viewModel: viewModel)
+                }
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+    }
+
+    private func drillRow(_ drill: Drill, viewModel: SkillDetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    expandedDrillId = expandedDrillId == drill.id ? nil : drill.id
+                }
+            } label: {
+                HStack(alignment: .top, spacing: AppSpacing.xxs) {
+                    Image(systemName: drillPriorityIcon(drill.priority))
+                        .foregroundStyle(drillPriorityColor(drill.priority))
+                        .font(.system(size: 14))
+                        .frame(width: 20)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(drill.name)
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        HStack(spacing: AppSpacing.xxxs) {
+                            Text("\(drill.durationMinutes) min")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+
+                            if let subskill = drill.targetSubskill {
+                                Text("\u{2022}")
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(AppColors.textSecondary)
+                                Text(subskill)
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(AppColors.teal)
+                            }
+                        }
+                    }
+
+                    Spacer()
+
+                    Image(systemName: expandedDrillId == drill.id ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            if expandedDrillId == drill.id {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(drill.drillDescription)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textPrimary.opacity(0.8))
+
+                    Text(drill.reason)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .italic()
+
+                    HStack(spacing: AppSpacing.xs) {
+                        Button {
+                            Task { await viewModel.updateDrillStatus(drill.id, status: .completed) }
+                        } label: {
+                            Label("Done", systemImage: "checkmark.circle.fill")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.successGreen)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(AppColors.successGreen)
+
+                        Button {
+                            Task { await viewModel.updateDrillStatus(drill.id, status: .skipped) }
+                        } label: {
+                            Label("Skip", systemImage: "forward.fill")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .padding(.leading, 28)
+                .padding(.top, AppSpacing.xxxs)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(.vertical, AppSpacing.xxs)
+    }
+
+    private func drillPriorityIcon(_ priority: String) -> String {
+        switch priority {
+        case "high": "exclamationmark.circle.fill"
+        case "medium": "circle.fill"
+        default: "circle"
+        }
+    }
+
+    private func drillPriorityColor(_ priority: String) -> Color {
+        switch priority {
+        case "high": AppColors.coral
+        case "medium": AppColors.teal
+        default: AppColors.textSecondary
+        }
     }
 
     // MARK: - Rating Notes Section

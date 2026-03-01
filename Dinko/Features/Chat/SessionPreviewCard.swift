@@ -24,6 +24,11 @@ struct SessionPreviewCard: View {
                 drillsSection
             }
 
+            // Subskill Suggestions
+            if let suggestions = preview.subskillSuggestions, !suggestions.isEmpty {
+                subskillSuggestionsSection(suggestions)
+            }
+
             // Roadmap
             if let roadmap = preview.roadmapUpdates {
                 roadmapSection(roadmap)
@@ -119,6 +124,44 @@ struct SessionPreviewCard: View {
                         Text("\(drill.durationMinutes) min \u{2022} \(drill.targetSkill)")
                             .font(AppTypography.caption)
                             .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    Spacer()
+                }
+                .padding(.vertical, AppSpacing.xxxs)
+            }
+        }
+    }
+
+    // MARK: - Subskill Suggestions
+
+    private func subskillSuggestionsSection(_ suggestions: [SubskillSuggestion]) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Text("Suggested Subskills")
+                .font(AppTypography.callout)
+                .foregroundStyle(AppColors.textSecondary)
+
+            ForEach(suggestions, id: \.name) { suggestion in
+                HStack(alignment: .top, spacing: AppSpacing.xxs) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(AppColors.teal)
+                        .font(.system(size: 14))
+                        .frame(width: 20)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(suggestion.name)
+                            .font(AppTypography.body)
+
+                        Text(suggestion.description)
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .lineLimit(2)
+
+                        if suggestion.suggestedRating > 0 {
+                            Text("Starting at \(suggestion.suggestedRating)%")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.teal)
+                        }
                     }
 
                     Spacer()

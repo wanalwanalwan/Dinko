@@ -8,6 +8,7 @@ final class SkillDetailViewModel {
     private(set) var subskillRatings: [UUID: Int] = [:]
     private(set) var subskillDeltas: [UUID: Int] = [:]
     private(set) var ratings: [SkillRating] = []
+    private(set) var drills: [Drill] = []
     private(set) var latestRating: Int = 0
     private(set) var weeklyDelta: Int?
     private(set) var hasSubskills: Bool = false
@@ -31,15 +32,18 @@ final class SkillDetailViewModel {
 
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
+    private let drillRepository: DrillRepository
 
     init(
         skill: Skill,
         skillRepository: SkillRepository,
-        skillRatingRepository: SkillRatingRepository
+        skillRatingRepository: SkillRatingRepository,
+        drillRepository: DrillRepository
     ) {
         self.skill = skill
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
+        self.drillRepository = drillRepository
     }
 
     func loadDetail() async {
@@ -100,6 +104,9 @@ final class SkillDetailViewModel {
                 weeklyDelta = nil
             }
 
+            // Load drills
+            drills = try await drillRepository.fetchForSkill(skill.id)
+
             errorMessage = nil
         } catch {
             errorMessage = "Failed to load skill details."
@@ -150,6 +157,15 @@ final class SkillDetailViewModel {
             // Reload to get the true state from the database
             await loadDetail()
             errorMessage = "Failed to archive skill."
+        }
+    }
+
+    func updateDrillStatus(_ drillId: UUID, status: DrillStatus) async {
+        do {
+            try await drillRepository.updateStatus(drillId, status: status)
+            drills = try await drillRepository.fetchForSkill(skill.id)
+        } catch {
+            errorMessage = "Failed to update drill."
         }
     }
 

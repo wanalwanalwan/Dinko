@@ -10,6 +10,7 @@ final class ChatViewModel {
     private let agentService = AgentService()
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
+    private let drillRepository: DrillRepository
 
     // Stats
     private(set) var totalSkills = 0
@@ -20,10 +21,12 @@ final class ChatViewModel {
 
     init(
         skillRepository: SkillRepository,
-        skillRatingRepository: SkillRatingRepository
+        skillRatingRepository: SkillRatingRepository,
+        drillRepository: DrillRepository
     ) {
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
+        self.drillRepository = drillRepository
     }
 
     func loadStats() async {
@@ -68,7 +71,8 @@ final class ChatViewModel {
                 extraction: response.extraction,
                 skillUpdates: response.skillUpdates,
                 drillRecommendations: response.drillRecommendations,
-                roadmapUpdates: response.roadmapUpdates
+                roadmapUpdates: response.roadmapUpdates,
+                subskillSuggestions: response.subskillSuggestions
             )
 
             replaceMessage(id: loadingId, with: ChatMessage(
@@ -117,6 +121,14 @@ final class ChatViewModel {
                     )
                     try await skillRatingRepository.save(rating)
                 }
+            }
+
+            // Save drill recommendations to CoreData
+            await saveDrills(preview.drillRecommendations)
+
+            // Create subskills if suggested
+            if let suggestions = preview.subskillSuggestions, !suggestions.isEmpty {
+                await createSubskills(suggestions)
             }
 
             preview.confirmState = .confirmed
@@ -199,6 +211,70 @@ final class ChatViewModel {
     private func replaceMessage(id: UUID, with message: ChatMessage) {
         if let index = messages.firstIndex(where: { $0.id == id }) {
             messages[index] = message
+        }
+    }
+
+    private func saveDrills(_ recommendations: [DrillRecommendation]) async {
+        do {
+            let allSkills = try await skillRepository.fetchActive()
+
+            for rec in recommendations {
+                // Resolve target skill name to UUID
+                guard let skill = allSkills.first(where: {
+                    $0.name.lowercased() == rec.targetSkill.lowercased()
+                }) else { continue }
+
+                let drill = Drill(
+                    skillId: skill.id,
+                    name: rec.name,
+                    drillDescription: rec.description,
+                    targetSubskill: rec.targetSubskill,
+                    durationMinutes: rec.durationMinutes,
+                    playerCount: rec.playerCount ?? 1,
+                    equipment: rec.equipment ?? "",
+                    reason: rec.reason,
+                    priority: rec.priority
+                )
+                try await drillRepository.save(drill)
+            }
+        } catch {
+            // Drill save failure is non-critical; don't block confirm
+        }
+    }
+
+    private func createSubskills(_ suggestions: [SubskillSuggestion]) async {
+        do {
+            for suggestion in suggestions {
+                guard let parentId = UUID(uuidString: suggestion.parentSkillId) else { continue }
+
+                // Create the subskill
+                let subskill = Skill(
+                    name: suggestion.name,
+                    parentSkillId: parentId,
+                    hierarchyLevel: 1,
+                    description: suggestion.description
+                )
+                try await skillRepository.save(subskill)
+
+                // Save initial rating if provided
+                if suggestion.suggestedRating > 0 {
+                    let rating = SkillRating(
+                        skillId: subskill.id,
+                        rating: suggestion.suggestedRating,
+                        notes: "Initial AI-suggested rating"
+                    )
+                    try await skillRatingRepository.save(rating)
+                }
+
+                // Update parent to auto-calculate
+                if var parent = try await skillRepository.fetchById(parentId) {
+                    parent.autoCalculateRating = true
+                    parent.updatedAt = Date()
+                    try await skillRepository.save(parent)
+                }
+            }
+        } catch {
+            // Subskill creation failure is non-critical
         }
     }
 }

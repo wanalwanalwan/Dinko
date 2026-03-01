@@ -6,6 +6,7 @@ final class DependencyContainer {
     let progressCheckerRepository: ProgressCheckerRepository
     let skillRatingRepository: SkillRatingRepository
     let sessionRepository: SessionRepository
+    let drillRepository: DrillRepository
 
     let persistenceError: NSError?
 
@@ -15,6 +16,7 @@ final class DependencyContainer {
         self.progressCheckerRepository = ProgressCheckerRepositoryImpl(persistence: persistence)
         self.skillRatingRepository = SkillRatingRepositoryImpl(persistence: persistence)
         self.sessionRepository = SessionRepositoryImpl(persistence: persistence)
+        self.drillRepository = DrillRepositoryImpl(persistence: persistence)
     }
 }
 
