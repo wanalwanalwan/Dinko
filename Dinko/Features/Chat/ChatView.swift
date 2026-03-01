@@ -167,6 +167,9 @@ struct ChatView: View {
                 },
                 onRetry: {
                     viewModel.retrySession(messageId: message.id)
+                },
+                onToggleDrill: { index in
+                    viewModel.toggleDrill(messageId: message.id, drillIndex: index)
                 }
             )
 

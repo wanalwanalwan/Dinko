@@ -42,12 +42,34 @@ struct SessionPreview {
     let subskillSuggestions: [SubskillSuggestion]?
     let skillSuggestions: [SkillCreationSuggestion]?
     var confirmState: ConfirmState = .pending
+    var selectedDrillIndices: Set<Int>
 
     enum ConfirmState {
         case pending
         case confirming
         case confirmed
         case failed(String)
+    }
+
+    init(
+        sessionId: String,
+        extraction: ExtractionData,
+        skillUpdates: [SkillUpdate],
+        drillRecommendations: [DrillRecommendation],
+        roadmapUpdates: RoadmapUpdates?,
+        subskillSuggestions: [SubskillSuggestion]?,
+        skillSuggestions: [SkillCreationSuggestion]?,
+        confirmState: ConfirmState = .pending
+    ) {
+        self.sessionId = sessionId
+        self.extraction = extraction
+        self.skillUpdates = skillUpdates
+        self.drillRecommendations = drillRecommendations
+        self.roadmapUpdates = roadmapUpdates
+        self.subskillSuggestions = subskillSuggestions
+        self.skillSuggestions = skillSuggestions
+        self.confirmState = confirmState
+        self.selectedDrillIndices = Set(drillRecommendations.indices)
     }
 }
 

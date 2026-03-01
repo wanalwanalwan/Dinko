@@ -4,6 +4,7 @@ struct SessionPreviewCard: View {
     let preview: SessionPreview
     let onConfirm: () -> Void
     let onRetry: () -> Void
+    let onToggleDrill: (Int) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -115,16 +116,28 @@ struct SessionPreviewCard: View {
                 .font(AppTypography.callout)
                 .foregroundStyle(AppColors.textSecondary)
 
-            ForEach(preview.drillRecommendations, id: \.name) { drill in
+            ForEach(Array(preview.drillRecommendations.enumerated()), id: \.element.name) { index, drill in
+                let isSelected = preview.selectedDrillIndices.contains(index)
+                let isPending = preview.confirmState == .pending
+
                 HStack(alignment: .top, spacing: AppSpacing.xxs) {
-                    Image(systemName: priorityIcon(drill.priority))
-                        .foregroundStyle(priorityColor(drill.priority))
-                        .font(.system(size: 14))
-                        .frame(width: 20)
+                    Button {
+                        if isPending {
+                            onToggleDrill(index)
+                        }
+                    } label: {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(isSelected ? AppColors.teal : AppColors.textSecondary)
+                            .font(.system(size: 18))
+                            .frame(width: 24)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!isPending)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(drill.name)
                             .font(AppTypography.body)
+                            .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
 
                         Text("\(drill.durationMinutes) min \u{2022} \(drill.targetSkill)")
                             .font(AppTypography.caption)
@@ -317,19 +330,4 @@ struct SessionPreviewCard: View {
             .clipShape(Capsule())
     }
 
-    private func priorityIcon(_ priority: String) -> String {
-        switch priority {
-        case "high": "exclamationmark.circle.fill"
-        case "medium": "circle.fill"
-        default: "circle"
-        }
-    }
-
-    private func priorityColor(_ priority: String) -> Color {
-        switch priority {
-        case "high": AppColors.coral
-        case "medium": AppColors.teal
-        default: AppColors.textSecondary
-        }
-    }
 }

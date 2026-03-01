@@ -123,8 +123,11 @@ final class ChatViewModel {
                 }
             }
 
-            // Save drill recommendations to CoreData
-            await saveDrills(preview.drillRecommendations)
+            // Save only selected drill recommendations to CoreData
+            let selectedDrills = preview.selectedDrillIndices.sorted().compactMap { idx in
+                idx < preview.drillRecommendations.count ? preview.drillRecommendations[idx] : nil
+            }
+            await saveDrills(selectedDrills)
 
             // Create subskills if suggested
             if let suggestions = preview.subskillSuggestions, !suggestions.isEmpty {
@@ -160,6 +163,26 @@ final class ChatViewModel {
                 timestamp: messages[index].timestamp
             )
         }
+    }
+
+    func toggleDrill(messageId: UUID, drillIndex: Int) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .sessionPreview(var preview) = messages[index].content,
+              case .pending = preview.confirmState
+        else { return }
+
+        if preview.selectedDrillIndices.contains(drillIndex) {
+            preview.selectedDrillIndices.remove(drillIndex)
+        } else {
+            preview.selectedDrillIndices.insert(drillIndex)
+        }
+
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .sessionPreview(preview),
+            timestamp: messages[index].timestamp
+        )
     }
 
     func retrySession(messageId: UUID) {
