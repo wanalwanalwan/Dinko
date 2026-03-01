@@ -164,13 +164,13 @@ function classifyIntent(note: string): Intent {
     if (pattern.test(lower)) return "create_subskills";
   }
 
-  // Check skill creation patterns
+  // Check skill creation patterns (must be specific to avoid matching session notes)
   const skillPatterns = [
-    /(?:create|add|new|start\s+tracking)\s+(?:a\s+)?(?:new\s+)?skill/,
-    /(?:add|create)\s+(?:a\s+)?(?:new\s+)?\w+[\w\s]*(?:as\s+)?(?:a\s+)?skill/,
-    /i\s+want\s+to\s+track/,
-    /(?:track|monitor)\s+(?:my\s+)?(?:new\s+)?\w+/,
-    /^add\s+\w/,
+    /(?:create|add|start\s+tracking)\s+(?:a\s+)?(?:new\s+)?skill\b/,
+    /(?:add|create)\s+(?:a\s+)?(?:new\s+)?\w+[\w\s]*\bas\s+(?:a\s+)?skill\b/,
+    /(?:add|create)\s+(?:a\s+)?(?:new\s+)?skill\s+(?:called|named|for)\s+/,
+    /i\s+want\s+to\s+(?:add|create)\s+(?:a\s+)?(?:new\s+)?skill/,
+    /^add\s+(?:a\s+)?(?:new\s+)?(?:skill\s+)?\w+\s+skill$/,
   ];
   for (const pattern of skillPatterns) {
     if (pattern.test(lower)) return "create_skill";
