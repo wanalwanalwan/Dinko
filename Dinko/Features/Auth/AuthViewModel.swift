@@ -78,6 +78,7 @@ final class AuthViewModel {
     func signOut() async {
         await authService.signOut(accessToken: accessToken)
         authService.clearSession()
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         accessToken = ""
         userId = ""
         isAuthenticated = false

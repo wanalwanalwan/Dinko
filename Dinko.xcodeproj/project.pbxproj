@@ -77,6 +77,8 @@
 		E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000004 /* DrillRepositoryImpl.swift */; };
 		E30000010000000000000005 /* DrillQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000005 /* DrillQueueView.swift */; };
 		E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000006 /* DrillQueueViewModel.swift */; };
+		M10000000000000000000001 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000000000000000000001 /* OnboardingViewModel.swift */; };
+		M10000000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000000000000000000002 /* OnboardingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -170,6 +172,8 @@
 		E30000020000000000000004 /* DrillRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRepositoryImpl.swift; sourceTree = "<group>"; };
 		E30000020000000000000005 /* DrillQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillQueueView.swift; sourceTree = "<group>"; };
 		E30000020000000000000006 /* DrillQueueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillQueueViewModel.swift; sourceTree = "<group>"; };
+		M20000000000000000000001 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		M20000000000000000000002 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -388,6 +392,7 @@
 				F70000000000000000000001 /* Auth */,
 				E70000020000000000000001 /* Chat */,
 				E70000030000000000000001 /* Drills */,
+				M70000000000000000000001 /* Onboarding */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -466,6 +471,15 @@
 				E30000020000000000000006 /* DrillQueueViewModel.swift */,
 			);
 			path = Drills;
+			sourceTree = "<group>";
+		};
+		M70000000000000000000001 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				M20000000000000000000001 /* OnboardingViewModel.swift */,
+				M20000000000000000000002 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -661,6 +675,8 @@
 				E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */,
 				E30000010000000000000005 /* DrillQueueView.swift in Sources */,
 				E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */,
+				M10000000000000000000001 /* OnboardingViewModel.swift in Sources */,
+				M10000000000000000000002 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

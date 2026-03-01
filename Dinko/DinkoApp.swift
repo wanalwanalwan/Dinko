@@ -5,12 +5,19 @@ struct DinkoApp: App {
     private let dependencies = DependencyContainer()
     @State private var authViewModel = AuthViewModel()
     @State private var showPersistenceError = false
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some Scene {
         WindowGroup {
             Group {
                 if authViewModel.isAuthenticated {
-                    ContentView()
+                    if hasCompletedOnboarding {
+                        ContentView()
+                    } else {
+                        OnboardingView {
+                            hasCompletedOnboarding = true
+                        }
+                    }
                 } else {
                     AuthView(viewModel: authViewModel)
                 }
