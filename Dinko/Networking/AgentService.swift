@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(Darwin)
+import Darwin
+#endif
 
 /// Calls the dinkit-agent Supabase Edge Function
 final class AgentService {
@@ -149,6 +152,11 @@ final class AgentService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+#if DEBUG
+        debugBreakBeforeSendingAuthHeader(token: trimmedToken)
+#endif
+
         request.setValue("Bearer \(trimmedToken)", forHTTPHeaderField: "Authorization")
         request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -187,6 +195,16 @@ final class AgentService {
         }
         return trimmed
     }
+
+#if DEBUG
+    /// Opt-in programmatic "breakpoint" so you can inspect the token in Xcode.
+    /// Enable by adding the environment variable `DINKO_AGENT_BREAK=1` to your run scheme.
+    private func debugBreakBeforeSendingAuthHeader(token: String) {
+        guard ProcessInfo.processInfo.environment["DINKO_AGENT_BREAK"] == "1" else { return }
+        // Set a breakpoint on the line below, or let SIGTRAP pause execution.
+        raise(SIGTRAP)
+    }
+#endif
 
     private func refreshToken() async -> String? {
         let authService = AuthService.shared
