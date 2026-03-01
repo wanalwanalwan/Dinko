@@ -45,10 +45,7 @@ struct ChatView: View {
 
     @ViewBuilder
     private func chatContent(_ viewModel: ChatViewModel) -> some View {
-        VStack(spacing: 0) {
-            // Quick stats bar
-            statsBar(viewModel)
-
+        ZStack(alignment: .bottom) {
             // Messages
             ScrollViewReader { proxy in
                 ScrollView {
@@ -61,6 +58,10 @@ struct ChatView: View {
                             messageBubble(message, viewModel: viewModel)
                                 .id(message.id)
                         }
+
+                        // Bottom spacer so content doesn't hide behind floating input
+                        Spacer()
+                            .frame(height: 80)
                     }
                     .padding(.horizontal, AppSpacing.sm)
                     .padding(.vertical, AppSpacing.xs)
@@ -74,89 +75,27 @@ struct ChatView: View {
                 }
             }
 
-            Divider()
-
-            // Input bar
+            // Floating input bar
             inputBar(viewModel)
         }
-    }
-
-    // MARK: - Stats Bar
-
-    private func statsBar(_ viewModel: ChatViewModel) -> some View {
-        HStack(spacing: AppSpacing.sm) {
-            Label("\(viewModel.totalSkills) skills", systemImage: "chart.bar.fill")
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
-
-            if let focus = viewModel.weeklyFocusTitle {
-                Divider()
-                    .frame(height: 14)
-                Label(focus, systemImage: "target")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.teal)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-        }
-        .padding(.horizontal, AppSpacing.sm)
-        .padding(.vertical, AppSpacing.xxs)
-        .background(AppColors.cardBackground)
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: AppSpacing.sm) {
-            Spacer()
-                .frame(height: 60)
+        GeometryReader { geo in
+            VStack(spacing: AppSpacing.xs) {
+                Image(systemName: "figure.pickleball")
+                    .font(.system(size: 52))
+                    .foregroundStyle(AppColors.teal.opacity(0.4))
 
-            Image(systemName: "bubble.left.and.text.bubble.right")
-                .font(.system(size: 48))
-                .foregroundStyle(AppColors.teal.opacity(0.5))
-
-            Text("How was your session?")
-                .font(AppTypography.title)
-                .foregroundStyle(AppColors.textPrimary)
-
-            Text("Describe your pickleball session and I'll analyze your skills, suggest drills, and update your progress.")
-                .font(AppTypography.callout)
-                .foregroundStyle(AppColors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, AppSpacing.lg)
-
-            // Quick prompts
-            VStack(spacing: AppSpacing.xxs) {
-                quickPrompt("Played doubles for an hour, dinks felt great")
-                quickPrompt("Rough session — overheads kept sailing long")
-                quickPrompt("Practiced serves for 30 min, getting more consistent")
-            }
-            .padding(.top, AppSpacing.xs)
-        }
-    }
-
-    private func quickPrompt(_ text: String) -> some View {
-        Button {
-            viewModel?.inputText = text
-        } label: {
-            HStack {
-                Image(systemName: "text.bubble")
-                    .font(.system(size: 12))
-                    .foregroundStyle(AppColors.teal)
-                Text(text)
-                    .font(AppTypography.caption)
+                Text("How can I help you?")
+                    .font(AppTypography.title)
                     .foregroundStyle(AppColors.textPrimary)
-                    .lineLimit(1)
-                Spacer()
             }
-            .padding(.horizontal, AppSpacing.xs)
-            .padding(.vertical, AppSpacing.xxs)
-            .background(AppColors.teal.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .frame(maxWidth: .infinity)
+            .offset(y: geo.size.height * 0.3)
         }
-        .buttonStyle(.plain)
-        .padding(.horizontal, AppSpacing.lg)
     }
 
     // MARK: - Message Bubbles
@@ -250,7 +189,7 @@ struct ChatView: View {
     // MARK: - Input Bar
 
     private func inputBar(_ viewModel: ChatViewModel) -> some View {
-        HStack(spacing: AppSpacing.xxs) {
+        VStack(spacing: 0) {
             TextField("How was your session?", text: Binding(
                 get: { viewModel.inputText },
                 set: { viewModel.inputText = $0 }
@@ -259,30 +198,38 @@ struct ChatView: View {
                 .lineLimit(1...5)
                 .textFieldStyle(.plain)
                 .focused($isInputFocused)
-                .padding(.horizontal, AppSpacing.xs)
-                .padding(.vertical, AppSpacing.xxs)
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.xs)
+                .padding(.bottom, AppSpacing.xxs)
                 .onSubmit {
                     Task { await viewModel.sendMessage() }
                 }
 
-            Button {
-                Task { await viewModel.sendMessage() }
-            } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(
-                        viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending
-                            ? AppColors.textSecondary.opacity(0.3)
-                            : AppColors.teal
-                    )
+            HStack {
+                Spacer()
+
+                Button {
+                    Task { await viewModel.sendMessage() }
+                } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(
+                            viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending
+                                ? AppColors.textSecondary.opacity(0.3)
+                                : AppColors.teal
+                        )
+                }
+                .disabled(
+                    viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending
+                )
             }
-            .disabled(
-                viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending
-            )
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
         }
-        .padding(.horizontal, AppSpacing.xs)
-        .padding(.vertical, AppSpacing.xxs)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: -2)
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.bottom, AppSpacing.xxs)
     }
 }
