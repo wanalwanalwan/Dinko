@@ -16,8 +16,8 @@ final class ChatViewModel {
     private(set) var totalSkills = 0
     private(set) var weeklyFocusTitle: String?
 
-    // Auth token — set from outside (Supabase Auth)
-    var authToken: String = ""
+    // Auth token — provide a closure so we always get the current token
+    var authTokenProvider: () -> String = { "" }
 
     init(
         skillRepository: SkillRepository,
@@ -62,7 +62,7 @@ final class ChatViewModel {
             let response = try await agentService.logSession(
                 note: text,
                 skills: snapshots,
-                authToken: authToken
+                authToken: authTokenProvider()
             )
 
             // Replace loading bubble with preview
@@ -109,7 +109,7 @@ final class ChatViewModel {
             _ = try await agentService.confirmSession(
                 sessionId: preview.sessionId,
                 roadmapUpdates: preview.roadmapUpdates,
-                authToken: authToken
+                authToken: authTokenProvider()
             )
 
             // Apply rating changes locally to CoreData
