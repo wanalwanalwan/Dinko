@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 struct Drill: Identifiable, Hashable {
     let id: UUID
@@ -50,4 +50,22 @@ enum DrillStatus: String {
     case pending
     case completed
     case skipped
+}
+
+extension Drill {
+    var priorityIcon: String {
+        switch priority {
+        case "high": "exclamationmark.circle.fill"
+        case "medium": "circle.fill"
+        default: "circle"
+        }
+    }
+
+    var priorityColor: Color {
+        switch priority {
+        case "high": AppColors.coral
+        case "medium": AppColors.teal
+        default: AppColors.textSecondary
+        }
+    }
 }

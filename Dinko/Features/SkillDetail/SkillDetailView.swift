@@ -352,8 +352,8 @@ struct SkillDetailView: View {
                 }
             } label: {
                 HStack(alignment: .top, spacing: AppSpacing.xxs) {
-                    Image(systemName: drillPriorityIcon(drill.priority))
-                        .foregroundStyle(drillPriorityColor(drill.priority))
+                    Image(systemName: drill.priorityIcon)
+                        .foregroundStyle(drill.priorityColor)
                         .font(.system(size: 14))
                         .frame(width: 20)
 
@@ -425,22 +425,6 @@ struct SkillDetailView: View {
             }
         }
         .padding(.vertical, AppSpacing.xxs)
-    }
-
-    private func drillPriorityIcon(_ priority: String) -> String {
-        switch priority {
-        case "high": "exclamationmark.circle.fill"
-        case "medium": "circle.fill"
-        default: "circle"
-        }
-    }
-
-    private func drillPriorityColor(_ priority: String) -> Color {
-        switch priority {
-        case "high": AppColors.coral
-        case "medium": AppColors.teal
-        default: AppColors.textSecondary
-        }
     }
 
     // MARK: - Rating Notes Section

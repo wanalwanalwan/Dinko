@@ -7,6 +7,17 @@ final class DrillRepositoryImpl: DrillRepository {
         self.persistence = persistence
     }
 
+    func fetchAll() async throws -> [Drill] {
+        let context = persistence.newBackgroundContext()
+        return try await context.perform {
+            let request = DrillEntity.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \DrillEntity.createdDate, ascending: false)]
+            request.fetchLimit = 500
+            let entities = try context.fetch(request)
+            return entities.map { $0.toDomain() }
+        }
+    }
+
     func fetchForSkill(_ skillId: UUID) async throws -> [Drill] {
         let context = persistence.newBackgroundContext()
         return try await context.perform {

@@ -41,6 +41,43 @@ enum PreviewData {
 
     static let allSampleSkills = [sampleServe, sampleDink, sampleVolley, sampleThirdShot, sampleFootwork, sampleStrategy]
 
+    // MARK: - Drill Previews
+
+    static let sampleDrills: [Drill] = [
+        Drill(
+            skillId: sampleServe.id,
+            name: "Deep Serve Target Practice",
+            drillDescription: "Set up targets in the back third of the service box. Aim for 10 consecutive deep serves.",
+            targetSubskill: "Placement",
+            durationMinutes: 10,
+            playerCount: 1,
+            equipment: "Balls, target cones",
+            reason: "Your serve depth has been inconsistent — deep serves reduce third-shot pressure.",
+            priority: "high"
+        ),
+        Drill(
+            skillId: sampleDink.id,
+            name: "Cross-Court Dink Rally",
+            drillDescription: "Rally cross-court dinks with a partner. Focus on soft hands and paddle face angle. Try for 20 consecutive dinks.",
+            targetSubskill: "Soft Hands",
+            durationMinutes: 8,
+            playerCount: 2,
+            equipment: "Balls",
+            reason: "Cross-court dinks build consistency before progressing to down-the-line.",
+            priority: "medium"
+        ),
+        Drill(
+            skillId: sampleThirdShot.id,
+            name: "Transition Zone Drops",
+            drillDescription: "Stand at the transition zone and practice drop shots into the kitchen. Focus on wrist stability and arc control.",
+            durationMinutes: 12,
+            playerCount: 1,
+            equipment: "Balls, ball hopper",
+            reason: "Drops from the transition zone are the foundation before baseline drops.",
+            priority: "low"
+        ),
+    ]
+
     // MARK: - Legacy Preview Models (used by other components)
 
     static let serveSkill = SkillPreview(

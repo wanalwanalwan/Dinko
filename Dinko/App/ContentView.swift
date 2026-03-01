@@ -23,6 +23,14 @@ struct ContentView: View {
                 }
 
                 NavigationStack {
+                    DrillQueueView()
+                }
+                .tabItem {
+                    Image(systemName: "figure.run")
+                    Text("Drills")
+                }
+
+                NavigationStack {
                     ArchivedSkillsView()
                 }
                 .tabItem {

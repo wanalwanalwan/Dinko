@@ -40,6 +40,7 @@ struct SessionPreview {
     let drillRecommendations: [DrillRecommendation]
     let roadmapUpdates: RoadmapUpdates?
     let subskillSuggestions: [SubskillSuggestion]?
+    let skillSuggestions: [SkillCreationSuggestion]?
     var confirmState: ConfirmState = .pending
 
     enum ConfirmState {
@@ -60,6 +61,20 @@ struct SubskillSuggestion: Codable {
         case name, description
         case suggestedRating = "suggested_rating"
         case parentSkillId = "parent_skill_id"
+    }
+}
+
+struct SkillCreationSuggestion: Codable {
+    let name: String
+    let category: String
+    let description: String
+    let suggestedRating: Int
+    let iconName: String
+
+    enum CodingKeys: String, CodingKey {
+        case name, category, description
+        case suggestedRating = "suggested_rating"
+        case iconName = "icon_name"
     }
 }
 

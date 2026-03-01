@@ -75,6 +75,8 @@
 		E30000010000000000000002 /* DrillEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000002 /* DrillEntity+Ext.swift */; };
 		E30000010000000000000003 /* DrillRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000003 /* DrillRepository.swift */; };
 		E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000004 /* DrillRepositoryImpl.swift */; };
+		E30000010000000000000005 /* DrillQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000005 /* DrillQueueView.swift */; };
+		E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000006 /* DrillQueueViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -166,6 +168,8 @@
 		E30000020000000000000002 /* DrillEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DrillEntity+Ext.swift"; sourceTree = "<group>"; };
 		E30000020000000000000003 /* DrillRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRepository.swift; sourceTree = "<group>"; };
 		E30000020000000000000004 /* DrillRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRepositoryImpl.swift; sourceTree = "<group>"; };
+		E30000020000000000000005 /* DrillQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillQueueView.swift; sourceTree = "<group>"; };
+		E30000020000000000000006 /* DrillQueueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillQueueViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -383,6 +387,7 @@
 				A70000010000000000000084 /* ArchivedSkills */,
 				F70000000000000000000001 /* Auth */,
 				E70000020000000000000001 /* Chat */,
+				E70000030000000000000001 /* Drills */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -452,6 +457,15 @@
 				F20000000000000000000001 /* AuthService.swift */,
 			);
 			path = Networking;
+			sourceTree = "<group>";
+		};
+		E70000030000000000000001 /* Drills */ = {
+			isa = PBXGroup;
+			children = (
+				E30000020000000000000005 /* DrillQueueView.swift */,
+				E30000020000000000000006 /* DrillQueueViewModel.swift */,
+			);
+			path = Drills;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -645,6 +659,8 @@
 				E30000010000000000000002 /* DrillEntity+Ext.swift in Sources */,
 				E30000010000000000000003 /* DrillRepository.swift in Sources */,
 				E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */,
+				E30000010000000000000005 /* DrillQueueView.swift in Sources */,
+				E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

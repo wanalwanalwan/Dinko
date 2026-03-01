@@ -72,7 +72,8 @@ final class ChatViewModel {
                 skillUpdates: response.skillUpdates,
                 drillRecommendations: response.drillRecommendations,
                 roadmapUpdates: response.roadmapUpdates,
-                subskillSuggestions: response.subskillSuggestions
+                subskillSuggestions: response.subskillSuggestions,
+                skillSuggestions: response.skillSuggestions
             )
 
             replaceMessage(id: loadingId, with: ChatMessage(
@@ -129,6 +130,11 @@ final class ChatViewModel {
             // Create subskills if suggested
             if let suggestions = preview.subskillSuggestions, !suggestions.isEmpty {
                 await createSubskills(suggestions)
+            }
+
+            // Create new skills if suggested
+            if let skillSuggestions = preview.skillSuggestions, !skillSuggestions.isEmpty {
+                await createSkills(skillSuggestions)
             }
 
             preview.confirmState = .confirmed
@@ -275,6 +281,33 @@ final class ChatViewModel {
             }
         } catch {
             // Subskill creation failure is non-critical
+        }
+    }
+
+    private func createSkills(_ suggestions: [SkillCreationSuggestion]) async {
+        do {
+            for suggestion in suggestions {
+                let category = SkillCategory(rawValue: suggestion.category) ?? .strategy
+
+                let skill = Skill(
+                    name: suggestion.name,
+                    category: category,
+                    description: suggestion.description,
+                    iconName: suggestion.iconName
+                )
+                try await skillRepository.save(skill)
+
+                if suggestion.suggestedRating > 0 {
+                    let rating = SkillRating(
+                        skillId: skill.id,
+                        rating: suggestion.suggestedRating,
+                        notes: "Initial AI-suggested rating"
+                    )
+                    try await skillRatingRepository.save(rating)
+                }
+            }
+        } catch {
+            // Skill creation failure is non-critical
         }
     }
 }

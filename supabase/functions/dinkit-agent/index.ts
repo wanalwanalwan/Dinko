@@ -145,10 +145,12 @@ async function callClaude(
 
 // ---------- Intent Classification (heuristic, no API call) ----------
 
-type Intent = "session_log" | "create_subskills";
+type Intent = "session_log" | "create_subskills" | "create_skill";
 
 function classifyIntent(note: string): Intent {
   const lower = note.toLowerCase();
+
+  // Check subskill patterns first (more specific)
   const subskillPatterns = [
     /create\s+(sub\s*skills?|breakdowns?)/,
     /suggest\s+(sub\s*skills?|breakdowns?)/,
@@ -161,6 +163,19 @@ function classifyIntent(note: string): Intent {
   for (const pattern of subskillPatterns) {
     if (pattern.test(lower)) return "create_subskills";
   }
+
+  // Check skill creation patterns
+  const skillPatterns = [
+    /(?:create|add|new|start\s+tracking)\s+(?:a\s+)?(?:new\s+)?skill/,
+    /(?:add|create)\s+(?:a\s+)?(?:new\s+)?\w+[\w\s]*(?:as\s+)?(?:a\s+)?skill/,
+    /i\s+want\s+to\s+track/,
+    /(?:track|monitor)\s+(?:my\s+)?(?:new\s+)?\w+/,
+    /^add\s+\w/,
+  ];
+  for (const pattern of skillPatterns) {
+    if (pattern.test(lower)) return "create_skill";
+  }
+
   return "session_log";
 }
 
@@ -211,6 +226,50 @@ Respond ONLY with valid JSON:
 
   const cleaned = await callClaude(apiKey, systemPrompt, note, 1024);
   return JSON.parse(cleaned) as SubskillSuggestion[];
+}
+
+// ---------- Skill Creation ----------
+
+interface SkillCreationSuggestion {
+  name: string;
+  category: string;
+  description: string;
+  suggested_rating: number;
+  icon_name: string;
+}
+
+async function generateSkill(
+  note: string,
+  skills: SkillSnapshot[],
+  apiKey: string
+): Promise<SkillCreationSuggestion[]> {
+  const existingSkillNames = skills.map((s) => s.name).join(", ");
+
+  const systemPrompt = `You are a pickleball coaching assistant. The user wants to create a new skill to track.
+
+Existing skills: ${existingSkillNames || "(none)"}
+
+Based on the user's request, suggest 1-3 new skills to create. Pick the most appropriate category for each.
+
+Valid categories: dinking, drops, drives, defense, offense, strategy, serves
+
+Rules:
+- Don't suggest skills that already exist
+- Pick an appropriate starting rating (0-100) based on context, default to 30 for beginners
+- Pick an SF Symbol icon name that matches the skill (e.g. "figure.pickleball", "target", "shield.fill", "bolt.fill")
+- Keep descriptions concise (1-2 sentences)
+
+Respond ONLY with valid JSON:
+[{
+  "name": "string",
+  "category": "string (one of: dinking, drops, drives, defense, offense, strategy, serves)",
+  "description": "string",
+  "suggested_rating": number,
+  "icon_name": "string (SF Symbol name)"
+}]`;
+
+  const cleaned = await callClaude(apiKey, systemPrompt, note, 1024);
+  return JSON.parse(cleaned) as SkillCreationSuggestion[];
 }
 
 // ---------- Pass 1: Extraction (Claude API) ----------
@@ -789,6 +848,44 @@ Deno.serve(async (req: Request) => {
           drill_recommendations: [],
           roadmap_updates: null,
           subskill_suggestions: subskillSuggestions,
+          skill_suggestions: [],
+        });
+      }
+
+      if (intent === "create_skill") {
+        // Generate skill creation suggestions
+        const skillSuggestions = await generateSkill(
+          note,
+          userSkills,
+          anthropicKey
+        );
+
+        // Save a session log for tracking
+        const { data: session, error: insertError } = await supabase
+          .from("session_logs")
+          .insert({
+            user_id: user.id,
+            raw_note: note,
+            extracted_json: { mentions: [], new_skill_suggestions: [], session_duration_minutes: null, session_type: null },
+            applied_deltas: [],
+            drill_recommendations: [],
+            user_confirmed: false,
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          throw new Error(`Failed to save session: ${insertError.message}`);
+        }
+
+        return jsonResponse({
+          session_id: session.id,
+          extraction: { mentions: [], new_skill_suggestions: [], session_duration_minutes: null, session_type: null },
+          skill_updates: [],
+          drill_recommendations: [],
+          roadmap_updates: null,
+          subskill_suggestions: [],
+          skill_suggestions: skillSuggestions,
         });
       }
 
@@ -838,6 +935,7 @@ Deno.serve(async (req: Request) => {
         })),
         drill_recommendations: drillRecommendations,
         roadmap_updates: roadmapUpdates,
+        skill_suggestions: [],
       });
     }
 

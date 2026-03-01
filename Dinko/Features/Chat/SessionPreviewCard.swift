@@ -29,6 +29,11 @@ struct SessionPreviewCard: View {
                 subskillSuggestionsSection(suggestions)
             }
 
+            // Skill Creation Suggestions
+            if let skillSuggestions = preview.skillSuggestions, !skillSuggestions.isEmpty {
+                skillSuggestionsSection(skillSuggestions)
+            }
+
             // Roadmap
             if let roadmap = preview.roadmapUpdates {
                 roadmapSection(roadmap)
@@ -153,6 +158,44 @@ struct SessionPreviewCard: View {
                             .font(AppTypography.body)
 
                         Text(suggestion.description)
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .lineLimit(2)
+
+                        if suggestion.suggestedRating > 0 {
+                            Text("Starting at \(suggestion.suggestedRating)%")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.teal)
+                        }
+                    }
+
+                    Spacer()
+                }
+                .padding(.vertical, AppSpacing.xxxs)
+            }
+        }
+    }
+
+    // MARK: - Skill Suggestions
+
+    private func skillSuggestionsSection(_ suggestions: [SkillCreationSuggestion]) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Text("New Skills")
+                .font(AppTypography.callout)
+                .foregroundStyle(AppColors.textSecondary)
+
+            ForEach(suggestions, id: \.name) { suggestion in
+                HStack(alignment: .top, spacing: AppSpacing.xxs) {
+                    Image(systemName: "star.circle.fill")
+                        .foregroundStyle(AppColors.teal)
+                        .font(.system(size: 14))
+                        .frame(width: 20)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(suggestion.name)
+                            .font(AppTypography.body)
+
+                        Text("\(suggestion.category.capitalized) \u{2022} \(suggestion.description)")
                             .font(AppTypography.caption)
                             .foregroundStyle(AppColors.textSecondary)
                             .lineLimit(2)
