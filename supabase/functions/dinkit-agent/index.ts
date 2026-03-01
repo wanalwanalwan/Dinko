@@ -26,6 +26,7 @@ interface ExtractionMention {
     | "positive"
     | "very_positive";
   intensity: number;
+  suggested_rating: number | null;
   subskills_mentioned: string[];
   quote: string;
 }
@@ -234,12 +235,19 @@ async function extractSession(
 The user has these skills tracked:
 ${skillList || "(no skills yet)"}
 
-Parse the user's session note into structured JSON. Extract every skill or subskill mentioned, determine sentiment and intensity.
+Parse the user's session note into structured JSON. Extract every skill or subskill mentioned, determine sentiment, intensity, and what rating level the language implies.
 
 Rules:
 - Match mentions to existing skill names when possible (fuzzy match is fine)
 - sentiment: very_negative / negative / neutral / positive / very_positive
 - intensity: 1 (barely mentioned) to 5 (major focus of the session)
+- suggested_rating: What proficiency level (0-100) does the user's language imply for this skill? Interpret absolute claims:
+  - "mastered", "nailed it", "perfected" → 85-95
+  - "really good at", "very confident" → 70-85
+  - "getting better", "improved" → use null (relative, not absolute)
+  - "struggled with", "kept failing" → 15-30
+  - "terrible at", "can't do it at all" → 5-15
+  - Use null when the language only describes relative change, not an absolute level
 - Include direct quotes from the note that support each mention
 - If the user describes a skill not in their list, add it to new_skill_suggestions
 - Infer session_duration_minutes and session_type (singles/doubles/drills/mixed) from context, use null if not mentioned
@@ -251,6 +259,7 @@ Respond ONLY with valid JSON matching this schema:
       "skill_name": "string",
       "sentiment": "string",
       "intensity": number,
+      "suggested_rating": number | null,
       "subskills_mentioned": ["string"],
       "quote": "string"
     }
@@ -287,42 +296,60 @@ function computeDeltas(
     const skill = skills.find((s) => s.name.toLowerCase() === skillKey);
     if (!skill) continue;
 
+    // Check if any mention has a suggested_rating (absolute claim like "mastered")
+    const bestAbsoluteMention = mentions
+      .filter((m) => m.suggested_rating != null)
+      .sort((a, b) => b.intensity - a.intensity)[0];
+
     let totalDelta = 0;
-    for (const mention of mentions) {
-      const sentimentMult = SENTIMENT_MULTIPLIER[mention.sentiment] ?? 0;
-      const intensityMult = INTENSITY_MULTIPLIER[mention.intensity] ?? 1.0;
-      totalDelta += BASE_INCREMENT * sentimentMult * intensityMult * frequencyDecay;
-    }
-
-    // Rating gap scaling: bigger jumps when far from implied target
-    // If very positive + high intensity at low rating, the gap amplifies the delta
-    const bestMention = mentions.reduce((best, m) => {
-      const score = (SENTIMENT_MULTIPLIER[m.sentiment] ?? 0) * m.intensity;
-      const bestScore = (SENTIMENT_MULTIPLIER[best.sentiment] ?? 0) * best.intensity;
-      return score > bestScore ? m : best;
-    }, mentions[0]);
-
-    if (bestMention && totalDelta > 0) {
-      const currentRating = skill.current_rating;
-      // At low ratings, strong positive signals should move more
-      // gapBoost: 1.0 at rating 100, up to 2.0 at rating 0
-      const gapBoost = 1.0 + (100 - currentRating) / 100;
-      totalDelta *= gapBoost;
-    } else if (bestMention && totalDelta < 0) {
-      const currentRating = skill.current_rating;
-      // At high ratings, strong negative signals should move more
-      const gapBoost = 1.0 + currentRating / 100;
-      totalDelta *= gapBoost;
-    }
-
-    totalDelta = Math.max(
-      -MAX_DELTA_PER_SKILL,
-      Math.min(MAX_DELTA_PER_SKILL, totalDelta)
-    );
-    totalDelta = Math.round(totalDelta);
-    if (totalDelta === 0) continue;
-
     const oldRating = skill.current_rating;
+
+    if (bestAbsoluteMention && bestAbsoluteMention.suggested_rating != null) {
+      // Absolute rating mode: blend toward the suggested rating
+      // Higher intensity = trust the claim more
+      const target = bestAbsoluteMention.suggested_rating;
+      const blendFactor: Record<number, number> = {
+        1: 0.2,
+        2: 0.35,
+        3: 0.5,
+        4: 0.7,
+        5: 0.85,
+      };
+      const blend = blendFactor[bestAbsoluteMention.intensity] ?? 0.5;
+      totalDelta = Math.round((target - oldRating) * blend * frequencyDecay);
+    } else {
+      // Relative delta mode: incremental changes
+      for (const mention of mentions) {
+        const sentimentMult = SENTIMENT_MULTIPLIER[mention.sentiment] ?? 0;
+        const intensityMult = INTENSITY_MULTIPLIER[mention.intensity] ?? 1.0;
+        totalDelta += BASE_INCREMENT * sentimentMult * intensityMult * frequencyDecay;
+      }
+
+      // Rating gap scaling for relative deltas
+      const bestMention = mentions.reduce((best, m) => {
+        const score = (SENTIMENT_MULTIPLIER[m.sentiment] ?? 0) * m.intensity;
+        const bestScore = (SENTIMENT_MULTIPLIER[best.sentiment] ?? 0) * best.intensity;
+        return score > bestScore ? m : best;
+      }, mentions[0]);
+
+      if (bestMention && totalDelta > 0) {
+        const gapBoost = 1.0 + (100 - oldRating) / 100;
+        totalDelta *= gapBoost;
+      } else if (bestMention && totalDelta < 0) {
+        const gapBoost = 1.0 + oldRating / 100;
+        totalDelta *= gapBoost;
+      }
+
+      totalDelta = Math.round(totalDelta);
+
+      // Cap only applies to relative deltas, not absolute claims
+      totalDelta = Math.max(
+        -MAX_DELTA_PER_SKILL,
+        Math.min(MAX_DELTA_PER_SKILL, totalDelta)
+      );
+    }
+
+    if (totalDelta === 0) continue;
     const newRating = Math.max(0, Math.min(100, oldRating + totalDelta));
     const actualDelta = newRating - oldRating;
 
