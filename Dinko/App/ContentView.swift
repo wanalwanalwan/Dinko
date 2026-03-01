@@ -7,6 +7,14 @@ struct ContentView: View {
         ZStack {
             TabView {
                 NavigationStack {
+                    HomeView()
+                }
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("Home")
+                }
+
+                NavigationStack {
                     ChatView()
                 }
                 .tabItem {

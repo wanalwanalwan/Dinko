@@ -79,6 +79,8 @@
 		E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000006 /* DrillQueueViewModel.swift */; };
 		M10000000000000000000001 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000000000000000000001 /* OnboardingViewModel.swift */; };
 		M10000000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000000000000000000002 /* OnboardingView.swift */; };
+		N10000000000000000000001 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = N20000000000000000000001 /* HomeViewModel.swift */; };
+		N10000000000000000000002 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N20000000000000000000002 /* HomeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -174,6 +176,8 @@
 		E30000020000000000000006 /* DrillQueueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillQueueViewModel.swift; sourceTree = "<group>"; };
 		M20000000000000000000001 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		M20000000000000000000002 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		N20000000000000000000001 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		N20000000000000000000002 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -385,6 +389,7 @@
 		A70000010000000000000080 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				N70000000000000000000001 /* Home */,
 				A70000010000000000000081 /* SkillList */,
 				A70000010000000000000082 /* SkillDetail */,
 				A70000010000000000000083 /* AddEditSkill */,
@@ -480,6 +485,15 @@
 				M20000000000000000000002 /* OnboardingView.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		N70000000000000000000001 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				N20000000000000000000001 /* HomeViewModel.swift */,
+				N20000000000000000000002 /* HomeView.swift */,
+			);
+			path = Home;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -677,6 +691,8 @@
 				E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */,
 				M10000000000000000000001 /* OnboardingViewModel.swift in Sources */,
 				M10000000000000000000002 /* OnboardingView.swift in Sources */,
+				N10000000000000000000001 /* HomeViewModel.swift in Sources */,
+				N10000000000000000000002 /* HomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
