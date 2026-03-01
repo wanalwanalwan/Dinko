@@ -137,6 +137,11 @@ final class AgentService {
     }
 
     private func executeRequest(body: [String: Any], authToken: String) async throws -> (Data, HTTPURLResponse) {
+        let trimmedToken = authToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedToken.isEmpty else {
+            throw AgentError.server("Missing access token. Please sign in again.")
+        }
+
         guard let url = URL(string: SupabaseConfig.agentFunctionURL) else {
             throw AgentError.invalidURL
         }
@@ -144,7 +149,7 @@ final class AgentService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(trimmedToken)", forHTTPHeaderField: "Authorization")
         request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
@@ -160,11 +165,27 @@ final class AgentService {
     private func decodeResponse<T: Codable>(data: Data, statusCode: Int) throws -> T {
         if statusCode != 200 {
             if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                throw AgentError.server(errorResponse.error)
+                throw AgentError.server("HTTP \(statusCode): \(errorResponse.error)")
             }
-            throw AgentError.server("Request failed with status \(statusCode)")
+
+            if let body = responseBodyString(data), !body.isEmpty {
+                throw AgentError.server("HTTP \(statusCode): \(body)")
+            }
+
+            throw AgentError.server("HTTP \(statusCode): Request failed")
         }
         return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    private func responseBodyString(_ data: Data) -> String? {
+        guard !data.isEmpty else { return nil }
+        guard let str = String(data: data, encoding: .utf8) else { return nil }
+        let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count > 600 {
+            let idx = trimmed.index(trimmed.startIndex, offsetBy: 600)
+            return String(trimmed[..<idx]) + "…"
+        }
+        return trimmed
     }
 
     private func refreshToken() async -> String? {
