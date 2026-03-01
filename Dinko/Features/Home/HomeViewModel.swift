@@ -237,11 +237,22 @@ final class HomeViewModel {
             var dataPoints: [HomeChartDataPoint] = []
 
             if childSkills.isEmpty {
-                // Leaf skill: use its ratings directly
+                // Leaf skill: deduplicate by day, keep only latest per day
                 let ratings = (cachedRatings[skill.id] ?? [])
                     .filter { $0.date >= cutoff }
+                var latestByDay: [Date: SkillRating] = [:]
                 for r in ratings {
-                    dataPoints.append(HomeChartDataPoint(date: r.date, rating: r.rating))
+                    let day = Calendar.current.startOfDay(for: r.date)
+                    if let existing = latestByDay[day] {
+                        if r.date > existing.date {
+                            latestByDay[day] = r
+                        }
+                    } else {
+                        latestByDay[day] = r
+                    }
+                }
+                for (day, r) in latestByDay.sorted(by: { $0.key < $1.key }) {
+                    dataPoints.append(HomeChartDataPoint(date: day, rating: r.rating))
                 }
             } else {
                 // Parent skill: build a synthetic timeline from child ratings

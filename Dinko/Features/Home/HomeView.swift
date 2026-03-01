@@ -201,7 +201,8 @@ struct HomeView: View {
                     ForEach(series.dataPoints) { point in
                         LineMark(
                             x: .value("Date", point.date),
-                            y: .value("Rating", point.rating)
+                            y: .value("Rating", point.rating),
+                            series: .value("Skill", series.skillName)
                         )
                         .foregroundStyle(by: .value("Skill", series.skillName))
                         .interpolationMethod(.catmullRom)
