@@ -55,9 +55,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: AppSpacing.sm) {
                     greetingHeader(viewModel)
-                    quickStatsRow(viewModel)
                     progressChart(viewModel)
-                    topMoversSection(viewModel)
                     recommendedDrillsSection(viewModel)
                     completedSkillsSection(viewModel)
                 }
@@ -149,7 +147,7 @@ struct HomeView: View {
     private func progressChart(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
             HStack {
-                Text("PROGRESS")
+                Text("SKILL PROGRESS")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
 
