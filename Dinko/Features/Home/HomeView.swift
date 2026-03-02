@@ -382,15 +382,24 @@ struct HomeView: View {
         return formatter
     }()
 
-    @ViewBuilder
     private func completedSkillsSection(_ viewModel: HomeViewModel) -> some View {
-        if !viewModel.completedSkills.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("COMPLETED SKILLS")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .padding(.bottom, AppSpacing.xs)
+        VStack(alignment: .leading, spacing: 0) {
+            Text("COMPLETED SKILLS")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .padding(.bottom, AppSpacing.xs)
 
+            if viewModel.completedSkills.isEmpty {
+                HStack(spacing: AppSpacing.xxs) {
+                    Image(systemName: "trophy")
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+
+                    Text("Rate a skill to 100% to complete it.")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .padding(.vertical, AppSpacing.xxs)
+            } else {
                 ForEach(Array(viewModel.completedSkills.enumerated()), id: \.element.id) { index, item in
                     if index > 0 {
                         Divider()
@@ -426,10 +435,10 @@ struct HomeView: View {
                     .padding(.vertical, AppSpacing.xxs)
                 }
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 }
 
