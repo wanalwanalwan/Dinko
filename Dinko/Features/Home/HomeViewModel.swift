@@ -45,6 +45,14 @@ struct HomeRecommendedDrill: Identifiable {
     let priority: String
 }
 
+struct CompletedSkillItem: Identifiable {
+    let id: UUID
+    let name: String
+    let iconName: String
+    let rating: Int
+    let completedDate: Date?
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -63,6 +71,7 @@ final class HomeViewModel {
     private(set) var selectedTimeRange: HomeTimeRange = .weekly
     private(set) var topMovers: [HomeSkillMover] = []
     private(set) var recommendedDrills: [HomeRecommendedDrill] = []
+    private(set) var completedSkills: [CompletedSkillItem] = []
 
     private(set) var isLoaded = false
     var errorMessage: String?
@@ -113,6 +122,9 @@ final class HomeViewModel {
 
             // Load recommended drills
             try await loadRecommendedDrills()
+
+            // Load completed skills
+            try await loadCompletedSkills()
 
             isLoaded = true
             errorMessage = nil
@@ -452,6 +464,41 @@ final class HomeViewModel {
         } catch {
             errorMessage = "Failed to update drill."
         }
+    }
+
+    private func loadCompletedSkills() async throws {
+        let allCompleted = try await skillRepository.fetchArchived()
+        let topLevel = allCompleted.filter { $0.parentSkillId == nil }
+
+        var items: [CompletedSkillItem] = []
+        for skill in topLevel {
+            let childSkills = allCompleted.filter { $0.parentSkillId == skill.id }
+            let rating: Int
+            if childSkills.isEmpty {
+                if let latest = try await skillRatingRepository.fetchLatest(skill.id) {
+                    rating = latest.rating
+                } else {
+                    rating = 0
+                }
+            } else {
+                var total = 0, count = 0
+                for child in childSkills {
+                    if let latest = try await skillRatingRepository.fetchLatest(child.id) {
+                        total += latest.rating
+                        count += 1
+                    }
+                }
+                rating = count > 0 ? total / count : 0
+            }
+            items.append(CompletedSkillItem(
+                id: skill.id,
+                name: skill.name,
+                iconName: skill.iconName,
+                rating: rating,
+                completedDate: skill.archivedDate
+            ))
+        }
+        completedSkills = items
     }
 
     private func priorityValue(_ priority: String) -> Int {

@@ -2,7 +2,15 @@ import CoreData
 
 extension SkillEntity {
     func toDomain() -> Skill {
-        Skill(
+        // Backward compat: treat legacy "archived" values as .completed
+        let resolvedStatus: SkillStatus
+        if let raw = status, raw == "archived" {
+            resolvedStatus = .completed
+        } else {
+            resolvedStatus = SkillStatus(rawValue: status ?? "active") ?? .active
+        }
+
+        return Skill(
             id: id ?? UUID(),
             name: name ?? "",
             parentSkillId: parentSkillId,
@@ -11,7 +19,7 @@ extension SkillEntity {
             description: descriptionText ?? "",
             createdDate: createdDate ?? Date(),
             updatedAt: updatedAt ?? Date(),
-            status: SkillStatus(rawValue: status ?? "active") ?? .active,
+            status: resolvedStatus,
             archivedDate: archivedDate,
             displayOrder: Int(displayOrder),
             autoCalculateRating: autoCalculateRating,

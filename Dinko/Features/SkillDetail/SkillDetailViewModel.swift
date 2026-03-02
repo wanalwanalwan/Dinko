@@ -12,6 +12,7 @@ final class SkillDetailViewModel {
     private(set) var latestRating: Int = 0
     private(set) var weeklyDelta: Int?
     private(set) var hasSubskills: Bool = false
+    var showCompletionCelebration = false
     var errorMessage: String?
 
     var isParentSkill: Bool { skill.parentSkillId == nil }
@@ -123,6 +124,14 @@ final class SkillDetailViewModel {
             )
             try await skillRatingRepository.save(newRating)
             await loadDetail()
+
+            if clampedRating == 100 {
+                try await skillRepository.archive(skill.id)
+                skill.status = .completed
+                skill.archivedDate = Date()
+                showCompletionCelebration = true
+            }
+
             return true
         } catch {
             errorMessage = "Failed to save rating."
@@ -139,24 +148,6 @@ final class SkillDetailViewModel {
             skill = updated
         } catch {
             errorMessage = "Failed to save notes."
-        }
-    }
-
-    func archiveSkill() async {
-        do {
-            // Archive the parent skill
-            try await skillRepository.archive(skill.id)
-            // Also archive all subskills
-            for subskill in subskills {
-                try await skillRepository.archive(subskill.id)
-            }
-            // Only update local state after repo confirms success
-            skill.status = .archived
-            skill.archivedDate = Date()
-        } catch {
-            // Reload to get the true state from the database
-            await loadDetail()
-            errorMessage = "Failed to archive skill."
         }
     }
 

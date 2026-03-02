@@ -37,14 +37,6 @@ struct ContentView: View {
                     Image(systemName: "figure.run")
                     Text("Drills")
                 }
-
-                NavigationStack {
-                    ArchivedSkillsView()
-                }
-                .tabItem {
-                    Image(systemName: "archivebox")
-                    Text("Archived")
-                }
             }
             .tint(AppColors.teal)
 

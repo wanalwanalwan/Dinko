@@ -44,7 +44,7 @@ struct SessionPreview {
     var confirmState: ConfirmState = .pending
     var selectedDrillIndices: Set<Int>
 
-    enum ConfirmState {
+    enum ConfirmState: Equatable {
         case pending
         case confirming
         case confirmed

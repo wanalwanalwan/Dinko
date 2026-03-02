@@ -6,7 +6,6 @@ struct SkillDetailView: View {
     @State private var viewModel: SkillDetailViewModel?
     @State private var showingRateSkill = false
     @State private var showingAddSubskill = false
-    @State private var showingArchiveConfirm = false
     @State private var showingDeleteConfirm = false
     @State private var ratingNotesExpanded = false
     let skill: Skill
@@ -81,21 +80,6 @@ struct SkillDetailView: View {
         }) {
             AddEditSkillView(parentSkillId: skill.id)
         }
-        .alert("Archive Skill", isPresented: $showingArchiveConfirm) {
-            Button("Archive", role: .destructive) {
-                Task {
-                    await viewModel.archiveSkill()
-                    dismiss()
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            if viewModel.hasSubskills {
-                Text("This will archive \"\(skill.name)\" and all its subskills. You can restore them later.")
-            } else {
-                Text("This will archive \"\(skill.name)\". You can restore it later.")
-            }
-        }
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
@@ -119,6 +103,63 @@ struct SkillDetailView: View {
             } else {
                 Text("This will permanently delete \"\(skill.name)\". This cannot be undone.")
             }
+        }
+        .overlay {
+            if viewModel.showCompletionCelebration {
+                completionCelebration(viewModel)
+            }
+        }
+    }
+
+    // MARK: - Completion Celebration
+
+    private func completionCelebration(_ viewModel: SkillDetailViewModel) -> some View {
+        ZStack {
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+
+            VStack(spacing: AppSpacing.lg) {
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(Color(red: 1.0, green: 0.84, blue: 0.0))
+
+                Text("Skill Completed!")
+                    .font(AppTypography.largeTitle)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                VStack(spacing: AppSpacing.xxxs) {
+                    Text(skill.name)
+                        .font(AppTypography.title)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("100%")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                }
+
+                Text("You've mastered this skill!")
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.textSecondary)
+
+                Button {
+                    viewModel.showCompletionCelebration = false
+                    dismiss()
+                } label: {
+                    Text("Awesome!")
+                        .font(AppTypography.headline)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, AppSpacing.xl)
+                        .padding(.vertical, AppSpacing.sm)
+                        .background(AppColors.teal)
+                        .clipShape(Capsule())
+                }
+                .padding(.top, AppSpacing.xxs)
+            }
+            .padding(AppSpacing.xl)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .shadow(radius: 20)
+            .padding(.horizontal, AppSpacing.xl)
         }
     }
 
@@ -505,23 +546,6 @@ struct SkillDetailView: View {
     private func actionButtons(_ viewModel: SkillDetailViewModel) -> some View {
         VStack(spacing: 0) {
             Divider()
-
-            if viewModel.isParentSkill {
-                Button {
-                    showingArchiveConfirm = true
-                } label: {
-                    HStack(spacing: AppSpacing.xxs) {
-                        Image(systemName: "archivebox")
-                        Text("Archive Skill")
-                    }
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.sm)
-                }
-
-                Divider()
-            }
 
             Button {
                 showingDeleteConfirm = true

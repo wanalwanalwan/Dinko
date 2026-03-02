@@ -51,19 +51,19 @@ final class SkillRepositoryTests: XCTestCase {
         XCTAssertEqual(skills.count, 0)
     }
 
-    func testFetchActiveFiltersArchived() async throws {
+    func testFetchActiveFiltersCompleted() async throws {
         let active = Skill(name: "Active Skill", status: .active)
-        let archived = Skill(name: "Archived Skill", status: .archived, archivedDate: Date())
+        let completed = Skill(name: "Completed Skill", status: .completed, archivedDate: Date())
         try await repository.save(active)
-        try await repository.save(archived)
+        try await repository.save(completed)
 
         let activeSkills = try await repository.fetchActive()
         XCTAssertEqual(activeSkills.count, 1)
         XCTAssertEqual(activeSkills.first?.name, "Active Skill")
     }
 
-    func testArchive() async throws {
-        let skill = Skill(name: "To Archive", status: .active)
+    func testComplete() async throws {
+        let skill = Skill(name: "To Complete", status: .active)
         try await repository.save(skill)
 
         try await repository.archive(skill.id)
@@ -73,7 +73,7 @@ final class SkillRepositoryTests: XCTestCase {
 
         let allSkills = try await repository.fetchAll()
         XCTAssertEqual(allSkills.count, 1)
-        XCTAssertEqual(allSkills.first?.status, .archived)
+        XCTAssertEqual(allSkills.first?.status, .completed)
         XCTAssertNotNil(allSkills.first?.archivedDate)
     }
 

@@ -58,8 +58,7 @@
 		H10000010000000000000001 /* RateSkillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000001 /* RateSkillView.swift */; };
 		H10000010000000000000002 /* SkillNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000002 /* SkillNotesView.swift */; };
 		I10000010000000000000001 /* SkillTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000001 /* SkillTier.swift */; };
-		J10000010000000000000001 /* ArchivedSkillsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000001 /* ArchivedSkillsViewModel.swift */; };
-		J10000010000000000000002 /* ArchivedSkillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* ArchivedSkillsView.swift */; };
+
 		K10000010000000000000001 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = K20000010000000000000001 /* SplashScreenView.swift */; };
 		L10000010000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = L20000010000000000000001 /* PrivacyInfo.xcprivacy */; };
 		E10000020000000000000001 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000001 /* ChatMessage.swift */; };
@@ -155,8 +154,7 @@
 		H20000010000000000000001 /* RateSkillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateSkillView.swift; sourceTree = "<group>"; };
 		H20000010000000000000002 /* SkillNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillNotesView.swift; sourceTree = "<group>"; };
 		I20000010000000000000001 /* SkillTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTier.swift; sourceTree = "<group>"; };
-		J20000010000000000000001 /* ArchivedSkillsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedSkillsViewModel.swift; sourceTree = "<group>"; };
-		J20000010000000000000002 /* ArchivedSkillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedSkillsView.swift; sourceTree = "<group>"; };
+
 		K20000010000000000000001 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		L20000010000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E20000020000000000000001 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
@@ -393,7 +391,7 @@
 				A70000010000000000000081 /* SkillList */,
 				A70000010000000000000082 /* SkillDetail */,
 				A70000010000000000000083 /* AddEditSkill */,
-				A70000010000000000000084 /* ArchivedSkills */,
+
 				F70000000000000000000001 /* Auth */,
 				E70000020000000000000001 /* Chat */,
 				E70000030000000000000001 /* Drills */,
@@ -431,15 +429,7 @@
 			path = AddEditSkill;
 			sourceTree = "<group>";
 		};
-		A70000010000000000000084 /* ArchivedSkills */ = {
-			isa = PBXGroup;
-			children = (
-				J20000010000000000000001 /* ArchivedSkillsViewModel.swift */,
-				J20000010000000000000002 /* ArchivedSkillsView.swift */,
-			);
-			path = ArchivedSkills;
-			sourceTree = "<group>";
-		};
+
 		E70000020000000000000001 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
@@ -672,8 +662,7 @@
 				H10000010000000000000001 /* RateSkillView.swift in Sources */,
 				H10000010000000000000002 /* SkillNotesView.swift in Sources */,
 				I10000010000000000000001 /* SkillTier.swift in Sources */,
-				J10000010000000000000001 /* ArchivedSkillsViewModel.swift in Sources */,
-				J10000010000000000000002 /* ArchivedSkillsView.swift in Sources */,
+
 				E10000020000000000000001 /* ChatMessage.swift in Sources */,
 				E10000020000000000000002 /* SupabaseConfig.swift in Sources */,
 				E10000020000000000000003 /* AgentService.swift in Sources */,

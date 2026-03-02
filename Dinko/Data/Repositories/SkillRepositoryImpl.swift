@@ -34,7 +34,8 @@ final class SkillRepositoryImpl: SkillRepository {
         let context = persistence.newBackgroundContext()
         return try await context.perform {
             let request = SkillEntity.fetchRequest()
-            request.predicate = NSPredicate(format: "status == %@", "archived")
+            // Match both "completed" (new) and "archived" (legacy) values
+            request.predicate = NSPredicate(format: "status == %@ OR status == %@", "completed", "archived")
             request.sortDescriptors = [NSSortDescriptor(keyPath: \SkillEntity.archivedDate, ascending: false)]
             request.fetchLimit = 500
             let entities = try context.fetch(request)
@@ -85,7 +86,7 @@ final class SkillRepositoryImpl: SkillRepository {
             request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
             request.fetchLimit = 1
             if let entity = try context.fetch(request).first {
-                entity.status = SkillStatus.archived.rawValue
+                entity.status = SkillStatus.completed.rawValue
                 entity.archivedDate = Date()
                 entity.updatedAt = Date()
                 try context.save()

@@ -59,6 +59,7 @@ struct HomeView: View {
                     progressChart(viewModel)
                     topMoversSection(viewModel)
                     recommendedDrillsSection(viewModel)
+                    completedSkillsSection(viewModel)
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
@@ -372,6 +373,63 @@ struct HomeView: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+    }
+    // MARK: - Completed Skills
+
+    private static let completedDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, yyyy"
+        return formatter
+    }()
+
+    @ViewBuilder
+    private func completedSkillsSection(_ viewModel: HomeViewModel) -> some View {
+        if !viewModel.completedSkills.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("COMPLETED SKILLS")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .padding(.bottom, AppSpacing.xs)
+
+                ForEach(Array(viewModel.completedSkills.enumerated()), id: \.element.id) { index, item in
+                    if index > 0 {
+                        Divider()
+                    }
+
+                    HStack(spacing: AppSpacing.xs) {
+                        Text(item.iconName)
+                            .font(.system(size: 20))
+                            .frame(width: 28)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.name)
+                                .font(AppTypography.body)
+                                .foregroundStyle(AppColors.textPrimary)
+
+                            if let date = item.completedDate {
+                                Text(Self.completedDateFormatter.string(from: date))
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                        }
+
+                        Spacer()
+
+                        Text("\(item.rating)%")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+                            .padding(.horizontal, AppSpacing.xxs)
+                            .padding(.vertical, AppSpacing.xxxs)
+                            .background(AppColors.teal.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                    .padding(.vertical, AppSpacing.xxs)
+                }
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
     }
 }
 
