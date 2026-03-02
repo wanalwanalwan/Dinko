@@ -173,6 +173,17 @@ struct ChatView: View {
                 }
             )
 
+        case .skillDeletion(let preview):
+            SkillDeletionCard(
+                preview: preview,
+                onConfirm: {
+                    Task { await viewModel.confirmDeletion(messageId: message.id) }
+                },
+                onCancel: {
+                    viewModel.cancelDeletion(messageId: message.id)
+                }
+            )
+
         case .error(let errorText):
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Label("Something went wrong", systemImage: "exclamationmark.triangle.fill")

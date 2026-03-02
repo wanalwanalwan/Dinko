@@ -48,6 +48,21 @@ final class ChatViewModel {
         let userMessage = ChatMessage(role: .user, content: .text(text))
         messages.append(userMessage)
 
+        // Check for deletion intent before calling edge function
+        if let matchedSkill = await detectDeletionIntent(text) {
+            let subskills = await fetchSubskillNames(for: matchedSkill.id)
+            let preview = SkillDeletionPreview(
+                skillId: matchedSkill.id,
+                skillName: matchedSkill.name,
+                subskillNames: subskills,
+                confirmState: .pending
+            )
+            let deletionMessage = ChatMessage(role: .agent, content: .skillDeletion(preview))
+            messages.append(deletionMessage)
+            isSending = false
+            return
+        }
+
         // Add loading bubble
         let loadingId = UUID()
         let loadingMessage = ChatMessage(id: loadingId, role: .agent, content: .loading)
@@ -57,9 +72,12 @@ final class ChatViewModel {
             // Build skill snapshots from CoreData
             let snapshots = try await buildSkillSnapshots()
 
+            // Build contextual note with conversation history for follow-ups
+            let note = messages.count > 1 ? buildContextualNote(text) : text
+
             // Call the Edge Function
             let response = try await agentService.logSession(
-                note: text,
+                note: note,
                 skills: snapshots,
                 authToken: getAuthToken()
             )
@@ -202,7 +220,117 @@ final class ChatViewModel {
         Task { await sendMessage() }
     }
 
+    func confirmDeletion(messageId: UUID) async {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .skillDeletion(var preview) = messages[index].content
+        else { return }
+
+        preview.confirmState = .confirming
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .skillDeletion(preview),
+            timestamp: messages[index].timestamp
+        )
+
+        do {
+            // Fetch and delete subskills first
+            let allSkills = try await skillRepository.fetchActive()
+            let subskills = allSkills.filter { $0.parentSkillId == preview.skillId }
+            for subskill in subskills {
+                try await skillRepository.delete(subskill.id)
+            }
+            // Delete the parent skill
+            try await skillRepository.delete(preview.skillId)
+
+            preview.confirmState = .confirmed
+            messages[index] = ChatMessage(
+                id: messageId,
+                role: .agent,
+                content: .skillDeletion(preview),
+                timestamp: messages[index].timestamp
+            )
+
+            messages.append(ChatMessage(
+                role: .agent,
+                content: .text("Done! \(preview.skillName) has been deleted.")
+            ))
+
+            await loadStats()
+        } catch {
+            preview.confirmState = .failed(error.localizedDescription)
+            messages[index] = ChatMessage(
+                id: messageId,
+                role: .agent,
+                content: .skillDeletion(preview),
+                timestamp: messages[index].timestamp
+            )
+        }
+    }
+
+    func cancelDeletion(messageId: UUID) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .skillDeletion(let preview) = messages[index].content
+        else { return }
+
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .text("No problem, \(preview.skillName) was not deleted."),
+            timestamp: messages[index].timestamp
+        )
+    }
+
     // MARK: - Private
+
+    private func buildContextualNote(_ currentText: String) -> String {
+        var lines: [String] = []
+
+        for message in messages {
+            switch (message.role, message.content) {
+            case (.user, .text(let text)):
+                lines.append("User: \(text)")
+
+            case (.agent, .sessionPreview(let preview)):
+                var parts: [String] = []
+                for update in preview.skillUpdates {
+                    let sign = update.delta >= 0 ? "+" : ""
+                    parts.append("\(update.skill) from \(update.old)% to \(update.new)% (\(sign)\(update.delta)%)")
+                }
+                if !parts.isEmpty {
+                    lines.append("Coach: Suggested \(parts.joined(separator: "; "))")
+                }
+                let drillNames = preview.drillRecommendations.map(\.name)
+                if !drillNames.isEmpty {
+                    lines.append("Coach: Recommended drills: \(drillNames.joined(separator: ", "))")
+                }
+
+            case (.agent, .skillDeletion(let preview)):
+                switch preview.confirmState {
+                case .confirmed:
+                    lines.append("Coach: Deleted skill \(preview.skillName)")
+                case .pending, .confirming:
+                    lines.append("Coach: Asked to confirm deletion of \(preview.skillName)")
+                default:
+                    break
+                }
+
+            case (.agent, .text(let text)):
+                lines.append("Coach: \(text)")
+
+            default:
+                break
+            }
+        }
+
+        lines.append("User: \(currentText)")
+
+        let joined = lines.joined(separator: "\n")
+        if joined.count > 4000 {
+            return String(joined.suffix(4000))
+        }
+        return joined
+    }
 
     private func buildSkillSnapshots() async throws -> [AgentService.SkillSnapshotPayload] {
         let allSkills = try await skillRepository.fetchActive()
@@ -335,6 +463,36 @@ final class ChatViewModel {
             }
         } catch {
             // Skill creation failure is non-critical
+        }
+    }
+
+    private func detectDeletionIntent(_ text: String) async -> Skill? {
+        let lower = text.lowercased()
+        guard lower.contains("delete") || lower.contains("remove") else { return nil }
+
+        do {
+            let allSkills = try await skillRepository.fetchActive()
+            let parentSkills = allSkills.filter { $0.parentSkillId == nil }
+
+            // Prefer longest name match to avoid false positives
+            let match = parentSkills
+                .filter { lower.contains($0.name.lowercased()) }
+                .max(by: { $0.name.count < $1.name.count })
+
+            return match
+        } catch {
+            return nil
+        }
+    }
+
+    private func fetchSubskillNames(for skillId: UUID) async -> [String] {
+        do {
+            let allSkills = try await skillRepository.fetchActive()
+            return allSkills
+                .filter { $0.parentSkillId == skillId }
+                .map(\.name)
+        } catch {
+            return []
         }
     }
 }
