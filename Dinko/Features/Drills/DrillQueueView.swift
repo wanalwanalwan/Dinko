@@ -116,11 +116,6 @@ struct DrillQueueView: View {
                 }
             } label: {
                 HStack(alignment: .top, spacing: AppSpacing.xxs) {
-                    Image(systemName: drill.priorityIcon)
-                        .foregroundStyle(drill.priorityColor)
-                        .font(.system(size: 14))
-                        .frame(width: 20)
-
                     VStack(alignment: .leading, spacing: 2) {
                         Text(drill.name)
                             .font(AppTypography.body)
