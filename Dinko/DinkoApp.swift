@@ -10,7 +10,27 @@ struct DinkoApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if authViewModel.isAuthenticated {
+                if authViewModel.isCheckingSession {
+                    ZStack {
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "7EC8C4"),
+                                Color(hex: "A8D5A0"),
+                                Color(hex: "D4E4A0")
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
+
+                        Image("AppIconImage")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 160, height: 160)
+                            .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+                            .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
+                    }
+                } else if authViewModel.isAuthenticated {
                     if hasCompletedOnboarding {
                         ContentView()
                     } else {

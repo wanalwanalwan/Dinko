@@ -10,6 +10,7 @@ final class AuthViewModel {
     var errorMessage: String?
 
     private(set) var isAuthenticated = false
+    private(set) var isCheckingSession = true
     private(set) var accessToken = ""
     private(set) var userId = ""
 
@@ -17,6 +18,7 @@ final class AuthViewModel {
 
     /// Try to restore a saved session on launch
     func restoreSession() async {
+        defer { isCheckingSession = false }
         guard let saved = authService.loadSavedSession() else { return }
 
         // Try refreshing the token (access tokens expire after 1 hour)

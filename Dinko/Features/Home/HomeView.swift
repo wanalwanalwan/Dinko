@@ -146,24 +146,50 @@ struct HomeView: View {
         let skillNames = viewModel.chartData.map { $0.skillName }
         let skillColors = viewModel.chartData.map { $0.color }
 
+        // Compute the full date range for the x-axis
+        let allDates = viewModel.chartData.flatMap { $0.dataPoints.map { $0.date } }
+        let calendar = Calendar.current
+        let cutoff = calendar.date(
+            byAdding: .day,
+            value: -viewModel.selectedTimeRange.daysBack,
+            to: calendar.startOfDay(for: Date())
+        ) ?? Date()
+        let rangeStart = min(allDates.min() ?? cutoff, cutoff)
+        let rangeEnd = max(allDates.max() ?? Date(), calendar.startOfDay(for: Date()))
+
+        // Check if all series have only a single data point
+        let isSinglePoint = allDates.count <= 1 || Set(allDates.map { calendar.startOfDay(for: $0) }).count <= 1
+
         return VStack(alignment: .leading, spacing: AppSpacing.xxs) {
             Chart {
                 ForEach(viewModel.chartData) { series in
-                    ForEach(series.dataPoints) { point in
-                        LineMark(
-                            x: .value("Date", point.date),
-                            y: .value("Rating", point.rating),
-                            series: .value("Skill", series.skillName)
-                        )
-                        .foregroundStyle(by: .value("Skill", series.skillName))
-                        .interpolationMethod(.catmullRom)
+                    if series.dataPoints.count == 1 {
+                        // Single data point: show as a large dot only
+                        ForEach(series.dataPoints) { point in
+                            PointMark(
+                                x: .value("Date", point.date),
+                                y: .value("Rating", point.rating)
+                            )
+                            .foregroundStyle(by: .value("Skill", series.skillName))
+                            .symbolSize(60)
+                        }
+                    } else {
+                        ForEach(series.dataPoints) { point in
+                            LineMark(
+                                x: .value("Date", point.date),
+                                y: .value("Rating", point.rating),
+                                series: .value("Skill", series.skillName)
+                            )
+                            .foregroundStyle(by: .value("Skill", series.skillName))
+                            .interpolationMethod(.catmullRom)
 
-                        PointMark(
-                            x: .value("Date", point.date),
-                            y: .value("Rating", point.rating)
-                        )
-                        .foregroundStyle(by: .value("Skill", series.skillName))
-                        .symbolSize(30)
+                            PointMark(
+                                x: .value("Date", point.date),
+                                y: .value("Rating", point.rating)
+                            )
+                            .foregroundStyle(by: .value("Skill", series.skillName))
+                            .symbolSize(30)
+                        }
                     }
                 }
 
@@ -195,10 +221,18 @@ struct HomeView: View {
                     }
                 }
             }
+            .chartXScale(domain: rangeStart...rangeEnd)
             .chartXAxis {
-                AxisMarks { value in
-                    AxisGridLine()
-                    AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+                if isSinglePoint {
+                    // Single point: just show that one date label centered
+                    AxisMarks(values: allDates) { _ in
+                        AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+                    }
+                } else {
+                    AxisMarks(values: .stride(by: .day, count: viewModel.selectedTimeRange == .weekly ? 2 : 7)) { _ in
+                        AxisGridLine()
+                        AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+                    }
                 }
             }
             .chartForegroundStyleScale(

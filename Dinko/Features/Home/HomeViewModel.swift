@@ -298,13 +298,6 @@ final class HomeViewModel {
 
             guard !dataPoints.isEmpty else { continue }
 
-            // Single point looks like a lonely dot — add a prior-day point
-            // at the same rating so it renders as a short flat line
-            if dataPoints.count == 1, let only = dataPoints.first,
-               let dayBefore = Calendar.current.date(byAdding: .day, value: -1, to: only.date) {
-                dataPoints.insert(HomeChartDataPoint(date: dayBefore, rating: only.rating), at: 0)
-            }
-
             let latestRating = dataPoints.last?.rating ?? 0
             let tier = SkillTier(rating: latestRating)
             series.append(HomeSkillChartSeries(
