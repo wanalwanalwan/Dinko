@@ -4,6 +4,7 @@ import Charts
 struct HomeView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: HomeViewModel?
+    @State private var rawSelectedDate: Date?
 
     var body: some View {
         Group {
@@ -13,14 +14,14 @@ struct HomeView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("Home")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             if viewModel == nil {
                 let vm = HomeViewModel(
                     skillRepository: dependencies.skillRepository,
                     skillRatingRepository: dependencies.skillRatingRepository,
-                    drillRepository: dependencies.drillRepository
+                    drillRepository: dependencies.drillRepository,
+                    sessionRepository: dependencies.sessionRepository
                 )
                 viewModel = vm
                 await vm.loadDashboard()
@@ -53,11 +54,14 @@ struct HomeView: View {
             )
         } else {
             ScrollView {
-                VStack(spacing: AppSpacing.sm) {
+                VStack(spacing: AppSpacing.md) {
                     greetingHeader(viewModel)
                     progressChart(viewModel)
                     recommendedDrillsSection(viewModel)
                     completedSkillsSection(viewModel)
+                    if viewModel.streakDays > 0 {
+                        streakBanner(viewModel)
+                    }
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
@@ -73,73 +77,22 @@ struct HomeView: View {
 
     private func greetingHeader(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
-            Text("\(viewModel.greetingText), \(viewModel.playerName)")
-                .font(AppTypography.largeTitle)
-                .foregroundStyle(AppColors.textPrimary)
-
-            Text(viewModel.todayDateText)
-                .font(AppTypography.callout)
+            Text(viewModel.todayDateText.uppercased())
+                .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, AppSpacing.xxs)
-    }
 
-    // MARK: - Quick Stats Row
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(viewModel.greetingText),")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
 
-    private func quickStatsRow(_ viewModel: HomeViewModel) -> some View {
-        HStack(spacing: AppSpacing.xxs) {
-            statCard(
-                icon: "figure.pickleball",
-                value: "\(viewModel.totalActiveSkills)",
-                label: "Skills",
-                color: AppColors.teal
-            )
-
-            statCard(
-                icon: "chart.bar.fill",
-                value: "\(viewModel.averageRating)%",
-                label: "Avg Rating",
-                color: AppColors.coral
-            )
-
-            if let skillName = viewModel.mostImprovedSkillName {
-                statCard(
-                    icon: "arrow.up.right",
-                    value: "+\(viewModel.mostImprovedDelta)%",
-                    label: skillName,
-                    color: AppColors.successGreen
-                )
-            } else {
-                statCard(
-                    icon: "arrow.up.right",
-                    value: "--",
-                    label: "Top Gain",
-                    color: AppColors.successGreen
-                )
+                Text(viewModel.playerName)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.teal)
             }
         }
-    }
-
-    private func statCard(icon: String, value: String, label: String, color: Color) -> some View {
-        VStack(spacing: AppSpacing.xxxs) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(color)
-
-            Text(value)
-                .font(AppTypography.headline)
-                .foregroundStyle(AppColors.textPrimary)
-
-            Text(label)
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
-                .lineLimit(1)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, AppSpacing.xs)
     }
 
     // MARK: - Progress Chart
@@ -211,8 +164,24 @@ struct HomeView: View {
                             y: .value("Rating", point.rating)
                         )
                         .foregroundStyle(by: .value("Skill", series.skillName))
-                        .symbolSize(20)
+                        .symbolSize(30)
                     }
+                }
+
+                if let snappedDate = snappedSelectedDate(viewModel) {
+                    RuleMark(x: .value("Selected", snappedDate))
+                        .foregroundStyle(.gray.opacity(0.3))
+                        .lineStyle(StrokeStyle(lineWidth: 1))
+                        .annotation(
+                            position: .top,
+                            spacing: 4,
+                            overflowResolution: .init(
+                                x: .fit(to: .chart),
+                                y: .disabled
+                            )
+                        ) {
+                            chartTooltip(for: snappedDate, viewModel: viewModel)
+                        }
                 }
             }
             .chartYScale(domain: 0...100)
@@ -238,78 +207,58 @@ struct HomeView: View {
                 range: skillColors
             )
             .chartLegend(position: .bottom, alignment: .leading, spacing: AppSpacing.xxxs)
+            .chartXSelection(value: $rawSelectedDate)
             .frame(height: 200)
         }
     }
 
-    // MARK: - Top Movers
+    private func snappedSelectedDate(_ viewModel: HomeViewModel) -> Date? {
+        guard let raw = rawSelectedDate else { return nil }
+        let allDates = viewModel.chartData.flatMap { $0.dataPoints.map { $0.date } }
+        return allDates.min(by: {
+            abs($0.timeIntervalSince(raw)) < abs($1.timeIntervalSince(raw))
+        })
+    }
 
-    @ViewBuilder
-    private func topMoversSection(_ viewModel: HomeViewModel) -> some View {
-        if !viewModel.topMovers.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("TOP MOVERS")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .padding(.bottom, AppSpacing.xs)
+    private func chartTooltip(for date: Date, viewModel: HomeViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(date, format: .dateTime.month(.abbreviated).day())
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
 
-                ForEach(Array(viewModel.topMovers.enumerated()), id: \.element.id) { index, mover in
-                    if index > 0 {
-                        Divider()
-                    }
-
-                    HStack(spacing: AppSpacing.xs) {
-                        Text(mover.iconName)
-                            .font(.system(size: 20))
-                            .frame(width: 28)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(mover.skillName)
-                                .font(AppTypography.body)
-                                .foregroundStyle(AppColors.textPrimary)
-
-                            Text(mover.tier.displayName)
-                                .font(.system(size: 10, weight: .semibold, design: .rounded))
-                                .foregroundStyle(mover.tier.color)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(mover.tier.color.opacity(0.15))
-                                .clipShape(Capsule())
-                        }
-
-                        Spacer()
-
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("\(mover.currentRating)%")
-                                .font(AppTypography.headline)
-                                .foregroundStyle(AppColors.textPrimary)
-
-                            HStack(spacing: 2) {
-                                Image(systemName: "arrow.up.right")
-                                    .font(.system(size: 10))
-                                Text("+\(mover.delta)%")
-                                    .font(AppTypography.trendValue)
-                            }
-                            .foregroundStyle(AppColors.successGreen)
-                        }
-                    }
-                    .padding(.vertical, AppSpacing.xxs)
+            ForEach(viewModel.chartData) { series in
+                if let point = series.dataPoints.first(where: {
+                    Calendar.current.isDate($0.date, inSameDayAs: date)
+                }) {
+                    Text("\(series.skillName.lowercased()) : \(point.rating)")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(series.color)
                 }
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
+        .padding(AppSpacing.xxs)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
+        )
     }
 
     // MARK: - Recommended Drills
 
     private func recommendedDrillsSection(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("RECOMMENDED DRILLS")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-                .padding(.bottom, AppSpacing.xs)
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack {
+                Text("RECOMMENDED DRILLS")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+
+                Spacer()
+
+                Text("SEE ALL")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.teal)
+            }
 
             if viewModel.recommendedDrills.isEmpty {
                 HStack(spacing: AppSpacing.xxs) {
@@ -320,58 +269,60 @@ struct HomeView: View {
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColors.textSecondary)
                 }
-                .padding(.vertical, AppSpacing.xxs)
+                .padding(AppSpacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
             } else {
-                ForEach(Array(viewModel.recommendedDrills.enumerated()), id: \.element.id) { index, drill in
-                    if index > 0 {
-                        Divider()
-                    }
-
-                    HStack(spacing: AppSpacing.xxs) {
-                        Button {
-                            Task { await viewModel.markDrillDone(drill.id) }
-                        } label: {
-                            Image(systemName: "circle")
-                                .foregroundStyle(AppColors.teal)
-                                .font(.system(size: 18))
-                                .frame(width: 24)
-                        }
-                        .buttonStyle(.plain)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(drill.drillName)
-                                .font(AppTypography.body)
-                                .foregroundStyle(AppColors.textPrimary)
-
-                            HStack(spacing: AppSpacing.xxxs) {
-                                Text("\(drill.durationMinutes) min")
-                                    .font(AppTypography.caption)
-                                    .foregroundStyle(AppColors.textSecondary)
-
-                                Text("\u{2022}")
-                                    .font(AppTypography.caption)
-                                    .foregroundStyle(AppColors.textSecondary)
-
-                                Text(drill.skillName)
-                                    .font(AppTypography.caption)
-                                    .foregroundStyle(AppColors.teal)
-                            }
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                    .padding(.vertical, AppSpacing.xxs)
+                ForEach(viewModel.recommendedDrills) { drill in
+                    drillCard(drill, viewModel: viewModel)
                 }
             }
+        }
+    }
+
+    private func drillCard(_ drill: HomeRecommendedDrill, viewModel: HomeViewModel) -> some View {
+        HStack(spacing: AppSpacing.xs) {
+            Button {
+                Task { await viewModel.markDrillDone(drill.id) }
+            } label: {
+                Image(systemName: "play.circle")
+                    .font(.system(size: 34))
+                    .foregroundStyle(AppColors.textPrimary)
+            }
+            .buttonStyle(.plain)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(drill.drillName)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                HStack(spacing: AppSpacing.xxxs) {
+                    Text("\(drill.durationMinutes) min")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Text("\u{00B7}")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Text(drill.skillName)
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(AppColors.textSecondary)
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
+
     // MARK: - Completed Skills
 
     private static let completedDateFormatter: DateFormatter = {
@@ -388,15 +339,25 @@ struct HomeView: View {
                 .padding(.bottom, AppSpacing.xs)
 
             if viewModel.completedSkills.isEmpty {
-                HStack(spacing: AppSpacing.xxs) {
-                    Image(systemName: "trophy")
-                        .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                VStack(spacing: AppSpacing.xs) {
+                    Circle()
+                        .stroke(AppColors.teal.opacity(0.25), lineWidth: 3)
+                        .frame(width: 50, height: 50)
 
-                    Text("Rate a skill to 100% to complete it.")
-                        .font(AppTypography.caption)
+                    Text("Your Journey Starts Here")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Rate a skill to 100% to see it here.")
+                        .font(.system(size: 13, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
+
+                    Text("View all skills")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
                 }
-                .padding(.vertical, AppSpacing.xxs)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.lg)
             } else {
                 ForEach(Array(viewModel.completedSkills.enumerated()), id: \.element.id) { index, item in
                     if index > 0 {
@@ -437,6 +398,43 @@ struct HomeView: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+    }
+
+    // MARK: - Streak Banner
+
+    private func streakBanner(_ viewModel: HomeViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("Keep the streak alive!")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+
+            (Text("You\u{2019}ve practiced for ")
+                .foregroundColor(.white.opacity(0.85))
+            + Text("\(viewModel.streakDays) days")
+                .foregroundColor(.white)
+                .bold()
+            + Text(" in a row. \(viewModel.daysToWeeklyGoal) more to hit your weekly goal.")
+                .foregroundColor(.white.opacity(0.85)))
+                .font(.system(size: 14, design: .rounded))
+
+            Button {
+                // Navigate to progress stats
+            } label: {
+                Text("View Stats")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.xxs)
+                    .background(AppColors.teal)
+                    .clipShape(Capsule())
+            }
+        }
+        .padding(AppSpacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+                .fill(Color(hex: "1C1C2E"))
+        )
     }
 }
 

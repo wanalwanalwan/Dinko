@@ -10,7 +10,7 @@ struct ContentView: View {
                     HomeView()
                 }
                 .tabItem {
-                    Image(systemName: "house.fill")
+                    Image(systemName: "house")
                     Text("Home")
                 }
 
@@ -18,7 +18,7 @@ struct ContentView: View {
                     ChatView()
                 }
                 .tabItem {
-                    Image(systemName: "bubble.left.and.text.bubble.right")
+                    Image(systemName: "message")
                     Text("Coach")
                 }
 
@@ -26,7 +26,7 @@ struct ContentView: View {
                     SkillListView()
                 }
                 .tabItem {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    Image(systemName: "chart.bar")
                     Text("Progress")
                 }
 
@@ -34,7 +34,7 @@ struct ContentView: View {
                     DrillQueueView()
                 }
                 .tabItem {
-                    Image(systemName: "figure.run")
+                    Image(systemName: "list.clipboard")
                     Text("Drills")
                 }
             }

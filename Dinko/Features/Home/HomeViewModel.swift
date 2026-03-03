@@ -28,15 +28,6 @@ struct HomeSkillChartSeries: Identifiable {
     let dataPoints: [HomeChartDataPoint]
 }
 
-struct HomeSkillMover: Identifiable {
-    let id: UUID
-    let skillName: String
-    let iconName: String
-    let currentRating: Int
-    let delta: Int
-    let tier: SkillTier
-}
-
 struct HomeRecommendedDrill: Identifiable {
     let id: UUID
     let drillName: String
@@ -69,9 +60,11 @@ final class HomeViewModel {
 
     private(set) var chartData: [HomeSkillChartSeries] = []
     private(set) var selectedTimeRange: HomeTimeRange = .weekly
-    private(set) var topMovers: [HomeSkillMover] = []
     private(set) var recommendedDrills: [HomeRecommendedDrill] = []
     private(set) var completedSkills: [CompletedSkillItem] = []
+
+    private(set) var streakDays = 0
+    private(set) var daysToWeeklyGoal = 0
 
     private(set) var isLoaded = false
     var errorMessage: String?
@@ -79,6 +72,7 @@ final class HomeViewModel {
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
+    private let sessionRepository: SessionRepository
 
     // Cached data for time range switching
     private var cachedSkills: [Skill] = []
@@ -88,11 +82,13 @@ final class HomeViewModel {
     init(
         skillRepository: SkillRepository,
         skillRatingRepository: SkillRatingRepository,
-        drillRepository: DrillRepository
+        drillRepository: DrillRepository,
+        sessionRepository: SessionRepository
     ) {
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
         self.drillRepository = drillRepository
+        self.sessionRepository = sessionRepository
     }
 
     func loadDashboard() async {
@@ -125,6 +121,9 @@ final class HomeViewModel {
 
             // Load completed skills
             try await loadCompletedSkills()
+
+            // Compute practice streak
+            try await computeStreak()
 
             isLoaded = true
             errorMessage = nil
@@ -160,7 +159,7 @@ final class HomeViewModel {
                let email = user.email {
                 let prefix = email.components(separatedBy: "@").first ?? ""
                 if !prefix.isEmpty {
-                    playerName = prefix.capitalized
+                    playerName = prefix
                 }
             }
         }
@@ -175,7 +174,6 @@ final class HomeViewModel {
 
         computeLatestRatingsAndAverage()
         computeChartData(since: cutoff)
-        computeTopMovers(since: cutoff)
     }
 
     private func computeLatestRatingsAndAverage() {
@@ -268,7 +266,6 @@ final class HomeViewModel {
                 }
             } else {
                 // Parent skill: build a synthetic timeline from child ratings
-                // Collect all unique dates from children in range
                 var dateSet: Set<Date> = []
                 for child in childSkills {
                     for r in (cachedRatings[child.id] ?? []) where r.date >= cutoff {
@@ -281,7 +278,6 @@ final class HomeViewModel {
                     var total = 0
                     var count = 0
                     for child in childSkills {
-                        // Find the latest rating on or before this date
                         let childRatings = cachedRatings[child.id] ?? []
                         let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: date) ?? date
                         if let latest = childRatings.last(where: { $0.date < endOfDay }) {
@@ -315,64 +311,6 @@ final class HomeViewModel {
         }
 
         chartData = series
-    }
-
-    private func computeTopMovers(since cutoff: Date) {
-        var movers: [HomeSkillMover] = []
-
-        for skill in cachedSkills {
-            let childSkills = cachedAllSkills.filter { $0.parentSkillId == skill.id }
-
-            if childSkills.isEmpty {
-                let ratings = (cachedRatings[skill.id] ?? [])
-                    .filter { $0.date >= cutoff }
-                    .sorted { $0.date < $1.date }
-
-                guard ratings.count >= 2 else { continue }
-                let delta = ratings.last!.rating - ratings.first!.rating
-                guard delta > 0 else { continue }
-
-                let currentRating = ratings.last!.rating
-                movers.append(HomeSkillMover(
-                    id: skill.id,
-                    skillName: skill.name,
-                    iconName: skill.iconName,
-                    currentRating: currentRating,
-                    delta: delta,
-                    tier: SkillTier(rating: currentRating)
-                ))
-            } else {
-                // Parent: compare average at start vs end of range
-                var startTotal = 0, endTotal = 0, count = 0
-                for child in childSkills {
-                    let childRatings = (cachedRatings[child.id] ?? [])
-                        .filter { $0.date >= cutoff }
-                        .sorted { $0.date < $1.date }
-                    guard childRatings.count >= 2 else { continue }
-                    startTotal += childRatings.first!.rating
-                    endTotal += childRatings.last!.rating
-                    count += 1
-                }
-                guard count > 0 else { continue }
-                let delta = (endTotal / count) - (startTotal / count)
-                guard delta > 0 else { continue }
-
-                let currentRating = endTotal / count
-                movers.append(HomeSkillMover(
-                    id: skill.id,
-                    skillName: skill.name,
-                    iconName: skill.iconName,
-                    currentRating: currentRating,
-                    delta: delta,
-                    tier: SkillTier(rating: currentRating)
-                ))
-            }
-        }
-
-        topMovers = movers
-            .sorted { $0.delta > $1.delta }
-            .prefix(3)
-            .map { $0 }
     }
 
     private func loadRecommendedDrills() async throws {
@@ -436,7 +374,6 @@ final class HomeViewModel {
 
         for drill in prioritySorted {
             guard targetSkillIds.contains(drill.skillId) else { continue }
-            // Find the top-level skill this drill belongs to
             let topSkillId: UUID
             if weakestSkillIds.contains(drill.skillId) {
                 topSkillId = drill.skillId
@@ -506,6 +443,54 @@ final class HomeViewModel {
             ))
         }
         completedSkills = items
+    }
+
+    private func computeStreak() async throws {
+        let sessions = try await sessionRepository.fetchAll()
+        let calendar = Calendar.current
+
+        var activityDates: Set<Date> = []
+
+        for session in sessions {
+            activityDates.insert(calendar.startOfDay(for: session.date))
+        }
+
+        // Also count days when ratings were recorded as practice activity
+        for ratings in cachedRatings.values {
+            for rating in ratings {
+                activityDates.insert(calendar.startOfDay(for: rating.date))
+            }
+        }
+
+        guard !activityDates.isEmpty else {
+            streakDays = 0
+            daysToWeeklyGoal = 7
+            return
+        }
+
+        let today = calendar.startOfDay(for: Date())
+        var streak = 0
+        var checkDay = today
+
+        // If today has no activity, start checking from yesterday
+        if !activityDates.contains(today) {
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else {
+                streakDays = 0
+                daysToWeeklyGoal = 7
+                return
+            }
+            checkDay = yesterday
+        }
+
+        // Count consecutive days backwards
+        while activityDates.contains(checkDay) {
+            streak += 1
+            guard let prev = calendar.date(byAdding: .day, value: -1, to: checkDay) else { break }
+            checkDay = prev
+        }
+
+        streakDays = streak
+        daysToWeeklyGoal = max(0, 7 - streak)
     }
 
     private func priorityValue(_ priority: String) -> Int {
