@@ -340,9 +340,9 @@ struct HomeView: View {
 
             if viewModel.completedSkills.isEmpty {
                 VStack(spacing: AppSpacing.xs) {
-                    Circle()
-                        .stroke(AppColors.teal.opacity(0.25), lineWidth: 3)
-                        .frame(width: 50, height: 50)
+                    Image(systemName: "trophy")
+                        .font(.system(size: 40))
+                        .foregroundStyle(AppColors.teal.opacity(0.4))
 
                     Text("Your Journey Starts Here")
                         .font(.system(size: 16, weight: .bold, design: .rounded))

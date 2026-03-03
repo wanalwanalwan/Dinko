@@ -18,7 +18,7 @@ struct ContentView: View {
                     ChatView()
                 }
                 .tabItem {
-                    Image(systemName: "message")
+                    Image(systemName: "bubble.left")
                     Text("Coach")
                 }
 
@@ -26,7 +26,7 @@ struct ContentView: View {
                     SkillListView()
                 }
                 .tabItem {
-                    Image(systemName: "chart.bar")
+                    Image(systemName: "doc.text")
                     Text("Progress")
                 }
 
@@ -34,7 +34,7 @@ struct ContentView: View {
                     DrillQueueView()
                 }
                 .tabItem {
-                    Image(systemName: "list.clipboard")
+                    Image(systemName: "text.alignleft")
                     Text("Drills")
                 }
             }
