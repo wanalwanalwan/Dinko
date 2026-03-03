@@ -326,18 +326,11 @@ struct HomeView: View {
 
     // MARK: - Completed Skills
 
-    private static let completedDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter
-    }()
-
     private func completedSkillsSection(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
             Text("COMPLETED SKILLS")
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
-                .padding(.bottom, AppSpacing.xs)
 
             if viewModel.completedSkills.isEmpty {
                 VStack(spacing: AppSpacing.xs) {
@@ -363,46 +356,34 @@ struct HomeView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.lg)
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
             } else {
-                ForEach(Array(viewModel.completedSkills.enumerated()), id: \.element.id) { index, item in
-                    if index > 0 {
-                        Divider()
-                    }
-
+                ForEach(viewModel.completedSkills) { item in
                     HStack(spacing: AppSpacing.xs) {
-                        Text(item.iconName)
-                            .font(.system(size: 20))
-                            .frame(width: 28)
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(AppColors.teal)
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(item.name)
-                                .font(AppTypography.body)
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundStyle(AppColors.textPrimary)
 
-                            if let date = item.completedDate {
-                                Text(Self.completedDateFormatter.string(from: date))
-                                    .font(AppTypography.caption)
-                                    .foregroundStyle(AppColors.textSecondary)
-                            }
+                            Text("Completed in \(item.daysToComplete) day\(item.daysToComplete == 1 ? "" : "s")")
+                                .font(.system(size: 13, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
                         }
 
                         Spacer()
-
-                        Text("\(item.rating)%")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
-                            .padding(.horizontal, AppSpacing.xxs)
-                            .padding(.vertical, AppSpacing.xxxs)
-                            .background(AppColors.teal.opacity(0.15))
-                            .clipShape(Capsule())
                     }
-                    .padding(.vertical, AppSpacing.xxs)
+                    .padding(AppSpacing.sm)
+                    .background(AppColors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+                    .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
                 }
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
     // MARK: - Streak Banner

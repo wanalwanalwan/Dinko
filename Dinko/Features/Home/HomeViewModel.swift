@@ -46,7 +46,7 @@ struct CompletedSkillItem: Identifiable {
     let name: String
     let iconName: String
     let rating: Int
-    let completedDate: Date?
+    let daysToComplete: Int
 }
 
 // MARK: - ViewModel
@@ -444,12 +444,18 @@ final class HomeViewModel {
                 }
                 rating = count > 0 ? total / count : 0
             }
+            let days: Int
+            if let archived = skill.archivedDate {
+                days = max(1, Calendar.current.dateComponents([.day], from: skill.createdDate, to: archived).day ?? 1)
+            } else {
+                days = max(1, Calendar.current.dateComponents([.day], from: skill.createdDate, to: Date()).day ?? 1)
+            }
             items.append(CompletedSkillItem(
                 id: skill.id,
                 name: skill.name,
                 iconName: skill.iconName,
                 rating: rating,
-                completedDate: skill.archivedDate
+                daysToComplete: days
             ))
         }
         completedSkills = items
