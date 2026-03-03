@@ -2,13 +2,15 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var showSplash = true
+    @State private var selectedTab = 0
 
     var body: some View {
         ZStack {
-            TabView {
+            TabView(selection: $selectedTab) {
                 NavigationStack {
-                    HomeView()
+                    HomeView(selectedTab: $selectedTab)
                 }
+                .tag(0)
                 .tabItem {
                     Image(systemName: "house")
                     Text("Home")
@@ -17,6 +19,7 @@ struct ContentView: View {
                 NavigationStack {
                     ChatView()
                 }
+                .tag(1)
                 .tabItem {
                     Image(systemName: "bubble.left")
                     Text("Coach")
@@ -25,6 +28,7 @@ struct ContentView: View {
                 NavigationStack {
                     SkillListView()
                 }
+                .tag(2)
                 .tabItem {
                     Image(systemName: "doc.text")
                     Text("Progress")
@@ -33,6 +37,7 @@ struct ContentView: View {
                 NavigationStack {
                     DrillQueueView()
                 }
+                .tag(3)
                 .tabItem {
                     Image(systemName: "text.alignleft")
                     Text("Drills")

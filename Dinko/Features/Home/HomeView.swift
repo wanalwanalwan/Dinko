@@ -3,6 +3,7 @@ import Charts
 
 struct HomeView: View {
     @Environment(\.dependencies) private var dependencies
+    @Binding var selectedTab: Int
     @State private var viewModel: HomeViewModel?
     @State private var rawSelectedDate: Date?
 
@@ -59,9 +60,7 @@ struct HomeView: View {
                     progressChart(viewModel)
                     recommendedDrillsSection(viewModel)
                     completedSkillsSection(viewModel)
-                    if viewModel.streakDays > 0 {
-                        streakBanner(viewModel)
-                    }
+                    streakBanner(viewModel)
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
@@ -352,9 +351,13 @@ struct HomeView: View {
                         .font(.system(size: 13, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
 
-                    Text("View all skills")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                    Button {
+                        selectedTab = 2
+                    } label: {
+                        Text("View all skills")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.lg)
@@ -418,7 +421,7 @@ struct HomeView: View {
                 .font(.system(size: 14, design: .rounded))
 
             Button {
-                // Navigate to progress stats
+                selectedTab = 2
             } label: {
                 Text("View Stats")
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
@@ -440,6 +443,6 @@ struct HomeView: View {
 
 #Preview {
     NavigationStack {
-        HomeView()
+        HomeView(selectedTab: .constant(0))
     }
 }
