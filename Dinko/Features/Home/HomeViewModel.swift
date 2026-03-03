@@ -41,12 +41,19 @@ struct HomeRecommendedDrill: Identifiable {
     let targetSubskill: String?
 }
 
+struct CompletedSubskill: Identifiable {
+    let id: UUID
+    let name: String
+    let rating: Int
+}
+
 struct CompletedSkillItem: Identifiable {
     let id: UUID
     let name: String
     let iconName: String
     let rating: Int
     let daysToComplete: Int
+    let subskills: [CompletedSubskill]
 }
 
 // MARK: - ViewModel
@@ -420,6 +427,7 @@ final class HomeViewModel {
         var items: [CompletedSkillItem] = []
         for skill in topLevel {
             let childSkills = allCompleted.filter { $0.parentSkillId == skill.id }
+            var subskills: [CompletedSubskill] = []
             let rating: Int
             if childSkills.isEmpty {
                 if let latest = try await skillRatingRepository.fetchLatest(skill.id) {
@@ -430,10 +438,15 @@ final class HomeViewModel {
             } else {
                 var total = 0, count = 0
                 for child in childSkills {
+                    let childRating: Int
                     if let latest = try await skillRatingRepository.fetchLatest(child.id) {
+                        childRating = latest.rating
                         total += latest.rating
                         count += 1
+                    } else {
+                        childRating = 0
                     }
+                    subskills.append(CompletedSubskill(id: child.id, name: child.name, rating: childRating))
                 }
                 rating = count > 0 ? total / count : 0
             }
@@ -448,7 +461,8 @@ final class HomeViewModel {
                 name: skill.name,
                 iconName: skill.iconName,
                 rating: rating,
-                daysToComplete: days
+                daysToComplete: days,
+                subskills: subskills
             ))
         }
         completedSkills = items

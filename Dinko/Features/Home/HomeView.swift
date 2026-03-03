@@ -6,6 +6,7 @@ struct HomeView: View {
     @Binding var selectedTab: Int
     @State private var viewModel: HomeViewModel?
     @State private var rawSelectedDate: Date?
+    @State private var expandedCompletedSkillId: UUID?
 
     var body: some View {
         Group {
@@ -394,30 +395,73 @@ struct HomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
             } else {
                 ForEach(viewModel.completedSkills) { item in
-                    HStack(spacing: AppSpacing.xs) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(AppColors.teal)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.name)
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(AppColors.textPrimary)
-
-                            Text("Completed in \(item.daysToComplete) day\(item.daysToComplete == 1 ? "" : "s")")
-                                .font(.system(size: 13, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-
-                        Spacer()
-                    }
-                    .padding(AppSpacing.sm)
-                    .background(AppColors.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-                    .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+                    completedSkillCard(item)
                 }
             }
         }
+    }
+
+    private func completedSkillCard(_ item: CompletedSkillItem) -> some View {
+        let isExpanded = expandedCompletedSkillId == item.id
+
+        return Button {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                expandedCompletedSkillId = isExpanded ? nil : item.id
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header: completion time + name (Copilot style)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Completed in \(item.daysToComplete) day\(item.daysToComplete == 1 ? "" : "s")")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Text(item.name)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+
+                // Expanded subskills
+                if isExpanded && !item.subskills.isEmpty {
+                    VStack(spacing: 0) {
+                        Divider()
+                            .padding(.vertical, AppSpacing.xs)
+
+                        ForEach(Array(item.subskills.enumerated()), id: \.element.id) { index, sub in
+                            HStack(spacing: AppSpacing.xs) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(AppColors.successGreen)
+
+                                Text(sub.name)
+                                    .font(.system(size: 14, design: .rounded))
+                                    .foregroundStyle(AppColors.textPrimary)
+
+                                Spacer()
+
+                                Text("\(sub.rating)%")
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(AppColors.teal)
+                            }
+                            .padding(.vertical, 6)
+                            .transition(
+                                .asymmetric(
+                                    insertion: .opacity
+                                        .combined(with: .offset(y: -8))
+                                        .animation(.spring(response: 0.35, dampingFraction: 0.8).delay(Double(index) * 0.05)),
+                                    removal: .opacity.animation(.easeOut(duration: 0.15))
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+            .padding(AppSpacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Streak Banner
