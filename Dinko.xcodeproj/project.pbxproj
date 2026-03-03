@@ -77,6 +77,7 @@
 		E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000004 /* DrillRepositoryImpl.swift */; };
 		E30000010000000000000005 /* DrillQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000005 /* DrillQueueView.swift */; };
 		E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000006 /* DrillQueueViewModel.swift */; };
+		E30000010000000000000007 /* DrillDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000007 /* DrillDetailView.swift */; };
 		M10000000000000000000001 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000000000000000000001 /* OnboardingViewModel.swift */; };
 		M10000000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000000000000000000002 /* OnboardingView.swift */; };
 		N10000000000000000000001 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = N20000000000000000000001 /* HomeViewModel.swift */; };
@@ -174,6 +175,7 @@
 		E30000020000000000000004 /* DrillRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRepositoryImpl.swift; sourceTree = "<group>"; };
 		E30000020000000000000005 /* DrillQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillQueueView.swift; sourceTree = "<group>"; };
 		E30000020000000000000006 /* DrillQueueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillQueueViewModel.swift; sourceTree = "<group>"; };
+		E30000020000000000000007 /* DrillDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillDetailView.swift; sourceTree = "<group>"; };
 		M20000000000000000000001 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		M20000000000000000000002 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		N20000000000000000000001 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
@@ -467,6 +469,7 @@
 			children = (
 				E30000020000000000000005 /* DrillQueueView.swift */,
 				E30000020000000000000006 /* DrillQueueViewModel.swift */,
+				E30000020000000000000007 /* DrillDetailView.swift */,
 			);
 			path = Drills;
 			sourceTree = "<group>";
@@ -682,6 +685,7 @@
 				E30000010000000000000004 /* DrillRepositoryImpl.swift in Sources */,
 				E30000010000000000000005 /* DrillQueueView.swift in Sources */,
 				E30000010000000000000006 /* DrillQueueViewModel.swift in Sources */,
+				E30000010000000000000007 /* DrillDetailView.swift in Sources */,
 				M10000000000000000000001 /* OnboardingViewModel.swift in Sources */,
 				M10000000000000000000002 /* OnboardingView.swift in Sources */,
 				N10000000000000000000001 /* HomeViewModel.swift in Sources */,

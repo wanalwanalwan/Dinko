@@ -34,6 +34,11 @@ struct HomeRecommendedDrill: Identifiable {
     let skillName: String
     let durationMinutes: Int
     let priority: String
+    let drillDescription: String
+    let equipment: String
+    let playerCount: Int
+    let reason: String
+    let targetSubskill: String?
 }
 
 struct CompletedSkillItem: Identifiable {
@@ -392,7 +397,12 @@ final class HomeViewModel {
                 drillName: drill.name,
                 skillName: skillNameMap[drill.skillId] ?? "Unknown",
                 durationMinutes: drill.durationMinutes,
-                priority: drill.priority
+                priority: drill.priority,
+                drillDescription: drill.drillDescription,
+                equipment: drill.equipment,
+                playerCount: drill.playerCount,
+                reason: drill.reason,
+                targetSubskill: drill.targetSubskill
             ))
 
             if results.count >= 3 { break }

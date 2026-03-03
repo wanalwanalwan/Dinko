@@ -281,45 +281,47 @@ struct HomeView: View {
     }
 
     private func drillCard(_ drill: HomeRecommendedDrill, viewModel: HomeViewModel) -> some View {
-        HStack(spacing: AppSpacing.xs) {
-            Button {
-                Task { await viewModel.markDrillDone(drill.id) }
-            } label: {
+        NavigationLink {
+            DrillDetailView(drill: drill) {
+                await viewModel.markDrillDone(drill.id)
+            }
+        } label: {
+            HStack(spacing: AppSpacing.xs) {
                 Image(systemName: "play.circle")
                     .font(.system(size: 34))
                     .foregroundStyle(AppColors.textPrimary)
-            }
-            .buttonStyle(.plain)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(drill.drillName)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(drill.drillName)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
 
-                HStack(spacing: AppSpacing.xxxs) {
-                    Text("\(drill.durationMinutes) min")
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
+                    HStack(spacing: AppSpacing.xxxs) {
+                        Text("\(drill.durationMinutes) min")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
 
-                    Text("\u{00B7}")
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
+                        Text("\u{00B7}")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
 
-                    Text(drill.skillName)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        Text(drill.skillName)
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+                    }
                 }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(AppColors.textSecondary)
             }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(AppColors.textSecondary)
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .buttonStyle(.plain)
     }
 
     // MARK: - Completed Skills
