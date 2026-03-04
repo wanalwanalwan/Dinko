@@ -64,6 +64,10 @@ struct AddEditSkillView: View {
                 .padding(.top, AppSpacing.xs)
                 .padding(.bottom, AppSpacing.xl)
             }
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
             .background(AppColors.cardBackground)
             .navigationTitle(viewModel.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)

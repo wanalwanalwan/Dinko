@@ -65,6 +65,10 @@ struct ChatView: View {
                     .padding(.horizontal, AppSpacing.sm)
                     .padding(.vertical, AppSpacing.xs)
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture {
+                    isInputFocused = false
+                }
                 .onChange(of: viewModel.messages.count) {
                     if let last = viewModel.messages.last {
                         withAnimation(.easeOut(duration: 0.3)) {

@@ -58,6 +58,9 @@ struct RateSkillView: View {
             }
             .padding(.horizontal, AppSpacing.lg)
             .background(AppColors.cardBackground)
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {

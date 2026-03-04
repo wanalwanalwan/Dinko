@@ -289,9 +289,13 @@ struct HomeView: View {
 
                 Spacer()
 
-                Text("SEE ALL")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
+                Button {
+                    selectedTab = 3
+                } label: {
+                    Text("SEE ALL")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                }
             }
 
             if viewModel.recommendedDrills.isEmpty {
@@ -480,18 +484,6 @@ struct HomeView: View {
             + Text(" in a row. \(viewModel.daysToWeeklyGoal) more to hit your weekly goal.")
                 .foregroundColor(.white.opacity(0.85)))
                 .font(.system(size: 14, design: .rounded))
-
-            Button {
-                selectedTab = 2
-            } label: {
-                Text("View Stats")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, AppSpacing.md)
-                    .padding(.vertical, AppSpacing.xxs)
-                    .background(AppColors.teal)
-                    .clipShape(Capsule())
-            }
         }
         .padding(AppSpacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)

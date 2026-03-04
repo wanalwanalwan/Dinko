@@ -21,6 +21,10 @@ struct SkillNotesView: View {
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xs)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
         .background(AppColors.background)
         .navigationTitle("Notes")
         .navigationBarTitleDisplayMode(.inline)
