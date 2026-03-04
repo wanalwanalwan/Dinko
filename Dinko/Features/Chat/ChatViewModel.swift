@@ -48,6 +48,14 @@ final class ChatViewModel {
         let userMessage = ChatMessage(role: .user, content: .text(text))
         messages.append(userMessage)
 
+        // Check for skill creation intent before calling edge function
+        if let creationPreview = await detectSkillCreationIntent(text) {
+            let creationMessage = ChatMessage(role: .agent, content: .skillCreation(creationPreview))
+            messages.append(creationMessage)
+            isSending = false
+            return
+        }
+
         // Check for deletion intent before calling edge function
         if let matchedSkill = await detectDeletionIntent(text) {
             let subskills = await fetchSubskillNames(for: matchedSkill.id)
@@ -281,6 +289,80 @@ final class ChatViewModel {
         )
     }
 
+    func confirmSkillCreation(messageId: UUID) async {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .skillCreation(var preview) = messages[index].content
+        else { return }
+
+        preview.confirmState = .confirming
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .skillCreation(preview),
+            timestamp: messages[index].timestamp
+        )
+
+        do {
+            let skill = Skill(
+                name: preview.skillName,
+                category: preview.category,
+                iconName: preview.category.iconName
+            )
+            try await skillRepository.save(skill)
+
+            preview.confirmState = .confirmed
+            messages[index] = ChatMessage(
+                id: messageId,
+                role: .agent,
+                content: .skillCreation(preview),
+                timestamp: messages[index].timestamp
+            )
+
+            messages.append(ChatMessage(
+                role: .agent,
+                content: .text("\(preview.skillName) has been added to your skills!")
+            ))
+
+            await loadStats()
+        } catch {
+            preview.confirmState = .failed(error.localizedDescription)
+            messages[index] = ChatMessage(
+                id: messageId,
+                role: .agent,
+                content: .skillCreation(preview),
+                timestamp: messages[index].timestamp
+            )
+        }
+    }
+
+    func cancelSkillCreation(messageId: UUID) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .skillCreation(let preview) = messages[index].content
+        else { return }
+
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .text("No problem, \(preview.skillName) was not added."),
+            timestamp: messages[index].timestamp
+        )
+    }
+
+    func updateSkillCreationCategory(messageId: UUID, category: SkillCategory) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .skillCreation(var preview) = messages[index].content,
+              case .pending = preview.confirmState
+        else { return }
+
+        preview.category = category
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .skillCreation(preview),
+            timestamp: messages[index].timestamp
+        )
+    }
+
     // MARK: - Private
 
     private func buildContextualNote(_ currentText: String) -> String {
@@ -311,6 +393,16 @@ final class ChatViewModel {
                     lines.append("Coach: Deleted skill \(preview.skillName)")
                 case .pending, .confirming:
                     lines.append("Coach: Asked to confirm deletion of \(preview.skillName)")
+                default:
+                    break
+                }
+
+            case (.agent, .skillCreation(let preview)):
+                switch preview.confirmState {
+                case .confirmed:
+                    lines.append("Coach: Created skill \(preview.skillName) (\(preview.category.displayName))")
+                case .pending, .confirming:
+                    lines.append("Coach: Asked to confirm creation of \(preview.skillName)")
                 default:
                     break
                 }
@@ -464,6 +556,95 @@ final class ChatViewModel {
         } catch {
             // Skill creation failure is non-critical
         }
+    }
+
+    private func detectSkillCreationIntent(_ text: String) async -> SkillCreationPreview? {
+        let lower = text.lowercased()
+
+        // Intent keywords — must contain at least one
+        let intentKeywords = [
+            "learn", "new skill", "add skill", "add a skill", "start tracking",
+            "want to improve", "practice", "work on", "create skill", "create a skill",
+            "track my", "add a new skill"
+        ]
+
+        guard intentKeywords.contains(where: { lower.contains($0) }) else { return nil }
+
+        // Extract the skill name: take the text after the intent keyword
+        let skillName = extractSkillName(from: lower, original: text)
+        guard !skillName.isEmpty else { return nil }
+
+        // Check it doesn't already exist
+        do {
+            let existingSkills = try await skillRepository.fetchActive()
+            let alreadyExists = existingSkills.contains {
+                $0.name.lowercased() == skillName.lowercased()
+            }
+            guard !alreadyExists else { return nil }
+        } catch {
+            return nil
+        }
+
+        let category = guessCategory(from: skillName)
+        return SkillCreationPreview(
+            skillName: skillName,
+            category: category,
+            confirmState: .pending
+        )
+    }
+
+    private func extractSkillName(from lower: String, original: String) -> String {
+        // Patterns to strip from the beginning, leaving the skill name
+        let prefixes = [
+            "i want to learn ", "i want to practice ", "i want to work on ",
+            "i want to improve ", "i'd like to learn ", "i'd like to practice ",
+            "i'd like to work on ", "let me learn ", "let me practice ",
+            "start tracking ", "add a new skill for ", "add a skill for ",
+            "add skill for ", "create a skill for ", "create skill for ",
+            "add a new skill called ", "add a skill called ", "add skill called ",
+            "create a skill called ", "create skill called ",
+            "add a new skill ", "add a skill ", "add skill ",
+            "create a skill ", "create skill ", "new skill for ",
+            "new skill called ", "new skill ", "track my ",
+            "work on ", "practice ", "learn "
+        ]
+
+        var extracted = lower
+        for prefix in prefixes {
+            if extracted.hasPrefix(prefix) {
+                extracted = String(extracted.dropFirst(prefix.count))
+                break
+            }
+        }
+
+        // Clean up trailing punctuation and common suffixes
+        let suffixes = [" skill", " skills", " please", " for me"]
+        for suffix in suffixes {
+            if extracted.hasSuffix(suffix) {
+                extracted = String(extracted.dropLast(suffix.count))
+            }
+        }
+
+        extracted = extracted.trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
+
+        guard !extracted.isEmpty else { return "" }
+
+        // Title-case the result
+        return extracted.split(separator: " ")
+            .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+            .joined(separator: " ")
+    }
+
+    private func guessCategory(from name: String) -> SkillCategory {
+        let lower = name.lowercased()
+        if lower.contains("dink") { return .dinking }
+        if lower.contains("drop") { return .drops }
+        if lower.contains("drive") { return .drives }
+        if lower.contains("serve") || lower.contains("return") { return .serves }
+        if lower.contains("block") || lower.contains("reset") || lower.contains("defend") { return .defense }
+        if lower.contains("attack") || lower.contains("smash") || lower.contains("speed") || lower.contains("put away") { return .offense }
+        if lower.contains("stack") || lower.contains("position") || lower.contains("transition") { return .strategy }
+        return .strategy
     }
 
     private func detectDeletionIntent(_ text: String) async -> Skill? {

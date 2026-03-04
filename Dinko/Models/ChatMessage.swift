@@ -16,6 +16,7 @@ struct ChatMessage: Identifiable {
         case loading
         case sessionPreview(SessionPreview)
         case skillDeletion(SkillDeletionPreview)
+        case skillCreation(SkillCreationPreview)
         case error(String)
     }
 
@@ -78,6 +79,19 @@ struct SkillDeletionPreview {
     let skillId: UUID
     let skillName: String
     let subskillNames: [String]
+    var confirmState: ConfirmState
+
+    enum ConfirmState: Equatable {
+        case pending
+        case confirming
+        case confirmed
+        case failed(String)
+    }
+}
+
+struct SkillCreationPreview {
+    let skillName: String
+    var category: SkillCategory
     var confirmState: ConfirmState
 
     enum ConfirmState: Equatable {

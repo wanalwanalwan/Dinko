@@ -188,6 +188,20 @@ struct ChatView: View {
                 }
             )
 
+        case .skillCreation(let preview):
+            SkillCreationCard(
+                preview: preview,
+                onConfirm: {
+                    Task { await viewModel.confirmSkillCreation(messageId: message.id) }
+                },
+                onCancel: {
+                    viewModel.cancelSkillCreation(messageId: message.id)
+                },
+                onCategoryChanged: { newCategory in
+                    viewModel.updateSkillCreationCategory(messageId: message.id, category: newCategory)
+                }
+            )
+
         case .error(let errorText):
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Label("Something went wrong", systemImage: "exclamationmark.triangle.fill")
