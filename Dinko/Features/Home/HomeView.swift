@@ -155,11 +155,21 @@ struct HomeView: View {
             value: -viewModel.selectedTimeRange.daysBack,
             to: calendar.startOfDay(for: Date())
         ) ?? Date()
-        let rangeStart = min(allDates.min() ?? cutoff, cutoff)
-        let rangeEnd = max(allDates.max() ?? Date(), calendar.startOfDay(for: Date()))
 
         // Check if all series have only a single data point
-        let isSinglePoint = allDates.count <= 1 || Set(allDates.map { calendar.startOfDay(for: $0) }).count <= 1
+        let uniqueDays = Set(allDates.map { calendar.startOfDay(for: $0) })
+        let isSinglePoint = allDates.count <= 1 || uniqueDays.count <= 1
+
+        // For single-day data, center the dot with 1 day padding on each side
+        let rangeStart: Date
+        let rangeEnd: Date
+        if isSinglePoint, let onlyDate = allDates.first {
+            rangeStart = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: onlyDate)) ?? onlyDate
+            rangeEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: onlyDate)) ?? onlyDate
+        } else {
+            rangeStart = min(allDates.min() ?? cutoff, cutoff)
+            rangeEnd = max(allDates.max() ?? Date(), calendar.startOfDay(for: Date()))
+        }
 
         return VStack(alignment: .leading, spacing: AppSpacing.xxs) {
             Chart {
