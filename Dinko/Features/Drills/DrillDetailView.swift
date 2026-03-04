@@ -28,7 +28,7 @@ struct DrillDetailView: View {
 
     private var heroSection: some View {
         VStack(spacing: AppSpacing.xs) {
-            Image(systemName: "play.circle.fill")
+            Image(systemName: "figure.pickleball")
                 .font(.system(size: 56))
                 .foregroundStyle(AppColors.teal)
 

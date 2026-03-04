@@ -326,10 +326,6 @@ struct HomeView: View {
             }
         } label: {
             HStack(spacing: AppSpacing.xs) {
-                Image(systemName: "play.circle")
-                    .font(.system(size: 34))
-                    .foregroundStyle(AppColors.textPrimary)
-
                 VStack(alignment: .leading, spacing: 2) {
                     Text(drill.drillName)
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
