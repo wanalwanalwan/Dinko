@@ -82,7 +82,7 @@ interface RoadmapUpdates {
 
 // ---------- Scoring constants ----------
 
-const BASE_INCREMENT = 3;
+const BASE_INCREMENT = 5;
 
 const SENTIMENT_MULTIPLIER: Record<string, number> = {
   very_negative: -1.5,
@@ -92,13 +92,22 @@ const SENTIMENT_MULTIPLIER: Record<string, number> = {
   very_positive: 1.5,
 };
 
-// Intensity multiplier: intensity 1-5 maps to how much to scale the delta
 const INTENSITY_MULTIPLIER: Record<number, number> = {
   1: 0.5,
   2: 1.0,
   3: 1.5,
   4: 2.5,
   5: 4.0,
+};
+
+// For absolute claims ("mastered it", "terrible at it"), blend aggressively toward the target.
+// Higher intensity = trust the user's self-assessment more.
+const ABSOLUTE_BLEND_FACTOR: Record<number, number> = {
+  1: 0.5,
+  2: 0.65,
+  3: 0.8,
+  4: 0.9,
+  5: 0.95,
 };
 
 const MAX_DELTA_PER_SKILL = 30;
@@ -300,13 +309,19 @@ Rules:
 - Match mentions to existing skill names when possible (fuzzy match is fine)
 - sentiment: very_negative / negative / neutral / positive / very_positive
 - intensity: 1 (barely mentioned) to 5 (major focus of the session)
-- suggested_rating: What proficiency level (0-100) does the user's language imply for this skill? Interpret absolute claims:
-  - "mastered", "nailed it", "perfected" → 85-95
-  - "really good at", "very confident" → 70-85
-  - "getting better", "improved" → use null (relative, not absolute)
-  - "struggled with", "kept failing" → 15-30
-  - "terrible at", "can't do it at all" → 5-15
-  - Use null when the language only describes relative change, not an absolute level
+- suggested_rating: What proficiency level (0-100) does the user's language imply for this skill? Use these thresholds for ABSOLUTE claims about current ability:
+  - "mastered", "nailed it", "perfected", "automatic", "second nature" → 90-100
+  - "super comfortable", "really confident", "very good at", "dialed in" → 75-90
+  - "comfortable", "confident", "solid", "consistent" → 60-75
+  - "decent at", "okay with", "not bad" → 40-55
+  - "not great at", "needs work", "inconsistent" → 25-40
+  - "struggled with", "kept failing", "couldn't get it" → 15-30
+  - "terrible at", "can't do it at all", "completely lost" → 5-15
+  Use null ONLY for relative/comparative language that doesn't imply an absolute level:
+  - "getting better", "improved a bit", "making progress" → null (positive sentiment)
+  - "didn't improve", "same as before", "no change" → null (neutral sentiment)
+  - "got worse", "regressed", "worse than last time" → null (negative sentiment)
+  IMPORTANT: When the user describes their CURRENT level of ability (not just change), always provide a suggested_rating. Phrases like "I feel comfortable" or "I've mastered it" describe where they ARE, not just how they changed.
 - Include direct quotes from the note that support each mention
 - If the user describes a skill not in their list, add it to new_skill_suggestions
 - Infer session_duration_minutes and session_type (singles/doubles/drills/mixed) from context, use null if not mentioned
@@ -364,18 +379,11 @@ function computeDeltas(
     const oldRating = skill.current_rating;
 
     if (bestAbsoluteMention && bestAbsoluteMention.suggested_rating != null) {
-      // Absolute rating mode: blend toward the suggested rating
-      // Higher intensity = trust the claim more
+      // Absolute rating mode: jump toward the suggested rating aggressively.
+      // No frequency decay — "I mastered this" means the same on session 1 or 5.
       const target = bestAbsoluteMention.suggested_rating;
-      const blendFactor: Record<number, number> = {
-        1: 0.2,
-        2: 0.35,
-        3: 0.5,
-        4: 0.7,
-        5: 0.85,
-      };
-      const blend = blendFactor[bestAbsoluteMention.intensity] ?? 0.5;
-      totalDelta = Math.round((target - oldRating) * blend * frequencyDecay);
+      const blend = ABSOLUTE_BLEND_FACTOR[bestAbsoluteMention.intensity] ?? 0.8;
+      totalDelta = Math.round((target - oldRating) * blend);
     } else {
       // Relative delta mode: incremental changes
       for (const mention of mentions) {
