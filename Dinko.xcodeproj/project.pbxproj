@@ -83,6 +83,9 @@
 		M10000000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000000000000000000002 /* OnboardingView.swift */; };
 		N10000000000000000000001 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = N20000000000000000000001 /* HomeViewModel.swift */; };
 		N10000000000000000000002 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N20000000000000000000002 /* HomeView.swift */; };
+		B1000001000000000000000D /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000D /* SectionHeaderView.swift */; };
+		B1000001000000000000000E /* DrillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000E /* DrillCardView.swift */; };
+		B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000F /* CompletedSkillCardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -182,6 +185,9 @@
 		M20000000000000000000002 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		N20000000000000000000001 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		N20000000000000000000002 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B2000001000000000000000D /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
+		B2000001000000000000000E /* DrillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillCardView.swift; sourceTree = "<group>"; };
+		B2000001000000000000000F /* CompletedSkillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedSkillCardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -308,10 +314,13 @@
 			children = (
 				B2000001000000000000000A /* AchievementBadge.swift */,
 				B20000010000000000000009 /* CheckerItem.swift */,
+				B2000001000000000000000F /* CompletedSkillCardView.swift */,
+				B2000001000000000000000E /* DrillCardView.swift */,
 				B2000001000000000000000B /* MotivationalBanner.swift */,
 				B20000010000000000000005 /* PreviewData.swift */,
 				B20000010000000000000006 /* ProgressBar.swift */,
 				B20000010000000000000007 /* RatingBadge.swift */,
+				B2000001000000000000000D /* SectionHeaderView.swift */,
 				B2000001000000000000000C /* SkillCard.swift */,
 				B20000010000000000000008 /* SparklineChart.swift */,
 			);
@@ -694,6 +703,9 @@
 				M10000000000000000000002 /* OnboardingView.swift in Sources */,
 				N10000000000000000000001 /* HomeViewModel.swift in Sources */,
 				N10000000000000000000002 /* HomeView.swift in Sources */,
+				B1000001000000000000000D /* SectionHeaderView.swift in Sources */,
+				B1000001000000000000000E /* DrillCardView.swift in Sources */,
+				B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
