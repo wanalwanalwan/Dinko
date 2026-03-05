@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ChatView: View {
     @Environment(\.dependencies) private var dependencies
-    @Environment(\.authViewModel) private var authViewModel
     @State private var viewModel: ChatViewModel?
     @FocusState private var isInputFocused: Bool
 
@@ -15,20 +14,6 @@ struct ChatView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button(role: .destructive) {
-                        Task { await authViewModel?.signOut() }
-                    } label: {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                    }
-                } label: {
-                    Image(systemName: "person.circle")
-                        .foregroundStyle(AppColors.teal)
-                }
-            }
-        }
         .task {
             if viewModel == nil {
                 let vm = ChatViewModel(

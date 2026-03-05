@@ -561,26 +561,35 @@ final class ChatViewModel {
     private func detectSkillCreationIntent(_ text: String) async -> SkillCreationPreview? {
         let lower = text.lowercased()
 
-        // Intent keywords — must contain at least one
         let intentKeywords = [
-            "learn", "new skill", "add skill", "add a skill", "start tracking",
-            "want to improve", "practice", "work on", "create skill", "create a skill",
-            "track my", "add a new skill"
+            "add a new skill", "add a skill", "add skill",
+            "create a new skill", "create a skill", "create skill",
+            "new skill", "start tracking"
         ]
 
         guard intentKeywords.contains(where: { lower.contains($0) }) else { return nil }
 
-        // Extract the skill name: take the text after the intent keyword
+        let sessionKeywords = [
+            "played", "practiced", "drilled", "session",
+            "today", "yesterday", "was more consistent",
+            "got better", "struggled with"
+        ]
+        if sessionKeywords.contains(where: { lower.contains($0) }) { return nil }
+
         let skillName = extractSkillName(from: lower, original: text)
         guard !skillName.isEmpty else { return nil }
 
-        // Check it doesn't already exist
         do {
             let existingSkills = try await skillRepository.fetchActive()
-            let alreadyExists = existingSkills.contains {
-                $0.name.lowercased() == skillName.lowercased()
+            let extractedLower = skillName.lowercased()
+
+            let fuzzyMatch = existingSkills.contains { existing in
+                let existingLower = existing.name.lowercased()
+                return existingLower == extractedLower
+                    || existingLower.contains(extractedLower)
+                    || extractedLower.contains(existingLower)
             }
-            guard !alreadyExists else { return nil }
+            guard !fuzzyMatch else { return nil }
         } catch {
             return nil
         }
@@ -594,30 +603,29 @@ final class ChatViewModel {
     }
 
     private func extractSkillName(from lower: String, original: String) -> String {
-        // Patterns to strip from the beginning, leaving the skill name
         let prefixes = [
-            "i want to learn ", "i want to practice ", "i want to work on ",
-            "i want to improve ", "i'd like to learn ", "i'd like to practice ",
-            "i'd like to work on ", "let me learn ", "let me practice ",
-            "start tracking ", "add a new skill for ", "add a skill for ",
-            "add skill for ", "create a skill for ", "create skill for ",
-            "add a new skill called ", "add a skill called ", "add skill called ",
-            "create a skill called ", "create skill called ",
-            "add a new skill ", "add a skill ", "add skill ",
-            "create a skill ", "create skill ", "new skill for ",
-            "new skill called ", "new skill ", "track my ",
-            "work on ", "practice ", "learn "
+            "start tracking ",
+            "add a new skill for ", "add a new skill called ", "add a new skill ",
+            "add a skill for ", "add a skill called ", "add a skill ",
+            "add skill for ", "add skill called ", "add skill ",
+            "create a new skill for ", "create a new skill called ", "create a new skill ",
+            "create a skill for ", "create a skill called ", "create a skill ",
+            "create skill for ", "create skill called ", "create skill ",
+            "new skill for ", "new skill called ", "new skill "
         ]
 
         var extracted = lower
+        var matched = false
         for prefix in prefixes {
             if extracted.hasPrefix(prefix) {
                 extracted = String(extracted.dropFirst(prefix.count))
+                matched = true
                 break
             }
         }
 
-        // Clean up trailing punctuation and common suffixes
+        if !matched { return "" }
+
         let suffixes = [" skill", " skills", " please", " for me"]
         for suffix in suffixes {
             if extracted.hasSuffix(suffix) {
@@ -629,7 +637,6 @@ final class ChatViewModel {
 
         guard !extracted.isEmpty else { return "" }
 
-        // Title-case the result
         return extracted.split(separator: " ")
             .map { $0.prefix(1).uppercased() + $0.dropFirst() }
             .joined(separator: " ")

@@ -3,6 +3,7 @@ import Charts
 
 struct HomeView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.authViewModel) private var authViewModel
     @Binding var selectedTab: Int
     @State private var viewModel: HomeViewModel?
     @State private var rawSelectedDate: Date?
@@ -76,20 +77,36 @@ struct HomeView: View {
     // MARK: - Greeting Header
 
     private func greetingHeader(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
-            Text(viewModel.todayDateText.uppercased())
-                .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
+        HStack(alignment: .top, spacing: AppSpacing.sm) {
+            VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                Text(viewModel.todayDateText.uppercased())
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
 
-            VStack(alignment: .leading, spacing: 0) {
-                Text("\(viewModel.greetingText),")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("\(viewModel.greetingText),")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
 
-                Text(viewModel.playerName)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
+                    Text(viewModel.playerName)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                }
             }
+
+            Spacer()
+
+            Button(role: .destructive) {
+                Task { await authViewModel?.signOut() }
+            } label: {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .frame(width: 36, height: 36)
+                    .background(AppColors.cardBackground)
+                    .clipShape(Circle())
+            }
+            .accessibilityLabel("Sign Out")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, AppSpacing.xs)
