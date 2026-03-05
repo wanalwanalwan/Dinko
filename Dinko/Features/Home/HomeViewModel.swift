@@ -472,13 +472,15 @@ final class HomeViewModel {
         let sessions = try await sessionRepository.fetchAll()
         let calendar = Calendar.current
 
+        let savedGoal = UserDefaults.standard.integer(forKey: "dinko_weekly_goal")
+        let weeklyGoal = savedGoal > 0 ? savedGoal : 7
+
         var activityDates: Set<Date> = []
 
         for session in sessions {
             activityDates.insert(calendar.startOfDay(for: session.date))
         }
 
-        // Also count days when ratings were recorded as practice activity
         for ratings in cachedRatings.values {
             for rating in ratings {
                 activityDates.insert(calendar.startOfDay(for: rating.date))
@@ -487,7 +489,7 @@ final class HomeViewModel {
 
         guard !activityDates.isEmpty else {
             streakDays = 0
-            daysToWeeklyGoal = 7
+            daysToWeeklyGoal = weeklyGoal
             return
         }
 
@@ -495,17 +497,15 @@ final class HomeViewModel {
         var streak = 0
         var checkDay = today
 
-        // If today has no activity, start checking from yesterday
         if !activityDates.contains(today) {
             guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else {
                 streakDays = 0
-                daysToWeeklyGoal = 7
+                daysToWeeklyGoal = weeklyGoal
                 return
             }
             checkDay = yesterday
         }
 
-        // Count consecutive days backwards
         while activityDates.contains(checkDay) {
             streak += 1
             guard let prev = calendar.date(byAdding: .day, value: -1, to: checkDay) else { break }
@@ -513,7 +513,7 @@ final class HomeViewModel {
         }
 
         streakDays = streak
-        daysToWeeklyGoal = max(0, 7 - streak)
+        daysToWeeklyGoal = max(0, weeklyGoal - streak)
     }
 
     private func priorityValue(_ priority: String) -> Int {

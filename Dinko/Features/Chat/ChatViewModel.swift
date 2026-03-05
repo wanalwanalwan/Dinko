@@ -137,8 +137,10 @@ final class ChatViewModel {
                 authToken: getAuthToken()
             )
 
-            // Apply rating changes locally to CoreData
-            for update in preview.skillUpdates {
+            let selectedUpdates = preview.selectedSkillUpdateIndices.sorted().compactMap { idx in
+                idx < preview.skillUpdates.count ? preview.skillUpdates[idx] : nil
+            }
+            for update in selectedUpdates {
                 if let skillId = UUID(uuidString: update.skillId) {
                     let rating = SkillRating(
                         skillId: skillId,
@@ -201,6 +203,26 @@ final class ChatViewModel {
             preview.selectedDrillIndices.remove(drillIndex)
         } else {
             preview.selectedDrillIndices.insert(drillIndex)
+        }
+
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .sessionPreview(preview),
+            timestamp: messages[index].timestamp
+        )
+    }
+
+    func toggleSkillUpdate(messageId: UUID, skillUpdateIndex: Int) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .sessionPreview(var preview) = messages[index].content,
+              case .pending = preview.confirmState
+        else { return }
+
+        if preview.selectedSkillUpdateIndices.contains(skillUpdateIndex) {
+            preview.selectedSkillUpdateIndices.remove(skillUpdateIndex)
+        } else {
+            preview.selectedSkillUpdateIndices.insert(skillUpdateIndex)
         }
 
         messages[index] = ChatMessage(
@@ -367,6 +389,10 @@ final class ChatViewModel {
 
     private func buildContextualNote(_ currentText: String) -> String {
         var lines: [String] = []
+
+        if let prefs = UserDefaults.standard.stringArray(forKey: "dinko_drill_preferences"), !prefs.isEmpty {
+            lines.append("User's drill type preferences: \(prefs.joined(separator: ", ")).")
+        }
 
         for message in messages {
             switch (message.role, message.content) {

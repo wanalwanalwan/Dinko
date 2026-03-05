@@ -45,6 +45,7 @@ struct SessionPreview {
     let skillSuggestions: [SkillCreationSuggestion]?
     var confirmState: ConfirmState = .pending
     var selectedDrillIndices: Set<Int>
+    var selectedSkillUpdateIndices: Set<Int>
 
     enum ConfirmState: Equatable {
         case pending
@@ -72,6 +73,7 @@ struct SessionPreview {
         self.skillSuggestions = skillSuggestions
         self.confirmState = confirmState
         self.selectedDrillIndices = Set(drillRecommendations.indices)
+        self.selectedSkillUpdateIndices = Set(skillUpdates.indices)
     }
 }
 

@@ -8,16 +8,14 @@ struct OnboardingView: View {
 
     var onComplete: () -> Void
 
-    private let totalSteps = 5
+    private let totalSteps = 3
 
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentStep) {
                 duprStep.tag(0)
                 frequencyStep.tag(1)
-                trainingStyleStep.tag(2)
-                notificationStep.tag(3)
-                firstDrillStep.tag(4)
+                drillPreferencesStep.tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: currentStep)
@@ -69,56 +67,56 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 2: Play Frequency
+    // MARK: - Step 2: Training Frequency
 
     private var frequencyStep: some View {
         stepContainer(
-            title: "How often do you play?",
-            subtitle: "This helps us pace your training plan."
+            title: "How often do you want to train?",
+            subtitle: "We'll set your weekly goal to match."
         ) {
             VStack(spacing: AppSpacing.xs) {
-                selectionCard("1-2x / week", icon: "calendar", isSelected: viewModel.playFrequency == "1-2x/week") {
-                    viewModel.playFrequency = "1-2x/week"
+                selectionCard("1-2x / week", icon: "calendar", isSelected: viewModel.trainingDaysPerWeek == 2) {
+                    viewModel.trainingDaysPerWeek = 2
                     advanceAfterDelay()
                 }
-                selectionCard("3-4x / week", icon: "calendar.badge.plus", isSelected: viewModel.playFrequency == "3-4x/week") {
-                    viewModel.playFrequency = "3-4x/week"
+                selectionCard("3-4x / week", icon: "calendar.badge.plus", isSelected: viewModel.trainingDaysPerWeek == 4) {
+                    viewModel.trainingDaysPerWeek = 4
                     advanceAfterDelay()
                 }
-                selectionCard("5+ / week", icon: "flame.fill", isSelected: viewModel.playFrequency == "5+/week") {
-                    viewModel.playFrequency = "5+/week"
+                selectionCard("5+ / week", icon: "flame.fill", isSelected: viewModel.trainingDaysPerWeek == 5) {
+                    viewModel.trainingDaysPerWeek = 5
                     advanceAfterDelay()
                 }
             }
         }
     }
 
-    // MARK: - Step 3: Training Style (Multi-select)
+    // MARK: - Step 3: Drill Preferences (Multi-select)
 
-    private var trainingStyleStep: some View {
+    private var drillPreferencesStep: some View {
         stepContainer(
-            title: "How do you like to train?",
+            title: "What types of drills interest you?",
             subtitle: "Select all that apply, or skip."
         ) {
             VStack(spacing: AppSpacing.sm) {
-                let styles = ["Drills", "Match Play", "Coaching", "Video Review"]
+                let types = ["Fitness", "Court IQ", "Technique", "Mental Game"]
 
                 FlowLayout(spacing: AppSpacing.xxs) {
-                    ForEach(styles, id: \.self) { style in
-                        pillButton(style, isSelected: viewModel.trainingStyles.contains(style)) {
-                            if viewModel.trainingStyles.contains(style) {
-                                viewModel.trainingStyles.remove(style)
+                    ForEach(types, id: \.self) { type in
+                        pillButton(type, isSelected: viewModel.drillPreferences.contains(type)) {
+                            if viewModel.drillPreferences.contains(type) {
+                                viewModel.drillPreferences.remove(type)
                             } else {
-                                viewModel.trainingStyles.insert(style)
+                                viewModel.drillPreferences.insert(type)
                             }
                         }
                     }
                 }
 
                 HStack(spacing: AppSpacing.xs) {
-                    if !viewModel.trainingStyles.isEmpty {
+                    if !viewModel.drillPreferences.isEmpty {
                         Button {
-                            withAnimation { currentStep = 3 }
+                            completeOnboarding()
                         } label: {
                             Text("Continue")
                                 .font(AppTypography.headline)
@@ -128,136 +126,24 @@ struct OnboardingView: View {
                                 .background(AppColors.teal)
                                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
                         }
+                        .disabled(isCompleting)
                     }
 
                     Button {
-                        withAnimation { currentStep = 3 }
+                        completeOnboarding()
                     } label: {
                         Text("Skip")
                             .font(AppTypography.headline)
                             .foregroundStyle(AppColors.textSecondary)
-                            .frame(maxWidth: viewModel.trainingStyles.isEmpty ? .infinity : nil)
+                            .frame(maxWidth: viewModel.drillPreferences.isEmpty ? .infinity : nil)
                             .padding(.vertical, AppSpacing.sm)
-                            .padding(.horizontal, viewModel.trainingStyles.isEmpty ? 0 : AppSpacing.lg)
+                            .padding(.horizontal, viewModel.drillPreferences.isEmpty ? 0 : AppSpacing.lg)
                             .background(AppColors.cardBackground)
                             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
                     }
+                    .disabled(isCompleting)
                 }
                 .padding(.top, AppSpacing.xs)
-            }
-        }
-    }
-
-    // MARK: - Step 4: Notifications
-
-    private var notificationStep: some View {
-        stepContainer(
-            title: "Stay on track",
-            subtitle: "Get reminders for your practice sessions and celebrate milestones."
-        ) {
-            VStack(spacing: AppSpacing.sm) {
-                Image(systemName: "bell.badge.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(AppColors.teal)
-                    .padding(.bottom, AppSpacing.xs)
-
-                Button {
-                    viewModel.notificationsEnabled = true
-                    requestNotifications()
-                    withAnimation { currentStep = 4 }
-                } label: {
-                    Text("Enable Notifications")
-                        .font(AppTypography.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.sm)
-                        .background(AppColors.teal)
-                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                }
-
-                Button {
-                    withAnimation { currentStep = 4 }
-                } label: {
-                    Text("Not Now")
-                        .font(AppTypography.headline)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.sm)
-                        .background(AppColors.cardBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                }
-            }
-        }
-    }
-
-    // MARK: - Step 5: First Drill
-
-    private var firstDrillStep: some View {
-        stepContainer(
-            title: "Your first personalized drill is ready",
-            subtitle: drillSubtitle
-        ) {
-            VStack(spacing: AppSpacing.sm) {
-                // Drill preview card
-                let drill = viewModel.generateFirstDrill(skillId: UUID())
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    HStack {
-                        Image(systemName: "figure.run")
-                            .foregroundStyle(AppColors.teal)
-                        Text(drill.name)
-                            .font(AppTypography.headline)
-                    }
-
-                    Text(drill.drillDescription)
-                        .font(AppTypography.callout)
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    HStack(spacing: AppSpacing.sm) {
-                        Label("\(drill.durationMinutes) min", systemImage: "clock")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                        if drill.playerCount > 1 {
-                            Label("\(drill.playerCount) players", systemImage: "person.2")
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                        if !drill.equipment.isEmpty {
-                            Label(drill.equipment, systemImage: "wrench.and.screwdriver")
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                    }
-                }
-                .padding(AppSpacing.sm)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-
-                Button {
-                    completeOnboarding(goToDrills: true)
-                } label: {
-                    Text("Start 10-min Drill")
-                        .font(AppTypography.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.sm)
-                        .background(AppColors.teal)
-                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                }
-                .disabled(isCompleting)
-
-                Button {
-                    completeOnboarding(goToDrills: false)
-                } label: {
-                    Text("Save for Later")
-                        .font(AppTypography.headline)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.sm)
-                        .background(AppColors.cardBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                }
-                .disabled(isCompleting)
 
                 if isCompleting {
                     ProgressView()
@@ -354,11 +240,7 @@ struct OnboardingView: View {
         }
     }
 
-    private func requestNotifications() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
-    }
-
-    private func completeOnboarding(goToDrills: Bool) {
+    private func completeOnboarding() {
         guard !isCompleting else { return }
         isCompleting = true
 
@@ -366,19 +248,13 @@ struct OnboardingView: View {
             do {
                 try await viewModel.completeOnboarding(
                     skillRepo: dependencies.skillRepository,
-                    ratingRepo: dependencies.skillRatingRepository,
-                    drillRepo: dependencies.drillRepository
+                    ratingRepo: dependencies.skillRatingRepository
                 )
             } catch {
                 // Best-effort: still complete onboarding even if data save fails
             }
             onComplete()
         }
-    }
-
-    private var drillSubtitle: String {
-        guard let level = viewModel.duprRange else { return "Based on your level." }
-        return "Tailored for \(level) players."
     }
 }
 
@@ -423,8 +299,6 @@ struct FlowLayout: Layout {
         return (CGSize(width: maxWidth, height: totalHeight), positions)
     }
 }
-
-import UserNotifications
 
 #Preview {
     OnboardingView {

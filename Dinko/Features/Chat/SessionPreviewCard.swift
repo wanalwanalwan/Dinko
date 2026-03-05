@@ -5,6 +5,7 @@ struct SessionPreviewCard: View {
     let onConfirm: () -> Void
     let onRetry: () -> Void
     let onToggleDrill: (Int) -> Void
+    let onToggleSkillUpdate: (Int) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -58,10 +59,27 @@ struct SessionPreviewCard: View {
                 .font(AppTypography.callout)
                 .foregroundStyle(AppColors.textSecondary)
 
-            ForEach(preview.skillUpdates, id: \.skillId) { update in
-                HStack {
+            ForEach(Array(preview.skillUpdates.enumerated()), id: \.element.skillId) { index, update in
+                let isSelected = preview.selectedSkillUpdateIndices.contains(index)
+                let isPending = preview.confirmState == .pending
+
+                HStack(spacing: AppSpacing.xxs) {
+                    Button {
+                        if isPending {
+                            onToggleSkillUpdate(index)
+                        }
+                    } label: {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(isSelected ? AppColors.teal : AppColors.textSecondary)
+                            .font(.system(size: 18))
+                            .frame(width: 24)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!isPending)
+
                     Text(update.skill)
                         .font(AppTypography.body)
+                        .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
 
                     Spacer()
 
@@ -74,34 +92,37 @@ struct SessionPreviewCard: View {
 
                     Text("\(update.new)%")
                         .font(AppTypography.headline)
-                        .foregroundStyle(update.delta >= 0 ? AppColors.successGreen : AppColors.coral)
+                        .foregroundStyle(isSelected
+                            ? (update.delta >= 0 ? AppColors.successGreen : AppColors.coral)
+                            : AppColors.textSecondary)
 
                     deltaLabel(update.delta)
                 }
 
-                // Subskill deltas indented
-                ForEach(update.subskillDeltas, id: \.name) { sub in
-                    HStack {
-                        Text(sub.name)
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                            .padding(.leading, AppSpacing.lg)
+                if isSelected {
+                    ForEach(update.subskillDeltas, id: \.name) { sub in
+                        HStack {
+                            Text(sub.name)
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .padding(.leading, AppSpacing.lg)
 
-                        Spacer()
+                            Spacer()
 
-                        Text("\(sub.old)%")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
+                            Text("\(sub.old)%")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
 
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 8))
-                            .foregroundStyle(AppColors.textSecondary)
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 8))
+                                .foregroundStyle(AppColors.textSecondary)
 
-                        Text("\(sub.new)%")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            .foregroundStyle(sub.delta >= 0 ? AppColors.successGreen : AppColors.coral)
+                            Text("\(sub.new)%")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .foregroundStyle(sub.delta >= 0 ? AppColors.successGreen : AppColors.coral)
 
-                        deltaLabel(sub.delta, small: true)
+                            deltaLabel(sub.delta, small: true)
+                        }
                     }
                 }
             }

@@ -7,7 +7,6 @@ struct HomeView: View {
     @Binding var selectedTab: Int
     @State private var viewModel: HomeViewModel?
     @State private var rawSelectedDate: Date?
-    @State private var expandedCompletedSkillId: UUID?
 
     var body: some View {
         Group {
@@ -57,14 +56,14 @@ struct HomeView: View {
             )
         } else {
             ScrollView {
-                VStack(spacing: AppSpacing.md) {
+                VStack(spacing: AppSpacing.lg) {
                     greetingHeader(viewModel)
                     progressChart(viewModel)
                     recommendedDrillsSection(viewModel)
                     completedSkillsSection(viewModel)
                     streakBanner(viewModel)
                 }
-                .padding(.horizontal, AppSpacing.sm)
+                .padding(.horizontal, AppSpacing.md)
                 .padding(.top, AppSpacing.xxs)
                 .padding(.bottom, AppSpacing.lg)
             }
@@ -308,21 +307,9 @@ struct HomeView: View {
     // MARK: - Recommended Drills
 
     private func recommendedDrillsSection(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            HStack {
-                Text("RECOMMENDED DRILLS")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-
-                Spacer()
-
-                Button {
-                    selectedTab = 3
-                } label: {
-                    Text("SEE ALL")
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
-                }
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            SectionHeaderView(title: "Recommended Drills", actionTitle: "See All") {
+                selectedTab = 3
             }
 
             if viewModel.recommendedDrills.isEmpty {
@@ -340,65 +327,30 @@ struct HomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
             } else {
                 ForEach(viewModel.recommendedDrills) { drill in
-                    drillCard(drill, viewModel: viewModel)
-                }
-            }
-        }
-    }
-
-    private func drillCard(_ drill: HomeRecommendedDrill, viewModel: HomeViewModel) -> some View {
-        NavigationLink {
-            DrillDetailView(drill: drill) {
-                await viewModel.markDrillDone(drill.id)
-            }
-        } label: {
-            HStack(spacing: AppSpacing.xs) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(drill.drillName)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    HStack(spacing: AppSpacing.xxxs) {
-                        Text("\(drill.durationMinutes) min")
-                            .font(.system(size: 13, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-
-                        Text("\u{00B7}")
-                            .font(.system(size: 13, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-
-                        Text(drill.skillName)
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                    NavigationLink {
+                        DrillDetailView(drill: drill) {
+                            await viewModel.markDrillDone(drill.id)
+                        }
+                    } label: {
+                        DrillCardView(drill: drill)
                     }
+                    .buttonStyle(.plain)
                 }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(AppColors.textSecondary)
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Completed Skills
 
     private func completedSkillsSection(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("COMPLETED SKILLS")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            SectionHeaderView(title: "Completed Skills")
 
             if viewModel.completedSkills.isEmpty {
                 VStack(spacing: AppSpacing.xs) {
                     Image(systemName: "trophy")
                         .font(.system(size: 40))
-                        .foregroundStyle(AppColors.teal.opacity(0.4))
+                        .foregroundStyle(AppColors.successGreen.opacity(0.4))
 
                     Text("Your Journey Starts Here")
                         .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -421,74 +373,15 @@ struct HomeView: View {
                 .background(AppColors.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
             } else {
-                ForEach(viewModel.completedSkills) { item in
-                    completedSkillCard(item)
-                }
-            }
-        }
-    }
-
-    private func completedSkillCard(_ item: CompletedSkillItem) -> some View {
-        let isExpanded = expandedCompletedSkillId == item.id
-
-        return Button {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                expandedCompletedSkillId = isExpanded ? nil : item.id
-            }
-        } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                // Header: completion time + name (Copilot style)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Completed in \(item.daysToComplete) day\(item.daysToComplete == 1 ? "" : "s")")
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    Text(item.name)
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                }
-
-                // Expanded subskills
-                if isExpanded && !item.subskills.isEmpty {
-                    VStack(spacing: 0) {
-                        Divider()
-                            .padding(.vertical, AppSpacing.xs)
-
-                        ForEach(Array(item.subskills.enumerated()), id: \.element.id) { index, sub in
-                            HStack(spacing: AppSpacing.xs) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundStyle(AppColors.successGreen)
-
-                                Text(sub.name)
-                                    .font(.system(size: 14, design: .rounded))
-                                    .foregroundStyle(AppColors.textPrimary)
-
-                                Spacer()
-
-                                Text("\(sub.rating)%")
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(AppColors.teal)
-                            }
-                            .padding(.vertical, 6)
-                            .transition(
-                                .asymmetric(
-                                    insertion: .opacity
-                                        .combined(with: .offset(y: -8))
-                                        .animation(.spring(response: 0.35, dampingFraction: 0.8).delay(Double(index) * 0.05)),
-                                    removal: .opacity.animation(.easeOut(duration: 0.15))
-                                )
-                            )
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.sm) {
+                        ForEach(viewModel.completedSkills) { item in
+                            CompletedSkillCardView(skill: item)
                         }
                     }
                 }
             }
-            .padding(AppSpacing.sm)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Streak Banner

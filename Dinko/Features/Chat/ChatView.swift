@@ -159,6 +159,9 @@ struct ChatView: View {
                 },
                 onToggleDrill: { index in
                     viewModel.toggleDrill(messageId: message.id, drillIndex: index)
+                },
+                onToggleSkillUpdate: { index in
+                    viewModel.toggleSkillUpdate(messageId: message.id, skillUpdateIndex: index)
                 }
             )
 
