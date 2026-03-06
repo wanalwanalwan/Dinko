@@ -29,6 +29,22 @@ struct AuthView: View {
 
                 // Form
                 VStack(spacing: AppSpacing.sm) {
+                    if viewModel.isSignUp {
+                        TextField("First Name", text: $viewModel.firstName)
+                            .textContentType(.givenName)
+                            .autocorrectionDisabled()
+                            .padding(AppSpacing.xs)
+                            .background(AppColors.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                        TextField("Last Name", text: $viewModel.lastName)
+                            .textContentType(.familyName)
+                            .autocorrectionDisabled()
+                            .padding(AppSpacing.xs)
+                            .background(AppColors.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+
                     TextField("Email", text: $viewModel.email)
                         .textContentType(viewModel.isSignUp ? .username : .emailAddress)
                         .keyboardType(.emailAddress)
@@ -37,6 +53,17 @@ struct AuthView: View {
                         .padding(AppSpacing.xs)
                         .background(AppColors.cardBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    if viewModel.isSignUp {
+                        TextField("Confirm Email", text: $viewModel.confirmEmail)
+                            .textContentType(.username)
+                            .keyboardType(.emailAddress)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                            .padding(AppSpacing.xs)
+                            .background(AppColors.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
 
                     SecureField("Password", text: $viewModel.password)
                         .textContentType(viewModel.isSignUp ? .newPassword : .password)
@@ -73,6 +100,9 @@ struct AuthView: View {
                     Button {
                         viewModel.isSignUp.toggle()
                         viewModel.errorMessage = nil
+                        viewModel.firstName = ""
+                        viewModel.lastName = ""
+                        viewModel.confirmEmail = ""
                     } label: {
                         Text(viewModel.isSignUp
                              ? "Already have an account? Sign In"

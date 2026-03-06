@@ -151,6 +151,8 @@ final class AuthService {
         KeychainHelper.delete(key: keychainAccountAccess)
         KeychainHelper.delete(key: keychainAccountRefresh)
         UserDefaults.standard.removeObject(forKey: userDefaultsUserKey)
+        UserDefaults.standard.removeObject(forKey: "dinko_first_name")
+        UserDefaults.standard.removeObject(forKey: "dinko_last_name")
     }
 
     // MARK: - Private

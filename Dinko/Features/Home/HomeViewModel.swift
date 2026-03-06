@@ -171,6 +171,12 @@ final class HomeViewModel {
     }
 
     private func resolvePlayerName() {
+        if let firstName = UserDefaults.standard.string(forKey: "dinko_first_name"),
+           !firstName.isEmpty {
+            playerName = firstName.capitalized
+            return
+        }
+
         if let data = UserDefaults.standard.data(forKey: "dinkit_user_json") {
             struct MinimalUser: Decodable { let email: String? }
             if let user = try? JSONDecoder().decode(MinimalUser.self, from: data),

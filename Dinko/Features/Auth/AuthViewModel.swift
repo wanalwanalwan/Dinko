@@ -4,7 +4,10 @@ import Foundation
 @Observable
 final class AuthViewModel {
     var email = ""
+    var confirmEmail = ""
     var password = ""
+    var firstName = ""
+    var lastName = ""
     var isSignUp = false
     var isLoading = false
     var errorMessage: String?
@@ -44,6 +47,19 @@ final class AuthViewModel {
             return
         }
 
+        guard Self.isValidEmail(trimmedEmail) else {
+            errorMessage = "Please enter a valid email address."
+            return
+        }
+
+        if isSignUp {
+            let trimmedConfirm = confirmEmail.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            guard trimmedEmail == trimmedConfirm else {
+                errorMessage = "Email addresses don't match."
+                return
+            }
+        }
+
         guard trimmedPassword.count >= 6 else {
             errorMessage = "Password must be at least 6 characters."
             return
@@ -64,9 +80,28 @@ final class AuthViewModel {
                 authService.saveSession(response)
                 accessToken = response.accessToken ?? ""
                 userId = response.user.id
+                if isSignUp {
+                    let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmedFirst.isEmpty {
+                        UserDefaults.standard.set(trimmedFirst, forKey: "dinko_first_name")
+                    }
+                    if !trimmedLast.isEmpty {
+                        UserDefaults.standard.set(trimmedLast, forKey: "dinko_last_name")
+                    }
+                }
                 isAuthenticated = true
             } else {
                 // Email confirmation required — sign up succeeded but no session yet
+                // Save names now so they persist after email confirmation + sign in
+                let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+                let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmedFirst.isEmpty {
+                    UserDefaults.standard.set(trimmedFirst, forKey: "dinko_first_name")
+                }
+                if !trimmedLast.isEmpty {
+                    UserDefaults.standard.set(trimmedLast, forKey: "dinko_last_name")
+                }
                 errorMessage = "Check your email to confirm your account, then sign in."
                 isSignUp = false
             }
@@ -75,6 +110,11 @@ final class AuthViewModel {
         }
 
         isLoading = false
+    }
+
+    private static func isValidEmail(_ email: String) -> Bool {
+        let pattern = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        return email.range(of: pattern, options: .regularExpression) != nil
     }
 
     func signOut() async {
