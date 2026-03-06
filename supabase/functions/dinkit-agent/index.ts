@@ -156,8 +156,34 @@ async function callClaude(
 
 type Intent = "session_log" | "create_subskills" | "create_skill";
 
-function classifyIntent(note: string): Intent {
-  const lower = note.toLowerCase();
+function extractCurrentMessage(note: string): string {
+  const lines = note.split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line.startsWith("User: ")) {
+      return line.substring(6).trim();
+    }
+  }
+  return note;
+}
+
+function mentionsExistingSkill(
+  text: string,
+  skills: SkillSnapshot[]
+): boolean {
+  const lower = text.toLowerCase();
+  return skills.some((skill) => {
+    const nameL = skill.name.toLowerCase();
+    if (lower.includes(nameL)) return true;
+    return skill.subskills.some((sub) =>
+      lower.includes(sub.name.toLowerCase())
+    );
+  });
+}
+
+function classifyIntent(note: string, skills: SkillSnapshot[]): Intent {
+  const currentMessage = extractCurrentMessage(note);
+  const lower = currentMessage.toLowerCase();
 
   // Check subskill patterns first (more specific)
   const subskillPatterns = [
@@ -173,7 +199,12 @@ function classifyIntent(note: string): Intent {
     if (pattern.test(lower)) return "create_subskills";
   }
 
-  // Check skill creation patterns (must be specific to avoid matching session notes)
+  // Session-like language should never trigger skill creation
+  const sessionIndicators =
+    /\b(worked on|working on|practiced|played|drilled|trained|focused on|improved|improving|struggled with|got better|session|today|yesterday)\b/;
+  if (sessionIndicators.test(lower)) return "session_log";
+
+  // Check skill creation patterns
   const skillPatterns = [
     /(?:create|add|start\s+tracking)\s+(?:a\s+)?(?:new\s+)?skill\b/,
     /(?:add|create)\s+(?:a\s+)?(?:new\s+)?\w+[\w\s]*\bas\s+(?:a\s+)?skill\b/,
@@ -181,8 +212,18 @@ function classifyIntent(note: string): Intent {
     /i\s+want\s+to\s+(?:add|create)\s+(?:a\s+)?(?:new\s+)?skill/,
     /^add\s+(?:a\s+)?(?:new\s+)?(?:skill\s+)?\w+\s+skill$/,
   ];
+
+  let matchesCreation = false;
   for (const pattern of skillPatterns) {
-    if (pattern.test(lower)) return "create_skill";
+    if (pattern.test(lower)) {
+      matchesCreation = true;
+      break;
+    }
+  }
+
+  if (matchesCreation) {
+    if (mentionsExistingSkill(currentMessage, skills)) return "session_log";
+    return "create_skill";
   }
 
   return "session_log";
@@ -306,7 +347,8 @@ ${skillList || "(no skills yet)"}
 Parse the user's session note into structured JSON. Extract every skill or subskill mentioned, determine sentiment, intensity, and what rating level the language implies.
 
 Rules:
-- Match mentions to existing skill names when possible (fuzzy match is fine)
+- CRITICAL: Always match mentions to existing skill names using fuzzy/partial matching. "ready position" should match "Ready Position For Speedups". A partial name match to an existing skill is ALWAYS preferred over suggesting a new skill.
+- Only add to new_skill_suggestions if there is absolutely NO existing skill with a similar or overlapping name
 - sentiment: very_negative / negative / neutral / positive / very_positive
 - intensity: 1 (barely mentioned) to 5 (major focus of the session)
 - suggested_rating: What proficiency level (0-100) does the user's language imply for this skill? Use these thresholds for ABSOLUTE claims about current ability:
@@ -821,7 +863,7 @@ Deno.serve(async (req: Request) => {
       const userSkills: SkillSnapshot[] = skills ?? [];
 
       // Classify intent (heuristic — no API call)
-      const intent = classifyIntent(note);
+      const intent = classifyIntent(note, userSkills);
 
       if (intent === "create_subskills") {
         // Generate subskill suggestions instead of running the session pipeline
@@ -902,6 +944,21 @@ Deno.serve(async (req: Request) => {
         extractSession(note, userSkills, anthropicKey),
         getSessionsThisWeek(supabase, user.id),
       ]);
+
+      // Filter out new_skill_suggestions that fuzzy-match existing skills/subskills
+      extraction.new_skill_suggestions =
+        extraction.new_skill_suggestions.filter((suggestion) => {
+          const sLower = suggestion.toLowerCase().trim();
+          return !userSkills.some((skill) => {
+            const nameL = skill.name.toLowerCase();
+            if (nameL === sLower || nameL.includes(sLower) || sLower.includes(nameL))
+              return true;
+            return skill.subskills.some((sub) => {
+              const subL = sub.name.toLowerCase();
+              return subL === sLower || subL.includes(sLower) || sLower.includes(subL);
+            });
+          });
+        });
 
       // Pass 2: Scoring (deterministic, instant)
       const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);

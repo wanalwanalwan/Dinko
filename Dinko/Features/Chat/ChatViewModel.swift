@@ -598,7 +598,10 @@ final class ChatViewModel {
         let sessionKeywords = [
             "played", "practiced", "drilled", "session",
             "today", "yesterday", "was more consistent",
-            "got better", "struggled with"
+            "got better", "struggled with",
+            "worked on", "working on", "focused on",
+            "improved", "improving", "progress on",
+            "training", "hitting", "tried"
         ]
         if sessionKeywords.contains(where: { lower.contains($0) }) { return nil }
 
