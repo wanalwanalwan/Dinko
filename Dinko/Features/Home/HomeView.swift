@@ -114,7 +114,7 @@ struct HomeView: View {
     // MARK: - Progress Chart
 
     private func progressChart(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack {
                 Text("SKILL PROGRESS")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
@@ -134,10 +134,25 @@ struct HomeView: View {
                 .frame(width: 140)
             }
 
-            if viewModel.chartData.isEmpty {
+            let points = displayedChartPoints(viewModel)
+
+            if viewModel.chartData.isEmpty || points.isEmpty {
                 chartEmptyState
+            } else if points.count == 1 {
+                VStack(spacing: AppSpacing.sm) {
+                    singlePointDisplay(points[0])
+                    if viewModel.chartData.count > 1 {
+                        skillFilterPills(viewModel)
+                    }
+                }
             } else {
-                chartView(viewModel)
+                VStack(spacing: AppSpacing.sm) {
+                    chartTrendHeader(points, viewModel: viewModel)
+                    progressAreaChart(points, viewModel: viewModel)
+                    if viewModel.chartData.count > 1 {
+                        skillFilterPills(viewModel)
+                    }
+                }
             }
         }
         .padding(AppSpacing.sm)
@@ -159,149 +174,212 @@ struct HomeView: View {
         .padding(.vertical, AppSpacing.xl)
     }
 
-    private func chartView(_ viewModel: HomeViewModel) -> some View {
-        let skillNames = viewModel.chartData.map { $0.skillName }
-        let skillColors = viewModel.chartData.map { $0.color }
+    private func displayedChartPoints(_ viewModel: HomeViewModel) -> [HomeChartDataPoint] {
+        if let selectedId = viewModel.selectedChartSkillId,
+           let series = viewModel.chartData.first(where: { $0.id == selectedId }) {
+            return series.dataPoints
+        }
+        return viewModel.overallAveragePoints
+    }
 
-        // Compute the full date range for the x-axis
-        let allDates = viewModel.chartData.flatMap { $0.dataPoints.map { $0.date } }
+    private func chartTrendHeader(_ points: [HomeChartDataPoint], viewModel: HomeViewModel) -> some View {
+        let latest = points.last?.rating ?? 0
+        let first = points.first?.rating ?? 0
+        let change = latest - first
+        let selectedName: String = {
+            if let id = viewModel.selectedChartSkillId {
+                return viewModel.chartData.first(where: { $0.id == id })?.skillName ?? "Skill"
+            }
+            return "Overall Average"
+        }()
+
+        return HStack(alignment: .firstTextBaseline, spacing: AppSpacing.xxs) {
+            Text("\(latest)%")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+
+            if change != 0 {
+                HStack(spacing: 2) {
+                    Image(systemName: change > 0 ? "arrow.up.right" : "arrow.down.right")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(change > 0 ? "+\(change)%" : "\(change)%")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(change > 0 ? AppColors.successGreen : AppColors.coral)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background((change > 0 ? AppColors.successGreen : AppColors.coral).opacity(0.12))
+                .clipShape(Capsule())
+            }
+
+            Spacer()
+
+            Text(selectedName)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+    }
+
+    private func singlePointDisplay(_ point: HomeChartDataPoint) -> some View {
+        VStack(spacing: AppSpacing.xs) {
+            Text("\(point.rating)%")
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.teal)
+
+            Text("Recorded on \(point.date.formatted(.dateTime.month(.wide).day()))")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+
+            Text("Rate again to start tracking your trend")
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary.opacity(0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.lg)
+    }
+
+    private func progressAreaChart(_ points: [HomeChartDataPoint], viewModel: HomeViewModel) -> some View {
         let calendar = Calendar.current
+        let allDates = points.map { $0.date }
         let cutoff = calendar.date(
             byAdding: .day,
             value: -viewModel.selectedTimeRange.daysBack,
             to: calendar.startOfDay(for: Date())
         ) ?? Date()
+        let rangeStart = min(allDates.min() ?? cutoff, cutoff)
+        let rangeEnd = max(allDates.max() ?? Date(), calendar.startOfDay(for: Date()))
 
-        // Check if all series have only a single data point
-        let uniqueDays = Set(allDates.map { calendar.startOfDay(for: $0) })
-        let isSinglePoint = allDates.count <= 1 || uniqueDays.count <= 1
-
-        // For single-day data, center the dot with 1 day padding on each side
-        let rangeStart: Date
-        let rangeEnd: Date
-        if isSinglePoint, let onlyDate = allDates.first {
-            rangeStart = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: onlyDate)) ?? onlyDate
-            rangeEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: onlyDate)) ?? onlyDate
-        } else {
-            rangeStart = min(allDates.min() ?? cutoff, cutoff)
-            rangeEnd = max(allDates.max() ?? Date(), calendar.startOfDay(for: Date()))
+        let snappedPoint: HomeChartDataPoint? = rawSelectedDate.flatMap { raw in
+            points.min(by: {
+                abs($0.date.timeIntervalSince(raw)) < abs($1.date.timeIntervalSince(raw))
+            })
         }
 
-        return VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-            Chart {
-                ForEach(viewModel.chartData) { series in
-                    if series.dataPoints.count == 1 {
-                        // Single data point: show as a large dot only
-                        ForEach(series.dataPoints) { point in
-                            PointMark(
-                                x: .value("Date", point.date),
-                                y: .value("Rating", point.rating)
-                            )
-                            .foregroundStyle(by: .value("Skill", series.skillName))
-                            .symbolSize(60)
-                        }
-                    } else {
-                        ForEach(series.dataPoints) { point in
-                            LineMark(
-                                x: .value("Date", point.date),
-                                y: .value("Rating", point.rating),
-                                series: .value("Skill", series.skillName)
-                            )
-                            .foregroundStyle(by: .value("Skill", series.skillName))
-                            .interpolationMethod(.catmullRom)
+        return Chart {
+            ForEach(points) { point in
+                AreaMark(
+                    x: .value("Date", point.date),
+                    y: .value("Rating", point.rating)
+                )
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [AppColors.teal.opacity(0.25), AppColors.teal.opacity(0.02)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .interpolationMethod(.catmullRom)
 
-                            PointMark(
-                                x: .value("Date", point.date),
-                                y: .value("Rating", point.rating)
-                            )
-                            .foregroundStyle(by: .value("Skill", series.skillName))
-                            .symbolSize(30)
-                        }
-                    }
-                }
-
-                if let snappedDate = snappedSelectedDate(viewModel) {
-                    RuleMark(x: .value("Selected", snappedDate))
-                        .foregroundStyle(.gray.opacity(0.3))
-                        .lineStyle(StrokeStyle(lineWidth: 1))
-                        .annotation(
-                            position: .top,
-                            spacing: 4,
-                            overflowResolution: .init(
-                                x: .fit(to: .chart),
-                                y: .disabled
-                            )
-                        ) {
-                            chartTooltip(for: snappedDate, viewModel: viewModel)
-                        }
-                }
+                LineMark(
+                    x: .value("Date", point.date),
+                    y: .value("Rating", point.rating)
+                )
+                .foregroundStyle(AppColors.teal)
+                .lineStyle(StrokeStyle(lineWidth: 2.5))
+                .interpolationMethod(.catmullRom)
             }
-            .chartYScale(domain: 0...100)
-            .chartYAxis {
-                AxisMarks(values: [0, 25, 50, 75, 100]) { value in
-                    AxisGridLine()
-                    AxisValueLabel {
-                        if let intVal = value.as(Int.self) {
-                            Text("\(intVal)%")
+
+            if let latest = points.last {
+                PointMark(
+                    x: .value("Date", latest.date),
+                    y: .value("Rating", latest.rating)
+                )
+                .foregroundStyle(AppColors.teal)
+                .symbolSize(60)
+            }
+
+            if let snapped = snappedPoint {
+                RuleMark(x: .value("Selected", snapped.date))
+                    .foregroundStyle(AppColors.textSecondary.opacity(0.25))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
+                    .annotation(
+                        position: .top,
+                        spacing: 4,
+                        overflowResolution: .init(
+                            x: .fit(to: .chart),
+                            y: .disabled
+                        )
+                    ) {
+                        VStack(spacing: 2) {
+                            Text("\(snapped.rating)%")
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundStyle(AppColors.teal)
+                            Text(snapped.date, format: .dateTime.month(.abbreviated).day())
                                 .font(.system(size: 10, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
                         }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(AppColors.cardBackground)
+                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        )
                     }
-                }
             }
-            .chartXScale(domain: rangeStart...rangeEnd)
-            .chartXAxis {
-                if isSinglePoint {
-                    // Single point: just show that one date label centered
-                    AxisMarks(values: allDates) { _ in
-                        AxisValueLabel(format: .dateTime.month(.abbreviated).day())
-                    }
-                } else {
-                    AxisMarks(values: .stride(by: .day, count: viewModel.selectedTimeRange == .weekly ? 2 : 7)) { _ in
-                        AxisGridLine()
-                        AxisValueLabel(format: .dateTime.month(.abbreviated).day())
-                    }
-                }
-            }
-            .chartForegroundStyleScale(
-                domain: skillNames,
-                range: skillColors
-            )
-            .chartLegend(position: .bottom, alignment: .leading, spacing: AppSpacing.xxxs)
-            .chartXSelection(value: $rawSelectedDate)
-            .frame(height: 200)
         }
-    }
-
-    private func snappedSelectedDate(_ viewModel: HomeViewModel) -> Date? {
-        guard let raw = rawSelectedDate else { return nil }
-        let allDates = viewModel.chartData.flatMap { $0.dataPoints.map { $0.date } }
-        return allDates.min(by: {
-            abs($0.timeIntervalSince(raw)) < abs($1.timeIntervalSince(raw))
-        })
-    }
-
-    private func chartTooltip(for date: Date, viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(date, format: .dateTime.month(.abbreviated).day())
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
-
-            ForEach(viewModel.chartData) { series in
-                if let point = series.dataPoints.first(where: {
-                    Calendar.current.isDate($0.date, inSameDayAs: date)
-                }) {
-                    Text("\(series.skillName.lowercased()) : \(point.rating)")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(series.color)
+        .chartYScale(domain: 0...100)
+        .chartXScale(domain: rangeStart...rangeEnd)
+        .chartYAxis {
+            AxisMarks(values: [0, 25, 50, 75, 100]) { value in
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(AppColors.separator.opacity(0.5))
+                AxisValueLabel {
+                    if let intVal = value.as(Int.self) {
+                        Text("\(intVal)%")
+                            .font(.system(size: 10, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
                 }
             }
         }
-        .padding(AppSpacing.xxs)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
-        )
+        .chartXAxis {
+            AxisMarks(
+                values: .stride(by: .day, count: viewModel.selectedTimeRange == .weekly ? 2 : 7)
+            ) { _ in
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(AppColors.separator.opacity(0.3))
+                AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+            }
+        }
+        .chartLegend(.hidden)
+        .chartXSelection(value: $rawSelectedDate)
+        .frame(height: 180)
+    }
+
+    private func skillFilterPills(_ viewModel: HomeViewModel) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: AppSpacing.xxs) {
+                chartFilterPill(
+                    name: "All",
+                    isSelected: viewModel.selectedChartSkillId == nil
+                ) {
+                    viewModel.selectChartSkill(nil)
+                }
+
+                ForEach(viewModel.chartData) { series in
+                    chartFilterPill(
+                        name: series.skillName,
+                        isSelected: viewModel.selectedChartSkillId == series.id
+                    ) {
+                        viewModel.selectChartSkill(series.id)
+                    }
+                }
+            }
+        }
+    }
+
+    private func chartFilterPill(name: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(name)
+                .font(.system(size: 12, weight: isSelected ? .semibold : .medium, design: .rounded))
+                .foregroundStyle(isSelected ? .white : AppColors.textSecondary)
+                .padding(.horizontal, AppSpacing.xs)
+                .padding(.vertical, 6)
+                .background(isSelected ? AppColors.teal : Color(.systemBackground))
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Recommended Drills

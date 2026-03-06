@@ -71,6 +71,8 @@ final class HomeViewModel {
     private(set) var mostImprovedDelta = 0
 
     private(set) var chartData: [HomeSkillChartSeries] = []
+    private(set) var selectedChartSkillId: UUID?
+    private(set) var overallAveragePoints: [HomeChartDataPoint] = []
     private(set) var selectedTimeRange: HomeTimeRange = .weekly
     private(set) var recommendedDrills: [HomeRecommendedDrill] = []
     private(set) var completedSkills: [CompletedSkillItem] = []
@@ -147,6 +149,10 @@ final class HomeViewModel {
     func updateTimeRange(_ range: HomeTimeRange) {
         selectedTimeRange = range
         computeDerivedData()
+    }
+
+    func selectChartSkill(_ skillId: UUID?) {
+        selectedChartSkillId = skillId
     }
 
     // MARK: - Private Helpers
@@ -316,6 +322,34 @@ final class HomeViewModel {
         }
 
         chartData = series
+        overallAveragePoints = computeOverallAverage(from: series)
+    }
+
+    private func computeOverallAverage(from series: [HomeSkillChartSeries]) -> [HomeChartDataPoint] {
+        var allDates: Set<Date> = []
+        for s in series {
+            for p in s.dataPoints {
+                allDates.insert(p.date)
+            }
+        }
+
+        let sortedDates = allDates.sorted()
+        var result: [HomeChartDataPoint] = []
+
+        for date in sortedDates {
+            var total = 0, count = 0
+            for s in series {
+                if let point = s.dataPoints.last(where: { $0.date <= date }) {
+                    total += point.rating
+                    count += 1
+                }
+            }
+            if count > 0 {
+                result.append(HomeChartDataPoint(date: date, rating: total / count))
+            }
+        }
+
+        return result
     }
 
     private func loadRecommendedDrills() async throws {
