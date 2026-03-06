@@ -131,6 +131,11 @@ final class AgentService {
                 let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: freshToken)
                 return try decodeResponse(data: retry.0, statusCode: retry.1.statusCode)
             }
+
+            // Refresh failed — session is dead, clear it and force re-auth
+            AuthService.shared.clearSession()
+            NotificationCenter.default.post(name: .authSessionExpired, object: nil)
+            throw AgentError.server("Your session has expired. Please sign in again.")
         }
 
         return try decodeResponse(data: result.0, statusCode: result.1.statusCode)
@@ -215,4 +220,8 @@ enum AgentError: LocalizedError {
         case .server(let message): message
         }
     }
+}
+
+extension Notification.Name {
+    static let authSessionExpired = Notification.Name("authSessionExpired")
 }

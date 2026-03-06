@@ -39,7 +39,7 @@ struct ContentView: View {
                 }
                 .tag(3)
                 .tabItem {
-                    Image(systemName: "text.alignleft")
+                    Image(systemName: "list.bullet.clipboard")
                     Text("Drills")
                 }
             }

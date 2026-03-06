@@ -55,6 +55,9 @@ struct DinkoApp: App {
                 }
                 await authViewModel.restoreSession()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .authSessionExpired)) { _ in
+                Task { await authViewModel.signOut() }
+            }
         }
     }
 }
