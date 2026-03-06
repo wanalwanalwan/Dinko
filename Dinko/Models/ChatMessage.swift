@@ -35,6 +35,11 @@ struct ChatMessage: Identifiable {
 
 // MARK: - Agent Response Types
 
+struct SaturatedSkillInfo: Equatable {
+    let skillName: String
+    let pendingCount: Int
+}
+
 struct SessionPreview {
     let sessionId: String
     let extraction: ExtractionData
@@ -43,6 +48,7 @@ struct SessionPreview {
     let roadmapUpdates: RoadmapUpdates?
     let subskillSuggestions: [SubskillSuggestion]?
     let skillSuggestions: [SkillCreationSuggestion]?
+    let saturatedSkills: [SaturatedSkillInfo]
     var confirmState: ConfirmState = .pending
     var selectedDrillIndices: Set<Int>
     var selectedSkillUpdateIndices: Set<Int>
@@ -62,6 +68,7 @@ struct SessionPreview {
         roadmapUpdates: RoadmapUpdates?,
         subskillSuggestions: [SubskillSuggestion]?,
         skillSuggestions: [SkillCreationSuggestion]?,
+        saturatedSkills: [SaturatedSkillInfo] = [],
         confirmState: ConfirmState = .pending
     ) {
         self.sessionId = sessionId
@@ -71,6 +78,7 @@ struct SessionPreview {
         self.roadmapUpdates = roadmapUpdates
         self.subskillSuggestions = subskillSuggestions
         self.skillSuggestions = skillSuggestions
+        self.saturatedSkills = saturatedSkills
         self.confirmState = confirmState
         self.selectedDrillIndices = Set(drillRecommendations.indices)
         self.selectedSkillUpdateIndices = Set(skillUpdates.indices)

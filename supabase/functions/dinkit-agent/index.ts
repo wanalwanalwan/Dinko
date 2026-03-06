@@ -14,6 +14,7 @@ interface SkillSnapshot {
   category: string;
   current_rating: number;
   parent_skill_id: string | null;
+  pending_drill_count: number;
   subskills: { id: string; name: string; current_rating: number }[];
 }
 
@@ -112,8 +113,25 @@ const ABSOLUTE_BLEND_FACTOR: Record<number, number> = {
 
 const MAX_DELTA_PER_SKILL = 30;
 
+// Max pending drills per skill before we stop recommending more
+const PENDING_DRILL_CAP = 5;
+
 // Tier boundaries for milestones
 const TIER_BOUNDARIES = [25, 50, 75, 100];
+
+interface SaturatedSkillInfo {
+  skill_name: string;
+  pending_count: number;
+}
+
+function getSaturatedSkills(skills: SkillSnapshot[]): SaturatedSkillInfo[] {
+  return skills
+    .filter((s) => s.pending_drill_count >= PENDING_DRILL_CAP)
+    .map((s) => ({
+      skill_name: s.name,
+      pending_count: s.pending_drill_count,
+    }));
+}
 
 // ---------- Claude API helper ----------
 
@@ -510,8 +528,17 @@ async function generateDrills(
   extraction: ExtractionResult,
   skillDeltas: SkillDelta[],
   skills: SkillSnapshot[],
+  saturatedSkillNames: Set<string>,
   apiKey: string
 ): Promise<DrillRecommendation[]> {
+  // If every mentioned skill is saturated, skip drill generation entirely
+  const nonSaturatedDeltas = skillDeltas.filter(
+    (d) => !saturatedSkillNames.has(d.skill)
+  );
+  if (nonSaturatedDeltas.length === 0 && skillDeltas.length > 0) {
+    return [];
+  }
+
   const deltaSummary = skillDeltas
     .map(
       (d) =>
@@ -532,6 +559,11 @@ async function generateDrills(
     .map((s) => `- ${s.name}: ${s.current_rating}%`)
     .join("\n");
 
+  const saturatedWarning =
+    saturatedSkillNames.size > 0
+      ? `\nSKILLS WITH TOO MANY PENDING DRILLS (do NOT generate drills for these):\n${[...saturatedSkillNames].map((n) => `- ${n}`).join("\n")}\nThe player already has unfinished drills for these skills. Focus on other skills instead.\n`
+      : "";
+
   const systemPrompt = `You are an expert pickleball coach generating personalized drills.
 
 Current skill ratings:
@@ -542,7 +574,7 @@ ${deltaSummary || "(no changes)"}
 
 Session context:
 ${extraction.mentions.map((m) => `- ${m.skill_name} (${m.sentiment}): "${m.quote}"`).join("\n")}
-
+${saturatedWarning}
 COACHING KNOWLEDGE:
 - Overheads: prioritize contact point height and timing over power. Common fix is tossing drills to find the ideal contact window.
 - Dinks: emphasize soft hands, paddle face angle, and reset position. Cross-court dinks build consistency before down-the-line.
@@ -581,7 +613,14 @@ Generate 2-3 drills. Respond ONLY with a valid JSON array:
     "Generate drills based on the session analysis above.",
     2048
   );
-  return JSON.parse(cleaned) as DrillRecommendation[];
+  let drills = JSON.parse(cleaned) as DrillRecommendation[];
+
+  // Safety net: filter out any drills that target saturated skills
+  if (saturatedSkillNames.size > 0) {
+    drills = drills.filter((d) => !saturatedSkillNames.has(d.target_skill));
+  }
+
+  return drills;
 }
 
 // ---------- Pass 4: Roadmap Update (Deterministic + Claude) ----------
@@ -963,9 +1002,13 @@ Deno.serve(async (req: Request) => {
       // Pass 2: Scoring (deterministic, instant)
       const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
 
+      // Identify saturated skills (too many pending drills)
+      const saturatedSkills = getSaturatedSkills(userSkills);
+      const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
+
       // Pass 3 + 4: Drill generation + Roadmap update (parallel — both only need extraction + deltas)
       const [drillRecommendations, roadmapUpdates] = await Promise.all([
-        generateDrills(extraction, skillDeltas, userSkills, anthropicKey),
+        generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
         updateRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
       ]);
 
@@ -987,6 +1030,14 @@ Deno.serve(async (req: Request) => {
         throw new Error(`Failed to save session: ${insertError.message}`);
       }
 
+      // Only include saturated skills that were actually mentioned in this session
+      const mentionedSkillNames = new Set(
+        extraction.mentions.map((m) => m.skill_name.toLowerCase())
+      );
+      const relevantSaturated = saturatedSkills.filter((s) =>
+        mentionedSkillNames.has(s.skill_name.toLowerCase())
+      );
+
       return jsonResponse({
         session_id: session.id,
         extraction,
@@ -1001,6 +1052,7 @@ Deno.serve(async (req: Request) => {
         drill_recommendations: drillRecommendations,
         roadmap_updates: roadmapUpdates,
         skill_suggestions: [],
+        saturated_skills: relevantSaturated.length > 0 ? relevantSaturated : undefined,
       });
     }
 

@@ -36,6 +36,11 @@ struct SessionPreviewCard: View {
                 skillSuggestionsSection(skillSuggestions)
             }
 
+            // Saturated skills warning
+            if !preview.saturatedSkills.isEmpty {
+                saturatedSkillsSection
+            }
+
             // Roadmap
             if let roadmap = preview.roadmapUpdates {
                 roadmapSection(roadmap)
@@ -246,6 +251,28 @@ struct SessionPreviewCard: View {
                 .padding(.vertical, AppSpacing.xxxs)
             }
         }
+    }
+
+    // MARK: - Saturated Skills
+
+    private var saturatedSkillsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            ForEach(preview.saturatedSkills, id: \.skillName) { info in
+                HStack(alignment: .top, spacing: AppSpacing.xxs) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                        .font(.system(size: 13))
+                        .frame(width: 20)
+
+                    Text("\(info.skillName) has \(info.pendingCount) pending drills — complete or remove some before we add more!")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+        }
+        .padding(AppSpacing.xs)
+        .background(Color.orange.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     // MARK: - Roadmap

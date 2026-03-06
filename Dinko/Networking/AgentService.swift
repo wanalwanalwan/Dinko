@@ -12,6 +12,7 @@ final class AgentService {
         let roadmapUpdates: RoadmapUpdates?
         let subskillSuggestions: [SubskillSuggestion]?
         let skillSuggestions: [SkillCreationSuggestion]?
+        let saturatedSkills: [SaturatedSkillInfo]?
 
         enum CodingKeys: String, CodingKey {
             case sessionId = "session_id"
@@ -21,6 +22,17 @@ final class AgentService {
             case roadmapUpdates = "roadmap_updates"
             case subskillSuggestions = "subskill_suggestions"
             case skillSuggestions = "skill_suggestions"
+            case saturatedSkills = "saturated_skills"
+        }
+    }
+
+    struct SaturatedSkillInfo: Codable {
+        let skillName: String
+        let pendingCount: Int
+
+        enum CodingKeys: String, CodingKey {
+            case skillName = "skill_name"
+            case pendingCount = "pending_count"
         }
     }
 
@@ -45,12 +57,14 @@ final class AgentService {
         let currentRating: Int
         let parentSkillId: String?
         let subskills: [SubskillPayload]
+        let pendingDrillCount: Int
 
         enum CodingKeys: String, CodingKey {
             case id, name, category
             case currentRating = "current_rating"
             case parentSkillId = "parent_skill_id"
             case subskills
+            case pendingDrillCount = "pending_drill_count"
         }
     }
 
@@ -80,6 +94,7 @@ final class AgentService {
                     "name": skill.name,
                     "category": skill.category,
                     "current_rating": skill.currentRating,
+                    "pending_drill_count": skill.pendingDrillCount,
                     "subskills": skill.subskills.map { sub in
                         [
                             "id": sub.id,

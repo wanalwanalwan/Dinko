@@ -90,6 +90,11 @@ final class ChatViewModel {
                 authToken: getAuthToken()
             )
 
+            // Map saturated skills from response
+            let saturated = (response.saturatedSkills ?? []).map {
+                SaturatedSkillInfo(skillName: $0.skillName, pendingCount: $0.pendingCount)
+            }
+
             // Replace loading bubble with preview
             let preview = SessionPreview(
                 sessionId: response.sessionId,
@@ -98,7 +103,8 @@ final class ChatViewModel {
                 drillRecommendations: response.drillRecommendations,
                 roadmapUpdates: response.roadmapUpdates,
                 subskillSuggestions: response.subskillSuggestions,
-                skillSuggestions: response.skillSuggestions
+                skillSuggestions: response.skillSuggestions,
+                saturatedSkills: saturated
             )
 
             replaceMessage(id: loadingId, with: ChatMessage(
@@ -453,11 +459,19 @@ final class ChatViewModel {
     private func buildSkillSnapshots() async throws -> [AgentService.SkillSnapshotPayload] {
         let allSkills = try await skillRepository.fetchActive()
         let parentSkills = allSkills.filter { $0.parentSkillId == nil }
+        let allDrills = try await drillRepository.fetchAll()
+        let pendingDrills = allDrills.filter { $0.status == .pending }
         var snapshots: [AgentService.SkillSnapshotPayload] = []
 
         for skill in parentSkills {
             let latest = try await skillRatingRepository.fetchLatest(skill.id)
             let children = allSkills.filter { $0.parentSkillId == skill.id }
+            let childIds = Set(children.map(\.id))
+
+            // Count pending drills for this skill tree (parent + all children)
+            let pendingCount = pendingDrills.filter { drill in
+                drill.skillId == skill.id || childIds.contains(drill.skillId)
+            }.count
 
             var subPayloads: [AgentService.SubskillPayload] = []
             for child in children {
@@ -475,7 +489,8 @@ final class ChatViewModel {
                 category: skill.category.rawValue,
                 currentRating: latest?.rating ?? 0,
                 parentSkillId: nil,
-                subskills: subPayloads
+                subskills: subPayloads,
+                pendingDrillCount: pendingCount
             ))
         }
 
