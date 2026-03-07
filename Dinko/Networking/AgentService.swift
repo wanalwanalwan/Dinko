@@ -118,20 +118,12 @@ final class AgentService {
     /// Confirm a session to apply changes to DB
     func confirmSession(
         sessionId: String,
-        roadmapUpdates: RoadmapUpdates?,
         authToken: String
     ) async throws -> ConfirmResponse {
-        var body: [String: Any] = [
+        let body: [String: Any] = [
             "action": "confirm_session",
             "session_id": sessionId,
         ]
-
-        if let roadmap = roadmapUpdates {
-            let encoder = JSONEncoder()
-            let roadmapData = try encoder.encode(roadmap)
-            let roadmapDict = try JSONSerialization.jsonObject(with: roadmapData)
-            body["roadmap_updates"] = roadmapDict
-        }
 
         return try await post(body: body, authToken: authToken)
     }
@@ -212,16 +204,7 @@ final class AgentService {
     }
 
     private func refreshToken() async -> String? {
-        let authService = AuthService.shared
-        guard let saved = authService.loadSavedSession() else { return nil }
-        do {
-            let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
-            if response.hasSession {
-                authService.saveSession(response)
-                return response.accessToken
-            }
-        } catch {}
-        return nil
+        return await AuthService.tokenRefresher.refresh()
     }
 }
 

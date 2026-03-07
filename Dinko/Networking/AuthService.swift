@@ -199,6 +199,40 @@ enum AuthServiceError: LocalizedError {
     }
 }
 
+// MARK: - Token Refresh Deduplication
+
+extension AuthService {
+    actor TokenRefresher {
+        private var inFlightTask: Task<String?, Never>?
+
+        func refresh() async -> String? {
+            if let existing = inFlightTask {
+                return await existing.value
+            }
+
+            let task = Task<String?, Never> {
+                let authService = AuthService.shared
+                guard let saved = authService.loadSavedSession() else { return nil }
+                do {
+                    let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
+                    if response.hasSession {
+                        authService.saveSession(response)
+                        return response.accessToken
+                    }
+                } catch {}
+                return nil
+            }
+
+            inFlightTask = task
+            let result = await task.value
+            inFlightTask = nil
+            return result
+        }
+    }
+
+    static let tokenRefresher = TokenRefresher()
+}
+
 // MARK: - Minimal Keychain Helper
 
 enum KeychainHelper {

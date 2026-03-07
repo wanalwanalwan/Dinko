@@ -140,7 +140,6 @@ final class ChatViewModel {
         do {
             _ = try await agentService.confirmSession(
                 sessionId: preview.sessionId,
-                roadmapUpdates: preview.roadmapUpdates,
                 authToken: getAuthToken()
             )
 
