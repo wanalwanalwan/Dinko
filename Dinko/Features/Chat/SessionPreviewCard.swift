@@ -6,6 +6,7 @@ struct SessionPreviewCard: View {
     let onRetry: () -> Void
     let onToggleDrill: (Int) -> Void
     let onToggleSkillUpdate: (Int) -> Void
+    let onToggleSubskill: (Int, Int) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -67,6 +68,7 @@ struct SessionPreviewCard: View {
             ForEach(Array(preview.skillUpdates.enumerated()), id: \.element.skillId) { index, update in
                 let isSelected = preview.selectedSkillUpdateIndices.contains(index)
                 let isPending = preview.confirmState == .pending
+                let effective = preview.effectiveSkillValues(for: index)
 
                 HStack(spacing: AppSpacing.xxs) {
                     Button {
@@ -95,38 +97,56 @@ struct SessionPreviewCard: View {
                         .font(.caption2)
                         .foregroundStyle(AppColors.textSecondary)
 
-                    Text("\(update.new)%")
+                    Text("\(effective.new)%")
                         .font(AppTypography.headline)
                         .foregroundStyle(isSelected
-                            ? (update.delta >= 0 ? AppColors.successGreen : AppColors.coral)
+                            ? (effective.delta >= 0 ? AppColors.successGreen : AppColors.coral)
                             : AppColors.textSecondary)
 
-                    deltaLabel(update.delta)
+                    formattedDeltaLabel(effective.delta)
                 }
 
                 if isSelected {
-                    ForEach(update.subskillDeltas, id: \.name) { sub in
+                    ForEach(Array(update.subskillDeltas.enumerated()), id: \.element.name) { subIndex, sub in
+                        let isSubSelected = preview.selectedSubskillIndices[index]?.contains(subIndex) ?? true
+
                         HStack {
+                            Button {
+                                if isPending {
+                                    onToggleSubskill(index, subIndex)
+                                }
+                            } label: {
+                                Image(systemName: isSubSelected ? "checkmark.circle.fill" : "circle")
+                                    .foregroundStyle(isSubSelected ? AppColors.teal : AppColors.textSecondary)
+                                    .font(.system(size: 14))
+                                    .frame(width: 20)
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(!isPending)
+                            .padding(.leading, AppSpacing.sm)
+
                             Text(sub.name)
                                 .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
-                                .padding(.leading, AppSpacing.lg)
+                                .foregroundStyle(isSubSelected ? AppColors.textSecondary : AppColors.textSecondary.opacity(0.5))
 
                             Spacer()
 
                             Text("\(sub.old)%")
                                 .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
+                                .foregroundStyle(isSubSelected ? AppColors.textSecondary : AppColors.textSecondary.opacity(0.5))
 
                             Image(systemName: "arrow.right")
                                 .font(.system(size: 8))
-                                .foregroundStyle(AppColors.textSecondary)
+                                .foregroundStyle(isSubSelected ? AppColors.textSecondary : AppColors.textSecondary.opacity(0.5))
 
                             Text("\(sub.new)%")
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(sub.delta >= 0 ? AppColors.successGreen : AppColors.coral)
+                                .foregroundStyle(isSubSelected
+                                    ? (sub.delta >= 0 ? AppColors.successGreen : AppColors.coral)
+                                    : AppColors.textSecondary.opacity(0.5))
 
                             deltaLabel(sub.delta, small: true)
+                                .opacity(isSubSelected ? 1.0 : 0.5)
                         }
                     }
                 }
@@ -368,6 +388,24 @@ struct SessionPreviewCard: View {
 
     private func deltaLabel(_ delta: Int, small: Bool = false) -> some View {
         let text = delta > 0 ? "+\(delta)" : "\(delta)"
+        let color = delta >= 0 ? AppColors.successGreen : AppColors.coral
+        return Text(text)
+            .font(small ? AppTypography.caption : AppTypography.trendValue)
+            .foregroundStyle(color)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.12))
+            .clipShape(Capsule())
+    }
+
+    private func formattedDeltaLabel(_ delta: Double, small: Bool = false) -> some View {
+        let text: String
+        if delta.truncatingRemainder(dividingBy: 1) == 0 {
+            let intDelta = Int(delta)
+            text = intDelta > 0 ? "+\(intDelta)" : "\(intDelta)"
+        } else {
+            text = delta > 0 ? String(format: "+%.1f", delta) : String(format: "%.1f", delta)
+        }
         let color = delta >= 0 ? AppColors.successGreen : AppColors.coral
         return Text(text)
             .font(small ? AppTypography.caption : AppTypography.trendValue)

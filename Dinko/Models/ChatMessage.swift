@@ -52,6 +52,7 @@ struct SessionPreview {
     var confirmState: ConfirmState = .pending
     var selectedDrillIndices: Set<Int>
     var selectedSkillUpdateIndices: Set<Int>
+    var selectedSubskillIndices: [Int: Set<Int>]
 
     enum ConfirmState: Equatable {
         case pending
@@ -82,6 +83,35 @@ struct SessionPreview {
         self.confirmState = confirmState
         self.selectedDrillIndices = Set(drillRecommendations.indices)
         self.selectedSkillUpdateIndices = Set(skillUpdates.indices)
+
+        var subIndices: [Int: Set<Int>] = [:]
+        for (i, update) in skillUpdates.enumerated() {
+            if !update.subskillDeltas.isEmpty {
+                subIndices[i] = Set(update.subskillDeltas.indices)
+            }
+        }
+        self.selectedSubskillIndices = subIndices
+    }
+
+    /// Computes the effective parent skill delta and new rating based on selected subskills.
+    /// When all subskills are selected, returns original API values.
+    /// When some are deselected, recalculates as average of selected subskill deltas.
+    func effectiveSkillValues(for index: Int) -> (delta: Double, new: Int) {
+        let update = skillUpdates[index]
+        guard !update.subskillDeltas.isEmpty,
+              let selectedSubs = selectedSubskillIndices[index],
+              selectedSubs.count < update.subskillDeltas.count else {
+            return (Double(update.delta), update.new)
+        }
+
+        let totalSubskills = update.subskillDeltas.count
+        let selectedSum = update.subskillDeltas.enumerated()
+            .filter { selectedSubs.contains($0.offset) }
+            .reduce(0) { $0 + $1.element.delta }
+
+        let avgDelta = Double(selectedSum) / Double(totalSubskills)
+        let newRating = min(100, max(0, update.old + Int(round(avgDelta))))
+        return (avgDelta, newRating)
     }
 }
 

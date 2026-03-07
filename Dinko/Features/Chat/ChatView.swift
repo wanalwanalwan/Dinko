@@ -162,6 +162,9 @@ struct ChatView: View {
                 },
                 onToggleSkillUpdate: { index in
                     viewModel.toggleSkillUpdate(messageId: message.id, skillUpdateIndex: index)
+                },
+                onToggleSubskill: { skillIndex, subIndex in
+                    viewModel.toggleSubskillDelta(messageId: message.id, skillUpdateIndex: skillIndex, subskillIndex: subIndex)
                 }
             )
 

@@ -143,14 +143,14 @@ final class ChatViewModel {
                 authToken: getAuthToken()
             )
 
-            let selectedUpdates = preview.selectedSkillUpdateIndices.sorted().compactMap { idx in
-                idx < preview.skillUpdates.count ? preview.skillUpdates[idx] : nil
-            }
-            for update in selectedUpdates {
+            for updateIndex in preview.selectedSkillUpdateIndices.sorted() {
+                guard updateIndex < preview.skillUpdates.count else { continue }
+                let update = preview.skillUpdates[updateIndex]
                 if let skillId = UUID(uuidString: update.skillId) {
+                    let effective = preview.effectiveSkillValues(for: updateIndex)
                     let rating = SkillRating(
                         skillId: skillId,
-                        rating: update.new,
+                        rating: effective.new,
                         notes: "AI session update"
                     )
                     try await skillRatingRepository.save(rating)
@@ -229,6 +229,31 @@ final class ChatViewModel {
             preview.selectedSkillUpdateIndices.remove(skillUpdateIndex)
         } else {
             preview.selectedSkillUpdateIndices.insert(skillUpdateIndex)
+        }
+
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .sessionPreview(preview),
+            timestamp: messages[index].timestamp
+        )
+    }
+
+    func toggleSubskillDelta(messageId: UUID, skillUpdateIndex: Int, subskillIndex: Int) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .sessionPreview(var preview) = messages[index].content,
+              case .pending = preview.confirmState
+        else { return }
+
+        if preview.selectedSubskillIndices[skillUpdateIndex] == nil {
+            let update = preview.skillUpdates[skillUpdateIndex]
+            preview.selectedSubskillIndices[skillUpdateIndex] = Set(update.subskillDeltas.indices)
+        }
+
+        if preview.selectedSubskillIndices[skillUpdateIndex]!.contains(subskillIndex) {
+            preview.selectedSubskillIndices[skillUpdateIndex]!.remove(subskillIndex)
+        } else {
+            preview.selectedSubskillIndices[skillUpdateIndex]!.insert(subskillIndex)
         }
 
         messages[index] = ChatMessage(
