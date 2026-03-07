@@ -5,7 +5,7 @@ final class AgentService {
     private let session = URLSession.shared
 
     struct LogSessionResponse: Codable {
-        let sessionId: String
+        let sessionId: String?
         let extraction: ExtractionData
         let coachInsight: String?
         let skillUpdates: [SkillUpdate]
@@ -14,6 +14,7 @@ final class AgentService {
         let subskillSuggestions: [SubskillSuggestion]?
         let skillSuggestions: [SkillCreationSuggestion]?
         let saturatedSkills: [SaturatedSkillInfo]?
+        let chatResponse: String?
 
         enum CodingKeys: String, CodingKey {
             case sessionId = "session_id"
@@ -25,6 +26,7 @@ final class AgentService {
             case subskillSuggestions = "subskill_suggestions"
             case skillSuggestions = "skill_suggestions"
             case saturatedSkills = "saturated_skills"
+            case chatResponse = "chat_response"
         }
     }
 

@@ -205,37 +205,76 @@ function extractJson(raw: string): string {
   return raw.slice(start);
 }
 
-// ---------- Intent Classification (heuristic, no API call) ----------
+// ---------- Intent Classification ----------
 
-type Intent = "session_log" | "create_subskills" | "create_skill";
+type Intent = "session_log" | "create_subskills" | "create_skill"
+            | "session_log_with_new_skills" | "general_chat";
 
-function extractCurrentMessage(note: string): string {
+interface ClassificationResult {
+  intent: Intent;
+  new_skill_names?: string[];
+}
+
+// LLM-based classifier using Haiku for accurate intent detection
+async function classifyIntentLLM(
+  note: string,
+  skills: SkillSnapshot[],
+  apiKey: string
+): Promise<ClassificationResult> {
+  const skillList = skills.length > 0
+    ? skills.map((s) => `${s.name} (${s.current_rating}%)`).join(", ")
+    : "(no skills yet)";
+
+  const systemPrompt = `You classify pickleball coaching messages into intents. The user's existing skills: ${skillList}
+
+Intents:
+- "session_log": User describes a practice session, game, or how they performed with EXISTING skills. E.g. "I practiced my dinking today", "played doubles and my serves were great".
+- "session_log_with_new_skills": User describes practice/playing but mentions skills NOT in their existing list. E.g. "I focused on twoey backhand dink" when that skill doesn't exist. Return the new skill names.
+- "create_skill": User explicitly asks to create/add/track a new skill WITHOUT describing a session. E.g. "add a skill for lobs", "create a new skill called overheads". Also use this when the user corrects a previous suggestion and asks to create something specific instead.
+- "create_subskills": User asks to break down an existing skill into subskills. E.g. "break down my dinking skill", "create subskills for serves".
+- "general_chat": User asks a question, wants advice, or has a conversation not about logging a session or creating skills. E.g. "what should I work on?", "how do I improve my serve?", "thanks!", "what drills should I do?".
+
+Rules:
+- Look at the FULL conversation context (earlier messages provide important context for follow-ups).
+- If the user corrects or redirects ("no, create a new skill instead", "don't update that"), follow the correction.
+- If user describes playing/practicing with skills that DON'T exist in their list → "session_log_with_new_skills" and include the unrecognized skill names in "new_skill_names".
+- If ALL mentioned skills exist → "session_log".
+- When in doubt between session_log and general_chat, prefer session_log if the message describes any practice activity.
+
+Respond with JSON only: {"intent": "...", "new_skill_names": ["..."]}
+The new_skill_names array is only needed for session_log_with_new_skills, omit or leave empty otherwise.`;
+
+  try {
+    const raw = await callClaude(apiKey, systemPrompt, note, 128, true);
+    const parsed = JSON.parse(raw) as ClassificationResult;
+
+    // Validate the intent
+    const validIntents: Intent[] = [
+      "session_log", "create_subskills", "create_skill",
+      "session_log_with_new_skills", "general_chat",
+    ];
+    if (!validIntents.includes(parsed.intent)) {
+      return classifyIntentFallback(note, skills);
+    }
+
+    return parsed;
+  } catch {
+    // On any failure, fall back to heuristic
+    return classifyIntentFallback(note, skills);
+  }
+}
+
+// Heuristic fallback classifier (used when LLM call fails)
+function classifyIntentFallback(note: string, skills: SkillSnapshot[]): ClassificationResult {
   const lines = note.split("\n");
+  let currentMessage = note;
   for (let i = lines.length - 1; i >= 0; i--) {
     const line = lines[i].trim();
     if (line.startsWith("User: ")) {
-      return line.substring(6).trim();
+      currentMessage = line.substring(6).trim();
+      break;
     }
   }
-  return note;
-}
-
-function mentionsExistingSkill(
-  text: string,
-  skills: SkillSnapshot[]
-): boolean {
-  const lower = text.toLowerCase();
-  return skills.some((skill) => {
-    const nameL = skill.name.toLowerCase();
-    if (lower.includes(nameL)) return true;
-    return skill.subskills.some((sub) =>
-      lower.includes(sub.name.toLowerCase())
-    );
-  });
-}
-
-function classifyIntent(note: string, skills: SkillSnapshot[]): Intent {
-  const currentMessage = extractCurrentMessage(note);
   const lower = currentMessage.toLowerCase();
 
   // Check subskill patterns first (more specific)
@@ -249,15 +288,15 @@ function classifyIntent(note: string, skills: SkillSnapshot[]): Intent {
     /sub\s*skills?\s+for\s+/,
   ];
   for (const pattern of subskillPatterns) {
-    if (pattern.test(lower)) return "create_subskills";
+    if (pattern.test(lower)) return { intent: "create_subskills" };
   }
 
-  // Session-like language should never trigger skill creation
+  // Session-like language
   const sessionIndicators =
     /\b(worked on|working on|practiced|played|drilled|trained|focused on|improved|improving|struggled with|got better|session|today|yesterday)\b/;
-  if (sessionIndicators.test(lower)) return "session_log";
+  if (sessionIndicators.test(lower)) return { intent: "session_log" };
 
-  // Check skill creation patterns
+  // Skill creation patterns
   const skillPatterns = [
     /(?:create|add|start\s+tracking)\s+(?:a\s+)?(?:new\s+)?skill\b/,
     /(?:add|create)\s+(?:a\s+)?(?:new\s+)?\w+[\w\s]*\bas\s+(?:a\s+)?skill\b/,
@@ -265,21 +304,11 @@ function classifyIntent(note: string, skills: SkillSnapshot[]): Intent {
     /i\s+want\s+to\s+(?:add|create)\s+(?:a\s+)?(?:new\s+)?skill/,
     /^add\s+(?:a\s+)?(?:new\s+)?(?:skill\s+)?\w+\s+skill$/,
   ];
-
-  let matchesCreation = false;
   for (const pattern of skillPatterns) {
-    if (pattern.test(lower)) {
-      matchesCreation = true;
-      break;
-    }
+    if (pattern.test(lower)) return { intent: "create_skill" };
   }
 
-  if (matchesCreation) {
-    if (mentionsExistingSkill(currentMessage, skills)) return "session_log";
-    return "create_skill";
-  }
-
-  return "session_log";
+  return { intent: "session_log" };
 }
 
 // ---------- Subskill Generation ----------
@@ -1086,8 +1115,9 @@ Deno.serve(async (req: Request) => {
 
       const userSkills: SkillSnapshot[] = skills ?? [];
 
-      // Classify intent (heuristic — no API call)
-      const intent = classifyIntent(note, userSkills);
+      // Classify intent (LLM-based with heuristic fallback)
+      const classification = await classifyIntentLLM(note, userSkills, anthropicKey);
+      const intent = classification.intent;
 
       if (intent === "create_subskills") {
         // Generate subskill suggestions instead of running the session pipeline
@@ -1160,6 +1190,121 @@ Deno.serve(async (req: Request) => {
           roadmap_updates: null,
           subskill_suggestions: [],
           skill_suggestions: skillSuggestions,
+        });
+      }
+
+      if (intent === "general_chat") {
+        // Conversational coaching response — no session logging
+        const skillSummary = userSkills.length > 0
+          ? userSkills.map((s) => `${s.name}: ${s.current_rating}%`).join(", ")
+          : "no skills tracked yet";
+
+        const chatReply = await callClaude(
+          anthropicKey,
+          `You are a friendly, expert pickleball coach. The player's current skills: ${skillSummary}. Give helpful, concise coaching advice. Keep responses to 2-4 sentences. Be encouraging and specific. No JSON — respond in plain text only.`,
+          note,
+          300,
+          true
+        );
+
+        return jsonResponse({
+          session_id: null,
+          extraction: { mentions: [], new_skill_suggestions: [], session_duration_minutes: null, session_type: null },
+          skill_updates: [],
+          drill_recommendations: [],
+          roadmap_updates: null,
+          subskill_suggestions: [],
+          skill_suggestions: [],
+          chat_response: chatReply,
+        });
+      }
+
+      if (intent === "session_log_with_new_skills") {
+        // Combined flow: suggest new skills AND log session for existing skills
+        const [skillSuggestions, extraction, sessionsThisWeek] = await Promise.all([
+          generateSkill(note, userSkills, anthropicKey),
+          extractSession(note, userSkills, anthropicKey),
+          getSessionsThisWeek(supabase, user.id),
+        ]);
+
+        // Filter out new_skill_suggestions from extraction that fuzzy-match existing
+        extraction.new_skill_suggestions =
+          extraction.new_skill_suggestions.filter((suggestion) => {
+            const sLower = suggestion.toLowerCase().trim();
+            return !userSkills.some((skill) => {
+              const nameL = skill.name.toLowerCase();
+              if (nameL === sLower || nameL.includes(sLower) || sLower.includes(nameL))
+                return true;
+              return skill.subskills.some((sub) => {
+                const subL = sub.name.toLowerCase();
+                return subL === sLower || subL.includes(sLower) || sLower.includes(subL);
+              });
+            });
+          });
+
+        // Score whatever existing skill mentions were found
+        const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
+
+        const saturatedSkills = getSaturatedSkills(userSkills);
+        const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
+
+        // Generate drills + insight + roadmap in parallel (only if there are existing skill mentions)
+        const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
+          skillDeltas.length > 0
+            ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey)
+            : Promise.resolve([]),
+          skillDeltas.length > 0
+            ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey)
+            : Promise.resolve({ weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] } as RoadmapPlan),
+          skillDeltas.length > 0
+            ? generateCoachInsight(extraction, skillDeltas, anthropicKey)
+            : Promise.resolve(""),
+        ]);
+
+        // Save session log
+        const { data: session, error: insertError } = await supabase
+          .from("session_logs")
+          .insert({
+            user_id: user.id,
+            raw_note: note,
+            extracted_json: extraction,
+            applied_deltas: skillDeltas,
+            drill_recommendations: drillRecommendations,
+            roadmap_json: roadmapPlan,
+            user_confirmed: false,
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          throw new Error(`Failed to save session: ${insertError.message}`);
+        }
+
+        const mentionedSkillNames = new Set(
+          extraction.mentions.map((m) => m.skill_name.toLowerCase())
+        );
+        const relevantSaturated = saturatedSkills.filter((s) =>
+          mentionedSkillNames.has(s.skill_name.toLowerCase())
+        );
+
+        return jsonResponse({
+          session_id: session.id,
+          extraction,
+          coach_insight: coachInsight || undefined,
+          skill_updates: skillDeltas.map((d) => ({
+            skill_id: d.skill_id,
+            skill: d.skill,
+            old: d.old,
+            new: d.new,
+            delta: d.delta,
+            subskill_deltas: d.subskill_deltas,
+          })),
+          drill_recommendations: drillRecommendations,
+          roadmap_updates: skillDeltas.length > 0
+            ? { weekly_focus: roadmapPlan.weekly_focus, milestones: roadmapPlan.milestones } as RoadmapUpdates
+            : null,
+          skill_suggestions: skillSuggestions,
+          saturated_skills: relevantSaturated.length > 0 ? relevantSaturated : undefined,
         });
       }
 

@@ -90,29 +90,38 @@ final class ChatViewModel {
                 authToken: getAuthToken()
             )
 
-            // Map saturated skills from response
-            let saturated = (response.saturatedSkills ?? []).map {
-                SaturatedSkillInfo(skillName: $0.skillName, pendingCount: $0.pendingCount)
+            // Check if this is a general chat response (no session)
+            if let chatReply = response.chatResponse, !chatReply.isEmpty {
+                replaceMessage(id: loadingId, with: ChatMessage(
+                    id: loadingId,
+                    role: .agent,
+                    content: .text(chatReply)
+                ))
+            } else {
+                // Map saturated skills from response
+                let saturated = (response.saturatedSkills ?? []).map {
+                    SaturatedSkillInfo(skillName: $0.skillName, pendingCount: $0.pendingCount)
+                }
+
+                // Replace loading bubble with preview
+                let preview = SessionPreview(
+                    sessionId: response.sessionId ?? "",
+                    extraction: response.extraction,
+                    coachInsight: response.coachInsight,
+                    skillUpdates: response.skillUpdates,
+                    drillRecommendations: response.drillRecommendations,
+                    roadmapUpdates: response.roadmapUpdates,
+                    subskillSuggestions: response.subskillSuggestions,
+                    skillSuggestions: response.skillSuggestions,
+                    saturatedSkills: saturated
+                )
+
+                replaceMessage(id: loadingId, with: ChatMessage(
+                    id: loadingId,
+                    role: .agent,
+                    content: .sessionPreview(preview)
+                ))
             }
-
-            // Replace loading bubble with preview
-            let preview = SessionPreview(
-                sessionId: response.sessionId,
-                extraction: response.extraction,
-                coachInsight: response.coachInsight,
-                skillUpdates: response.skillUpdates,
-                drillRecommendations: response.drillRecommendations,
-                roadmapUpdates: response.roadmapUpdates,
-                subskillSuggestions: response.subskillSuggestions,
-                skillSuggestions: response.skillSuggestions,
-                saturatedSkills: saturated
-            )
-
-            replaceMessage(id: loadingId, with: ChatMessage(
-                id: loadingId,
-                role: .agent,
-                content: .sessionPreview(preview)
-            ))
         } catch {
             replaceMessage(id: loadingId, with: ChatMessage(
                 id: loadingId,
