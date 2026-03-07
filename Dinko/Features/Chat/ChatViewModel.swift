@@ -99,6 +99,7 @@ final class ChatViewModel {
             let preview = SessionPreview(
                 sessionId: response.sessionId,
                 extraction: response.extraction,
+                coachInsight: response.coachInsight,
                 skillUpdates: response.skillUpdates,
                 drillRecommendations: response.drillRecommendations,
                 roadmapUpdates: response.roadmapUpdates,

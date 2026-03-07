@@ -561,7 +561,7 @@ async function generateDrills(
 
   const saturatedWarning =
     saturatedSkillNames.size > 0
-      ? `\nSKILLS WITH TOO MANY PENDING DRILLS (do NOT generate drills for these):\n${[...saturatedSkillNames].map((n) => `- ${n}`).join("\n")}\nThe player already has unfinished drills for these skills. Focus on other skills instead.\n`
+      ? `\nSATURATED SKILLS (do NOT generate drills for these — their drill queue is full):\n${[...saturatedSkillNames].map((n) => `- ${n}`).join("\n")}\nThese skills already have too many pending drills. Do NOT generate drills for them, and do NOT generate drills for other skills just to fill a quota.\n`
       : "";
 
   const systemPrompt = `You are an expert pickleball coach generating personalized drills.
@@ -589,16 +589,21 @@ DRILL REQUIREMENTS:
 - Explain the biomechanical WHY behind the drill
 - Keep drills 5-15 minutes each
 
+CRITICAL RULES:
+- ONLY generate drills for skills that were discussed in this session. Never recommend drills for skills the player did not mention.
+- It is perfectly fine to return 0, 1, or 2 drills. Do NOT pad with unrelated drills just to reach a quota.
+- If all session-relevant skills are saturated (drill queue full), return an empty array [].
+
 PRIORITIZATION (in order):
 1. Skills that declined this session (most urgent)
 2. Bottleneck subskills mentioned negatively
 3. Plateauing skills (mentioned but neutral)
 
-Generate 2-3 drills. Respond ONLY with a valid JSON array:
+Generate 0 to 3 drills. Respond ONLY with a valid JSON array (empty array [] is valid):
 [{
   "name": "string",
   "description": "string (full step-by-step instructions)",
-  "target_skill": "string",
+  "target_skill": "string (MUST be a skill from this session)",
   "target_subskill": "string or null",
   "duration_minutes": number,
   "player_count": number,
@@ -620,7 +625,44 @@ Generate 2-3 drills. Respond ONLY with a valid JSON array:
     drills = drills.filter((d) => !saturatedSkillNames.has(d.target_skill));
   }
 
+  // Safety net: filter out drills targeting skills not mentioned in this session
+  const mentionedSkillNamesLower = new Set(
+    skillDeltas.map((d) => d.skill.toLowerCase())
+  );
+  drills = drills.filter((d) =>
+    mentionedSkillNamesLower.has(d.target_skill.toLowerCase())
+  );
+
   return drills;
+}
+
+// ---------- Coach Insight (Claude API, fast model) ----------
+
+async function generateCoachInsight(
+  extraction: ExtractionResult,
+  skillDeltas: SkillDelta[],
+  apiKey: string
+): Promise<string> {
+  const deltaSummary = skillDeltas
+    .map(
+      (d) =>
+        `${d.skill}: ${d.old}% → ${d.new}% (${d.delta > 0 ? "+" : ""}${d.delta}%)`
+    )
+    .join(", ");
+
+  const mentionSummary = extraction.mentions
+    .map((m) => `${m.skill_name} (${m.sentiment}): "${m.quote}"`)
+    .join("\n");
+
+  const insight = await callClaude(
+    apiKey,
+    `You are a concise pickleball coach giving quick session feedback. Respond with a short plain text analysis (2-3 sentences max). No JSON, no markdown, no bullet points. Be direct — highlight what went well, what needs attention, and one actionable takeaway. Reference specific skills by name.`,
+    `Session notes:\n${mentionSummary}\n\nSkill changes: ${deltaSummary || "none"}`,
+    200,
+    true
+  );
+
+  return insight;
 }
 
 // ---------- Pass 4: Roadmap Update (Deterministic + Claude) ----------
@@ -1006,10 +1048,11 @@ Deno.serve(async (req: Request) => {
       const saturatedSkills = getSaturatedSkills(userSkills);
       const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
 
-      // Pass 3 + 4: Drill generation + Roadmap update (parallel — both only need extraction + deltas)
-      const [drillRecommendations, roadmapUpdates] = await Promise.all([
+      // Pass 3 + 4 + Insight: Drill generation + Roadmap update + Coach insight (parallel)
+      const [drillRecommendations, roadmapUpdates, coachInsight] = await Promise.all([
         generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
         updateRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
+        generateCoachInsight(extraction, skillDeltas, anthropicKey),
       ]);
 
       // Save session log (unconfirmed) with all pipeline outputs
@@ -1041,6 +1084,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({
         session_id: session.id,
         extraction,
+        coach_insight: coachInsight,
         skill_updates: skillDeltas.map((d) => ({
           skill_id: d.skill_id,
           skill: d.skill,

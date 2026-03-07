@@ -7,6 +7,7 @@ final class AgentService {
     struct LogSessionResponse: Codable {
         let sessionId: String
         let extraction: ExtractionData
+        let coachInsight: String?
         let skillUpdates: [SkillUpdate]
         let drillRecommendations: [DrillRecommendation]
         let roadmapUpdates: RoadmapUpdates?
@@ -17,6 +18,7 @@ final class AgentService {
         enum CodingKeys: String, CodingKey {
             case sessionId = "session_id"
             case extraction
+            case coachInsight = "coach_insight"
             case skillUpdates = "skill_updates"
             case drillRecommendations = "drill_recommendations"
             case roadmapUpdates = "roadmap_updates"

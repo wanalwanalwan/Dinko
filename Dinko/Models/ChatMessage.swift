@@ -43,6 +43,7 @@ struct SaturatedSkillInfo: Equatable {
 struct SessionPreview {
     let sessionId: String
     let extraction: ExtractionData
+    let coachInsight: String?
     let skillUpdates: [SkillUpdate]
     let drillRecommendations: [DrillRecommendation]
     let roadmapUpdates: RoadmapUpdates?
@@ -64,6 +65,7 @@ struct SessionPreview {
     init(
         sessionId: String,
         extraction: ExtractionData,
+        coachInsight: String? = nil,
         skillUpdates: [SkillUpdate],
         drillRecommendations: [DrillRecommendation],
         roadmapUpdates: RoadmapUpdates?,
@@ -74,6 +76,7 @@ struct SessionPreview {
     ) {
         self.sessionId = sessionId
         self.extraction = extraction
+        self.coachInsight = coachInsight
         self.skillUpdates = skillUpdates
         self.drillRecommendations = drillRecommendations
         self.roadmapUpdates = roadmapUpdates

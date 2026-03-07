@@ -15,6 +15,17 @@ struct SessionPreviewCard: View {
                 .font(AppTypography.headline)
                 .foregroundStyle(AppColors.teal)
 
+            // Coach Insight
+            if let insight = preview.coachInsight, !insight.isEmpty {
+                Text(insight)
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .padding(AppSpacing.xs)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppColors.teal.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+
             Divider()
 
             // Skill Updates
@@ -284,7 +295,7 @@ struct SessionPreviewCard: View {
                         .font(.system(size: 13))
                         .frame(width: 20)
 
-                    Text("\(info.skillName) has \(info.pendingCount) pending drills — complete or remove some before we add more!")
+                    Text("\(info.skillName) drill queue is full (\(info.pendingCount) pending) — complete or remove some to get new recommendations.")
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColors.textSecondary)
                 }
