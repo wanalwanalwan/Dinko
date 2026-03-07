@@ -48,28 +48,20 @@ struct HomeView: View {
 
     @ViewBuilder
     private func homeContent(_ viewModel: HomeViewModel) -> some View {
-        if viewModel.totalActiveSkills == 0 && viewModel.isLoaded {
-            ContentUnavailableView(
-                "Welcome to Dinko",
-                systemImage: "figure.pickleball",
-                description: Text("Add your first skill in the Progress tab to start tracking your game.")
-            )
-        } else {
-            ScrollView {
-                VStack(spacing: AppSpacing.lg) {
-                    greetingHeader(viewModel)
-                    progressChart(viewModel)
-                    recommendedDrillsSection(viewModel)
-                    completedSkillsSection(viewModel)
-                    streakBanner(viewModel)
-                }
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.top, AppSpacing.xxs)
-                .padding(.bottom, AppSpacing.lg)
+        ScrollView {
+            VStack(spacing: AppSpacing.lg) {
+                greetingHeader(viewModel)
+                progressChart(viewModel)
+                recommendedDrillsSection(viewModel)
+                completedSkillsSection(viewModel)
+                streakBanner(viewModel)
             }
-            .refreshable {
-                await viewModel.loadDashboard()
-            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.top, AppSpacing.xxs)
+            .padding(.bottom, AppSpacing.lg)
+        }
+        .refreshable {
+            await viewModel.loadDashboard()
         }
     }
 
