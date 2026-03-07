@@ -451,6 +451,20 @@ final class HomeViewModel {
         recommendedDrills = results
     }
 
+    func deleteCompletedSkill(_ id: UUID) async {
+        do {
+            let archived = try await skillRepository.fetchArchived()
+            let children = archived.filter { $0.parentSkillId == id }
+            for child in children {
+                try await skillRepository.delete(child.id)
+            }
+            try await skillRepository.delete(id)
+            completedSkills.removeAll { $0.id == id }
+        } catch {
+            errorMessage = "Failed to delete skill."
+        }
+    }
+
     func markDrillDone(_ drillId: UUID) async {
         do {
             try await drillRepository.updateStatus(drillId, status: .completed)

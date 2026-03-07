@@ -447,6 +447,13 @@ struct HomeView: View {
                     HStack(spacing: AppSpacing.sm) {
                         ForEach(viewModel.completedSkills) { item in
                             CompletedSkillCardView(skill: item)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        Task { await viewModel.deleteCompletedSkill(item.id) }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                         }
                     }
                 }
