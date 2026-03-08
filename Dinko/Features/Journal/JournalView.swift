@@ -93,6 +93,7 @@ struct JournalView: View {
 
 struct JournalEntryCard: View {
     let entry: JournalEntry
+    @State private var isExpanded = false
 
     private var timeString: String {
         let formatter = DateFormatter()
@@ -100,19 +101,63 @@ struct JournalEntryCard: View {
         return formatter.string(from: entry.date)
     }
 
-    /// Parses "Skill|old|new|+delta" lines from skillUpdatesSummary
+    /// Parses skill updates from either pipe format "Skill|old|new|+delta"
+    /// or legacy format "Skill: old% → new% (+delta)"
     private var parsedSkillUpdates: [(skill: String, old: String, new: String, delta: String)] {
         guard !entry.skillUpdatesSummary.isEmpty else { return [] }
         return entry.skillUpdatesSummary.components(separatedBy: "\n").compactMap { line in
-            let parts = line.components(separatedBy: "|")
-            guard parts.count == 4 else { return nil }
-            return (skill: parts[0], old: parts[1], new: parts[2], delta: parts[3])
+            // New pipe format
+            let pipeParts = line.components(separatedBy: "|")
+            if pipeParts.count == 4 {
+                return (skill: pipeParts[0], old: pipeParts[1], new: pipeParts[2], delta: pipeParts[3])
+            }
+            // Legacy format: "Dinking: 45% → 52% (+7)"
+            let colonParts = line.components(separatedBy: ": ")
+            guard colonParts.count == 2 else { return nil }
+            let skill = colonParts[0]
+            let rest = colonParts[1]
+                .replacingOccurrences(of: "%", with: "")
+                .replacingOccurrences(of: "(", with: "")
+                .replacingOccurrences(of: ")", with: "")
+            let arrowParts = rest.components(separatedBy: " \u{2192} ")
+            guard arrowParts.count == 2 else { return nil }
+            let old = arrowParts[0].trimmingCharacters(in: .whitespaces)
+            let newAndDelta = arrowParts[1].components(separatedBy: " ")
+            guard newAndDelta.count >= 1 else { return nil }
+            let new = newAndDelta[0].trimmingCharacters(in: .whitespaces)
+            let delta = newAndDelta.count >= 2 ? newAndDelta[1].trimmingCharacters(in: .whitespaces) : ""
+            return (skill: skill, old: old, new: new, delta: delta)
         }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            // Time + session type + duration
+        VStack(alignment: .leading, spacing: 0) {
+            // Collapsed: always visible
+            collapsedContent
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isExpanded.toggle()
+                    }
+                }
+
+            // Expanded: details
+            if isExpanded {
+                expandedContent
+                    .padding(.top, AppSpacing.xs)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+    }
+
+    // MARK: - Collapsed
+
+    private var collapsedContent: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            // Time row
             HStack {
                 Text(timeString)
                     .font(AppTypography.caption)
@@ -131,67 +176,118 @@ struct JournalEntryCard: View {
 
                 Spacer()
 
-                if entry.durationMinutes > 0 {
-                    Label("\(entry.durationMinutes)m", systemImage: "clock")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(AppColors.textSecondary)
             }
 
-            // User's session note
-            if !entry.userNote.isEmpty {
-                Text(entry.userNote)
-                    .font(AppTypography.callout)
-                    .foregroundStyle(AppColors.textPrimary)
-                    .lineLimit(2)
-            }
-
-            // Skill updates with percentage changes
+            // Skill names with deltas — compact summary
             let updates = parsedSkillUpdates
             if !updates.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
-                    ForEach(updates, id: \.skill) { update in
-                        HStack(spacing: AppSpacing.xxs) {
-                            Text(update.skill)
-                                .font(AppTypography.callout)
-                                .fontWeight(.medium)
-                                .foregroundStyle(AppColors.textPrimary)
+                ForEach(updates, id: \.skill) { update in
+                    HStack(spacing: AppSpacing.xxs) {
+                        Text(update.skill)
+                            .font(AppTypography.headline)
+                            .foregroundStyle(AppColors.textPrimary)
 
-                            Text("\(update.old)%")
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
+                        Spacer()
 
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(AppColors.textSecondary)
+                        Text("\(update.new)%")
+                            .font(AppTypography.callout)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AppColors.textPrimary)
 
-                            Text("\(update.new)%")
-                                .font(AppTypography.callout)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(AppColors.textPrimary)
-
+                        if !update.delta.isEmpty {
                             Text(update.delta)
                                 .font(AppTypography.caption)
-                                .fontWeight(.semibold)
+                                .fontWeight(.bold)
                                 .foregroundStyle(
                                     update.delta.hasPrefix("-") ? AppColors.coral : AppColors.successGreen
                                 )
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    (update.delta.hasPrefix("-") ? AppColors.coral : AppColors.successGreen)
+                                        .opacity(0.12)
+                                )
+                                .clipShape(Capsule())
                         }
+                    }
+                }
+            } else if entry.drillsCount > 0 {
+                // No skill updates, but has drills
+                Label("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") added",
+                      systemImage: "figure.pickleball")
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.coral)
+            }
+        }
+    }
+
+    // MARK: - Expanded
+
+    private var expandedContent: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Divider()
+                .padding(.bottom, AppSpacing.xxxs)
+
+            // User's session note
+            let description = !entry.userNote.isEmpty ? entry.userNote : entry.coachInsight
+            if !description.isEmpty {
+                Text(description)
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            // Detailed skill breakdown
+            let updates = parsedSkillUpdates
+            if !updates.isEmpty {
+                ForEach(updates, id: \.skill) { update in
+                    HStack(spacing: AppSpacing.xxs) {
+                        Text(update.skill)
+                            .font(AppTypography.callout)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Text("\(update.old)%")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+
+                        Text("\(update.new)%")
+                            .font(AppTypography.callout)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AppColors.textPrimary)
                     }
                 }
             }
 
-            // Drills count
-            if entry.drillsCount > 0 {
-                Label("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") added",
-                      systemImage: "figure.pickleball")
+            // Duration
+            if entry.durationMinutes > 0 {
+                Label("\(entry.durationMinutes) min", systemImage: "clock")
                     .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.coral)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            // Drills
+            if entry.drillsCount > 0 {
+                HStack(spacing: AppSpacing.xxs) {
+                    Label("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") added",
+                          systemImage: "figure.pickleball")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.coral)
+                }
+            }
+
+            // Drill names
+            if !entry.drillNamesSummary.isEmpty {
+                Text(entry.drillNamesSummary)
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 }
 
