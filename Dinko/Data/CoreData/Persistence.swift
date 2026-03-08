@@ -54,6 +54,13 @@ final class PersistenceController {
         if inMemory {
             persistentContainer.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         }
+
+        // Enable automatic lightweight migration for schema changes
+        if let description = persistentContainer.persistentStoreDescriptions.first {
+            description.shouldMigrateStoreAutomatically = true
+            description.shouldInferMappingModelAutomatically = true
+        }
+
         var storeError: NSError?
         persistentContainer.loadPersistentStores { _, error in
             if let error = error as NSError? {

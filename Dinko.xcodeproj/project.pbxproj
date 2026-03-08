@@ -112,6 +112,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		J20000010000000000000010 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		J20000010000000000000011 /* Secrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig.example; sourceTree = "<group>"; };
 		A20000010000000000000001 /* DinkoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinkoApp.swift; sourceTree = "<group>"; };
 		A20000010000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A20000010000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 			children = (
 				A20000010000000000000001 /* DinkoApp.swift */,
 				A70000010000000000000010 /* App */,
+				J70000010000000000000010 /* Configuration */,
 				A70000010000000000000020 /* Core */,
 				A70000010000000000000050 /* Data */,
 				A70000010000000000000070 /* Models */,
@@ -298,6 +301,15 @@
 				K20000010000000000000001 /* SplashScreenView.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		J70000010000000000000010 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				J20000010000000000000010 /* Config.xcconfig */,
+				J20000010000000000000011 /* Secrets.xcconfig.example */,
+			);
+			path = Configuration;
 			sourceTree = "<group>";
 		};
 		A70000010000000000000020 /* Core */ = {
@@ -897,6 +909,7 @@
 		};
 		AC0000010000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = J20000010000000000000010 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -925,6 +938,7 @@
 		};
 		AC0000010000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = J20000010000000000000010 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

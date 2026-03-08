@@ -1,0 +1,5 @@
+// Config.xcconfig
+// Base configuration for the Dinko target.
+// Optionally includes Secrets.xcconfig for API keys.
+
+#include? "Secrets.xcconfig"

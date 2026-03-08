@@ -290,11 +290,14 @@ final class ChatViewModel {
             preview.selectedSubskillIndices[skillUpdateIndex] = Set(update.subskillDeltas.indices)
         }
 
-        if preview.selectedSubskillIndices[skillUpdateIndex]!.contains(subskillIndex) {
-            preview.selectedSubskillIndices[skillUpdateIndex]!.remove(subskillIndex)
+        guard var selectedSubs = preview.selectedSubskillIndices[skillUpdateIndex] else { return }
+
+        if selectedSubs.contains(subskillIndex) {
+            selectedSubs.remove(subskillIndex)
         } else {
-            preview.selectedSubskillIndices[skillUpdateIndex]!.insert(subskillIndex)
+            selectedSubs.insert(subskillIndex)
         }
+        preview.selectedSubskillIndices[skillUpdateIndex] = selectedSubs
 
         messages[index] = ChatMessage(
             id: messageId,
