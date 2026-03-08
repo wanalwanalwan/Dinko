@@ -181,15 +181,21 @@ final class AgentService {
 
     private func decodeResponse<T: Codable>(data: Data, statusCode: Int) throws -> T {
         if statusCode != 200 {
-            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                throw AgentError.server("HTTP \(statusCode): \(errorResponse.error)")
+            // 502/503/504 are gateway errors — edge function timed out or crashed
+            if (502...504).contains(statusCode) {
+                throw AgentError.server("The AI coach is temporarily unavailable. Please try again in a moment.")
             }
 
-            if let body = responseBodyString(data), !body.isEmpty {
+            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                throw AgentError.server(errorResponse.error)
+            }
+
+            // Don't show raw HTML to the user
+            if let body = responseBodyString(data), !body.isEmpty, !body.contains("<!DOCTYPE") && !body.contains("<html") {
                 throw AgentError.server("HTTP \(statusCode): \(body)")
             }
 
-            throw AgentError.server("HTTP \(statusCode): Request failed")
+            throw AgentError.server("Something went wrong (HTTP \(statusCode)). Please try again.")
         }
         return try JSONDecoder().decode(T.self, from: data)
     }

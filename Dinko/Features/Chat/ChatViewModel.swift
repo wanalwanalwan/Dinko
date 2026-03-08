@@ -217,8 +217,9 @@ final class ChatViewModel {
                 timestamp: messages[index].timestamp
             )
 
-            // Save journal entry
-            await saveJournalEntry(from: preview)
+            // Save journal entry — find the user message that triggered this session
+            let userNote = findUserNote(before: index)
+            await saveJournalEntry(from: preview, userNote: userNote)
 
             // Add a confirmation text bubble
             messages.append(ChatMessage(
@@ -792,13 +793,22 @@ final class ChatViewModel {
         }
     }
 
-    private func saveJournalEntry(from preview: SessionPreview) async {
+    private func findUserNote(before index: Int) -> String {
+        for i in stride(from: index - 1, through: 0, by: -1) {
+            if messages[i].role == .user, case .text(let text) = messages[i].content {
+                return text
+            }
+        }
+        return ""
+    }
+
+    private func saveJournalEntry(from preview: SessionPreview, userNote: String) async {
         let selectedUpdates = preview.selectedSkillUpdateIndices.sorted().compactMap { idx in
             idx < preview.skillUpdates.count ? preview.skillUpdates[idx] : nil
         }
         let skillSummary = selectedUpdates.map { update in
             let sign = update.delta >= 0 ? "+" : ""
-            return "\(update.skill): \(update.old)% \u{2192} \(update.new)% (\(sign)\(update.delta))"
+            return "\(update.skill)|\(update.old)|\(update.new)|\(sign)\(update.delta)"
         }.joined(separator: "\n")
 
         let selectedDrills = preview.selectedDrillIndices.sorted().compactMap { idx in
@@ -811,6 +821,7 @@ final class ChatViewModel {
             date: Date(),
             sessionType: preview.extraction.sessionType,
             durationMinutes: preview.extraction.sessionDurationMinutes ?? 0,
+            userNote: userNote,
             coachInsight: preview.coachInsight ?? "",
             skillUpdatesSummary: skillSummary,
             skillUpdatesCount: selectedUpdates.count,

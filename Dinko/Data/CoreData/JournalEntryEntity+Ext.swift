@@ -8,6 +8,7 @@ extension JournalEntryEntity {
             date: date ?? Date(),
             sessionType: sessionType,
             durationMinutes: Int(durationMinutes),
+            userNote: userNote ?? "",
             coachInsight: coachInsight ?? "",
             skillUpdatesSummary: skillUpdatesSummary ?? "",
             skillUpdatesCount: Int(skillUpdatesCount),
@@ -23,6 +24,7 @@ extension JournalEntryEntity {
         date = entry.date
         sessionType = entry.sessionType
         durationMinutes = Int16(entry.durationMinutes)
+        userNote = entry.userNote
         coachInsight = entry.coachInsight
         skillUpdatesSummary = entry.skillUpdatesSummary
         skillUpdatesCount = Int16(entry.skillUpdatesCount)

@@ -6,6 +6,7 @@ struct JournalEntry: Identifiable, Hashable {
     var date: Date
     var sessionType: String?
     var durationMinutes: Int
+    var userNote: String
     var coachInsight: String
     var skillUpdatesSummary: String
     var skillUpdatesCount: Int
@@ -19,6 +20,7 @@ struct JournalEntry: Identifiable, Hashable {
         date: Date = Date(),
         sessionType: String? = nil,
         durationMinutes: Int = 0,
+        userNote: String = "",
         coachInsight: String = "",
         skillUpdatesSummary: String = "",
         skillUpdatesCount: Int = 0,
@@ -31,6 +33,7 @@ struct JournalEntry: Identifiable, Hashable {
         self.date = date
         self.sessionType = sessionType
         self.durationMinutes = durationMinutes
+        self.userNote = userNote
         self.coachInsight = coachInsight
         self.skillUpdatesSummary = skillUpdatesSummary
         self.skillUpdatesCount = skillUpdatesCount

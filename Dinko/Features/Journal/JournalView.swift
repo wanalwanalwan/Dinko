@@ -100,9 +100,19 @@ struct JournalEntryCard: View {
         return formatter.string(from: entry.date)
     }
 
+    /// Parses "Skill|old|new|+delta" lines from skillUpdatesSummary
+    private var parsedSkillUpdates: [(skill: String, old: String, new: String, delta: String)] {
+        guard !entry.skillUpdatesSummary.isEmpty else { return [] }
+        return entry.skillUpdatesSummary.components(separatedBy: "\n").compactMap { line in
+            let parts = line.components(separatedBy: "|")
+            guard parts.count == 4 else { return nil }
+            return (skill: parts[0], old: parts[1], new: parts[2], delta: parts[3])
+        }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-            // Time + session type
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            // Time + session type + duration
             HStack {
                 Text(timeString)
                     .font(AppTypography.caption)
@@ -128,37 +138,55 @@ struct JournalEntryCard: View {
                 }
             }
 
-            // Coach insight
-            if !entry.coachInsight.isEmpty {
-                Text(entry.coachInsight)
+            // User's session note
+            if !entry.userNote.isEmpty {
+                Text(entry.userNote)
                     .font(AppTypography.callout)
                     .foregroundStyle(AppColors.textPrimary)
-                    .lineLimit(3)
-            }
-
-            // Skill updates summary
-            if !entry.skillUpdatesSummary.isEmpty {
-                Text(entry.skillUpdatesSummary)
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textSecondary)
                     .lineLimit(2)
             }
 
-            // Stats row
-            HStack(spacing: AppSpacing.sm) {
-                if entry.skillUpdatesCount > 0 {
-                    Label("\(entry.skillUpdatesCount) skill\(entry.skillUpdatesCount == 1 ? "" : "s") updated",
-                          systemImage: "chart.line.uptrend.xyaxis")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.successGreen)
-                }
+            // Skill updates with percentage changes
+            let updates = parsedSkillUpdates
+            if !updates.isEmpty {
+                VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                    ForEach(updates, id: \.skill) { update in
+                        HStack(spacing: AppSpacing.xxs) {
+                            Text(update.skill)
+                                .font(AppTypography.callout)
+                                .fontWeight(.medium)
+                                .foregroundStyle(AppColors.textPrimary)
 
-                if entry.drillsCount > 0 {
-                    Label("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s")",
-                          systemImage: "figure.pickleball")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.coral)
+                            Text("\(update.old)%")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(AppColors.textSecondary)
+
+                            Text("\(update.new)%")
+                                .font(AppTypography.callout)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(AppColors.textPrimary)
+
+                            Text(update.delta)
+                                .font(AppTypography.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(
+                                    update.delta.hasPrefix("-") ? AppColors.coral : AppColors.successGreen
+                                )
+                        }
+                    }
                 }
+            }
+
+            // Drills count
+            if entry.drillsCount > 0 {
+                Label("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") added",
+                      systemImage: "figure.pickleball")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.coral)
             }
         }
         .padding(AppSpacing.sm)

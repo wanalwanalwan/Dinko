@@ -68,6 +68,7 @@
         <attribute name="skillUpdatesSummary" optional="YES" attributeType="String"/>
         <attribute name="syncStatus" attributeType="String" defaultValueString="pending"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userNote" optional="YES" attributeType="String"/>
     </entity>
     <entity name="SessionEntity" representedClassName="SessionEntity" syncable="YES" codeGenerationType="class">
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
