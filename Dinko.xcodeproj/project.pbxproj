@@ -86,6 +86,12 @@
 		B1000001000000000000000D /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000D /* SectionHeaderView.swift */; };
 		B1000001000000000000000E /* DrillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000E /* DrillCardView.swift */; };
 		B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000F /* CompletedSkillCardView.swift */; };
+		J10000010000000000000001 /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000001 /* JournalEntry.swift */; };
+		J10000010000000000000002 /* JournalEntryEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* JournalEntryEntity+Ext.swift */; };
+		J10000010000000000000003 /* JournalEntryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000003 /* JournalEntryRepository.swift */; };
+		J10000010000000000000004 /* JournalEntryRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */; };
+		J10000010000000000000005 /* JournalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000005 /* JournalViewModel.swift */; };
+		J10000010000000000000006 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000006 /* JournalView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,6 +194,12 @@
 		B2000001000000000000000D /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		B2000001000000000000000E /* DrillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillCardView.swift; sourceTree = "<group>"; };
 		B2000001000000000000000F /* CompletedSkillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedSkillCardView.swift; sourceTree = "<group>"; };
+		J20000010000000000000001 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
+		J20000010000000000000002 /* JournalEntryEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalEntryEntity+Ext.swift"; sourceTree = "<group>"; };
+		J20000010000000000000003 /* JournalEntryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryRepository.swift; sourceTree = "<group>"; };
+		J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryRepositoryImpl.swift; sourceTree = "<group>"; };
+		J20000010000000000000005 /* JournalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalViewModel.swift; sourceTree = "<group>"; };
+		J20000010000000000000006 /* JournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -361,6 +373,7 @@
 				C2000001000000000000000A /* SkillRatingEntity+Ext.swift */,
 				C2000001000000000000000B /* SessionEntity+Ext.swift */,
 				E30000020000000000000002 /* DrillEntity+Ext.swift */,
+				J20000010000000000000002 /* JournalEntryEntity+Ext.swift */,
 			);
 			path = CoreData;
 			sourceTree = "<group>";
@@ -379,6 +392,8 @@
 				D20000010000000000000006 /* DependencyContainer.swift */,
 				E30000020000000000000003 /* DrillRepository.swift */,
 				E30000020000000000000004 /* DrillRepositoryImpl.swift */,
+				J20000010000000000000003 /* JournalEntryRepository.swift */,
+				J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -395,6 +410,7 @@
 				I20000010000000000000001 /* SkillTier.swift */,
 				E20000020000000000000001 /* ChatMessage.swift */,
 				E30000020000000000000001 /* Drill.swift */,
+				J20000010000000000000001 /* JournalEntry.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -410,6 +426,7 @@
 				F70000000000000000000001 /* Auth */,
 				E70000020000000000000001 /* Chat */,
 				E70000030000000000000001 /* Drills */,
+				J70000000000000000000001 /* Journal */,
 				M70000000000000000000001 /* Onboarding */,
 			);
 			path = Features;
@@ -484,6 +501,15 @@
 				E30000020000000000000007 /* DrillDetailView.swift */,
 			);
 			path = Drills;
+			sourceTree = "<group>";
+		};
+		J70000000000000000000001 /* Journal */ = {
+			isa = PBXGroup;
+			children = (
+				J20000010000000000000005 /* JournalViewModel.swift */,
+				J20000010000000000000006 /* JournalView.swift */,
+			);
+			path = Journal;
 			sourceTree = "<group>";
 		};
 		M70000000000000000000001 /* Onboarding */ = {
@@ -706,6 +732,12 @@
 				B1000001000000000000000D /* SectionHeaderView.swift in Sources */,
 				B1000001000000000000000E /* DrillCardView.swift in Sources */,
 				B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */,
+				J10000010000000000000001 /* JournalEntry.swift in Sources */,
+				J10000010000000000000002 /* JournalEntryEntity+Ext.swift in Sources */,
+				J10000010000000000000003 /* JournalEntryRepository.swift in Sources */,
+				J10000010000000000000004 /* JournalEntryRepositoryImpl.swift in Sources */,
+				J10000010000000000000005 /* JournalViewModel.swift in Sources */,
+				J10000010000000000000006 /* JournalView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

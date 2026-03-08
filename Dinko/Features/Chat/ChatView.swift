@@ -19,7 +19,8 @@ struct ChatView: View {
                 let vm = ChatViewModel(
                     skillRepository: dependencies.skillRepository,
                     skillRatingRepository: dependencies.skillRatingRepository,
-                    drillRepository: dependencies.drillRepository
+                    drillRepository: dependencies.drillRepository,
+                    journalEntryRepository: dependencies.journalEntryRepository
                 )
                 viewModel = vm
                 await vm.loadStats()

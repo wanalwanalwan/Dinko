@@ -12,6 +12,7 @@ final class ChatViewModel {
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
+    private let journalEntryRepository: JournalEntryRepository
 
     // Stats
     private(set) var totalSkills = 0
@@ -22,11 +23,13 @@ final class ChatViewModel {
     init(
         skillRepository: SkillRepository,
         skillRatingRepository: SkillRatingRepository,
-        drillRepository: DrillRepository
+        drillRepository: DrillRepository,
+        journalEntryRepository: JournalEntryRepository
     ) {
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
         self.drillRepository = drillRepository
+        self.journalEntryRepository = journalEntryRepository
     }
 
     func loadStats() async {
@@ -213,6 +216,9 @@ final class ChatViewModel {
                 content: .sessionPreview(preview),
                 timestamp: messages[index].timestamp
             )
+
+            // Save journal entry
+            await saveJournalEntry(from: preview)
 
             // Add a confirmation text bubble
             messages.append(ChatMessage(
@@ -783,6 +789,39 @@ final class ChatViewModel {
                 .map(\.name)
         } catch {
             return []
+        }
+    }
+
+    private func saveJournalEntry(from preview: SessionPreview) async {
+        let selectedUpdates = preview.selectedSkillUpdateIndices.sorted().compactMap { idx in
+            idx < preview.skillUpdates.count ? preview.skillUpdates[idx] : nil
+        }
+        let skillSummary = selectedUpdates.map { update in
+            let sign = update.delta >= 0 ? "+" : ""
+            return "\(update.skill): \(update.old)% \u{2192} \(update.new)% (\(sign)\(update.delta))"
+        }.joined(separator: "\n")
+
+        let selectedDrills = preview.selectedDrillIndices.sorted().compactMap { idx in
+            idx < preview.drillRecommendations.count ? preview.drillRecommendations[idx] : nil
+        }
+        let drillSummary = selectedDrills.map(\.name).joined(separator: ", ")
+
+        let entry = JournalEntry(
+            sessionId: preview.sessionId,
+            date: Date(),
+            sessionType: preview.extraction.sessionType,
+            durationMinutes: preview.extraction.sessionDurationMinutes ?? 0,
+            coachInsight: preview.coachInsight ?? "",
+            skillUpdatesSummary: skillSummary,
+            skillUpdatesCount: selectedUpdates.count,
+            drillsCount: selectedDrills.count,
+            drillNamesSummary: drillSummary
+        )
+
+        do {
+            try await journalEntryRepository.save(entry)
+        } catch {
+            // Journal save failure is non-critical
         }
     }
 }

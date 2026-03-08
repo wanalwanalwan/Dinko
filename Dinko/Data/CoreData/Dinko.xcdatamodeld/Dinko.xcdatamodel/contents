@@ -55,6 +55,20 @@
         <attribute name="targetSubskill" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="JournalEntryEntity" representedClassName="JournalEntryEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="coachInsight" optional="YES" attributeType="String"/>
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="drillNamesSummary" optional="YES" attributeType="String"/>
+        <attribute name="drillsCount" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="durationMinutes" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="sessionId" optional="YES" attributeType="String"/>
+        <attribute name="sessionType" optional="YES" attributeType="String"/>
+        <attribute name="skillUpdatesCount" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="skillUpdatesSummary" optional="YES" attributeType="String"/>
+        <attribute name="syncStatus" attributeType="String" defaultValueString="pending"/>
+        <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
     <entity name="SessionEntity" representedClassName="SessionEntity" syncable="YES" codeGenerationType="class">
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="duration" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

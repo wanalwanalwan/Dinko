@@ -42,6 +42,15 @@ struct ContentView: View {
                     Image(systemName: "list.bullet.clipboard")
                     Text("Drills")
                 }
+
+                NavigationStack {
+                    JournalView()
+                }
+                .tag(4)
+                .tabItem {
+                    Image(systemName: "book")
+                    Text("Journal")
+                }
             }
             .tint(AppColors.teal)
 
