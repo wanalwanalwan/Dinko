@@ -495,7 +495,7 @@ struct SkillDetailView: View {
     @ViewBuilder
     private func ratingNotesSection(_ viewModel: SkillDetailViewModel) -> some View {
         let ratingsWithNotes = viewModel.ratings
-            .filter { $0.notes != nil && !$0.notes!.isEmpty }
+            .filter { !($0.notes ?? "").isEmpty }
             .sorted { $0.date > $1.date }
 
         if !ratingsWithNotes.isEmpty {
@@ -544,7 +544,7 @@ struct SkillDetailView: View {
                                         .foregroundStyle(AppColors.textSecondary)
                                 }
 
-                                Text(rating.notes!)
+                                Text(rating.notes ?? "")
                                     .font(AppTypography.body)
                                     .foregroundStyle(AppColors.textSecondary)
                             }
