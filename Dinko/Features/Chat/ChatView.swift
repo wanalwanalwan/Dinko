@@ -3,6 +3,7 @@ import SwiftUI
 struct ChatView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: ChatViewModel?
+    @State private var contentReady = false
     @FocusState private var isInputFocused: Bool
     private var networkMonitor = NetworkMonitor.shared
 
@@ -25,6 +26,7 @@ struct ChatView: View {
                 )
                 viewModel = vm
                 await vm.loadStats()
+                withAnimation { contentReady = true }
             }
         }
     }
@@ -58,6 +60,10 @@ struct ChatView: View {
                         ForEach(viewModel.messages) { message in
                             messageBubble(message, viewModel: viewModel)
                                 .id(message.id)
+                                .transition(.asymmetric(
+                                    insertion: .opacity.combined(with: .scale(scale: 0.95)),
+                                    removal: .opacity
+                                ))
                         }
 
                         // Bottom spacer so content doesn't hide behind floating input
@@ -73,7 +79,7 @@ struct ChatView: View {
                 }
                 .onChange(of: viewModel.messages.count) {
                     if let last = viewModel.messages.last {
-                        withAnimation(.easeOut(duration: 0.3)) {
+                        withAnimation(AppAnimations.springSmooth) {
                             proxy.scrollTo(last.id, anchor: .bottom)
                         }
                     }
@@ -84,6 +90,7 @@ struct ChatView: View {
             // Floating input bar
             inputBar(viewModel)
         }
+        .contentLoadTransition(isLoaded: contentReady)
     }
 
     // MARK: - Empty State

@@ -6,7 +6,9 @@ struct RatingBadge: View {
     var ringColor: Color = AppColors.teal
     var showCheckmark: Bool = false
 
-    private var progress: Double { min(max(Double(rating) / 100.0, 0), 1) }
+    @State private var animatedProgress: Double = 0
+
+    private var targetProgress: Double { min(max(Double(rating) / 100.0, 0), 1) }
     private var lineWidth: CGFloat { size * 0.1 }
 
     var body: some View {
@@ -15,7 +17,7 @@ struct RatingBadge: View {
                 .stroke(Color(.systemFill), lineWidth: lineWidth)
 
             Circle()
-                .trim(from: 0, to: progress)
+                .trim(from: 0, to: animatedProgress)
                 .stroke(ringColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
 
@@ -30,6 +32,16 @@ struct RatingBadge: View {
             }
         }
         .frame(width: size, height: size)
+        .onAppear {
+            withAnimation(AppAnimations.springSmooth) {
+                animatedProgress = targetProgress
+            }
+        }
+        .onChange(of: rating) {
+            withAnimation(AppAnimations.springSmooth) {
+                animatedProgress = targetProgress
+            }
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(showCheckmark ? "Completed" : "\(rating) percent rating")
     }

@@ -8,6 +8,8 @@ struct SkillDetailView: View {
     @State private var showingAddSubskill = false
     @State private var showingDeleteConfirm = false
     @State private var ratingNotesExpanded = false
+    @State private var contentReady = false
+    @State private var celebrationVisible = false
     let skill: Skill
 
     var body: some View {
@@ -30,6 +32,7 @@ struct SkillDetailView: View {
                 )
                 viewModel = vm
                 await vm.loadDetail()
+                withAnimation { contentReady = true }
             }
         }
         .onAppear {
@@ -62,6 +65,7 @@ struct SkillDetailView: View {
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
                 .frame(minHeight: geometry.size.height)
+                .contentLoadTransition(isLoaded: contentReady)
             }
         }
         .refreshable {
@@ -109,19 +113,32 @@ struct SkillDetailView: View {
                 completionCelebration(viewModel)
             }
         }
+        .onChange(of: viewModel.showCompletionCelebration) { _, newValue in
+            if newValue {
+                withAnimation(AppAnimations.springBouncy) {
+                    celebrationVisible = true
+                }
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            } else {
+                celebrationVisible = false
+            }
+        }
     }
 
     // MARK: - Completion Celebration
 
     private func completionCelebration(_ viewModel: SkillDetailViewModel) -> some View {
         ZStack {
-            Color.black.opacity(0.5)
+            Color.black.opacity(celebrationVisible ? 0.5 : 0)
                 .ignoresSafeArea()
+                .animation(AppAnimations.fadeIn, value: celebrationVisible)
 
             VStack(spacing: AppSpacing.lg) {
                 Image(systemName: "trophy.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(Color(red: 1.0, green: 0.84, blue: 0.0))
+                    .scaleEffect(celebrationVisible ? 1.0 : 0.6)
 
                 Text("Skill Completed!")
                     .font(AppTypography.largeTitle)
@@ -153,6 +170,7 @@ struct SkillDetailView: View {
                         .background(AppColors.teal)
                         .clipShape(Capsule())
                 }
+                .buttonStyle(.pressable)
                 .padding(.top, AppSpacing.xxs)
             }
             .padding(AppSpacing.xl)
@@ -160,6 +178,8 @@ struct SkillDetailView: View {
             .clipShape(RoundedRectangle(cornerRadius: 24))
             .shadow(radius: 20)
             .padding(.horizontal, AppSpacing.xl)
+            .scaleEffect(celebrationVisible ? 1.0 : 0.6)
+            .opacity(celebrationVisible ? 1 : 0)
         }
     }
 
@@ -281,7 +301,7 @@ struct SkillDetailView: View {
                     }
                     .padding(.vertical, AppSpacing.xs)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
         .padding(AppSpacing.sm)
@@ -390,7 +410,7 @@ struct SkillDetailView: View {
     private func drillRow(_ drill: Drill, viewModel: SkillDetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xxs) {
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(AppAnimations.springSmooth) {
                     expandedDrillId = expandedDrillId == drill.id ? nil : drill.id
                 }
             } label: {
@@ -481,7 +501,7 @@ struct SkillDetailView: View {
         if !ratingsWithNotes.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(AppAnimations.springSmooth) {
                         ratingNotesExpanded.toggle()
                     }
                 } label: {

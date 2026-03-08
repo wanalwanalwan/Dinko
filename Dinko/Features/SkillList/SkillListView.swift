@@ -4,6 +4,7 @@ struct SkillListView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: SkillListViewModel?
     @State private var showingAddSkill = false
+    @State private var contentReady = false
 
     var body: some View {
         Group {
@@ -49,6 +50,7 @@ struct SkillListView: View {
                 )
                 viewModel = vm
                 await vm.loadSkills()
+                withAnimation { contentReady = true }
             }
         }
         .onAppear {
@@ -65,7 +67,7 @@ struct SkillListView: View {
         } else {
             ScrollView {
                 LazyVStack(spacing: AppSpacing.xs) {
-                    ForEach(viewModel.skills) { skill in
+                    ForEach(Array(viewModel.skills.enumerated()), id: \.element.id) { index, skill in
                         NavigationLink(value: skill) {
                             SkillCard(
                                 skill: skill,
@@ -74,11 +76,13 @@ struct SkillListView: View {
                                 delta: viewModel.ratingDeltas[skill.id]
                             )
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
+                        .staggeredAppearance(index: index)
                     }
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
+                .contentLoadTransition(isLoaded: contentReady)
             }
             .refreshable {
                 await viewModel.loadSkills()

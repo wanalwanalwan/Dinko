@@ -3,6 +3,7 @@ import SwiftUI
 struct JournalView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: JournalViewModel?
+    @State private var contentReady = false
 
     var body: some View {
         Group {
@@ -21,6 +22,7 @@ struct JournalView: View {
                 )
                 viewModel = vm
                 await vm.loadEntries()
+                withAnimation { contentReady = true }
             }
         }
     }
@@ -32,12 +34,14 @@ struct JournalView: View {
         } else {
             ScrollView {
                 LazyVStack(spacing: AppSpacing.md) {
-                    ForEach(viewModel.dayGroups) { group in
+                    ForEach(Array(viewModel.dayGroups.enumerated()), id: \.element.id) { index, group in
                         daySection(group, viewModel: viewModel)
+                            .staggeredAppearance(index: index)
                     }
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.vertical, AppSpacing.xs)
+                .contentLoadTransition(isLoaded: contentReady)
             }
             .refreshable {
                 await viewModel.loadEntries()
@@ -131,26 +135,27 @@ struct JournalEntryCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Collapsed: always visible
-            collapsedContent
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isExpanded.toggle()
-                    }
-                }
-
-            // Expanded: details
-            if isExpanded {
-                expandedContent
-                    .padding(.top, AppSpacing.xs)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+        Button {
+            withAnimation(AppAnimations.springSmooth) {
+                isExpanded.toggle()
             }
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                // Collapsed: always visible
+                collapsedContent
+
+                // Expanded: details
+                if isExpanded {
+                    expandedContent
+                        .padding(.top, AppSpacing.xs)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .buttonStyle(.pressable)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Journal entry at \(timeString), \(entry.skillUpdatesCount) skill updates, \(entry.drillsCount) drills")
         .accessibilityHint(isExpanded ? "Tap to collapse" : "Tap to expand details")

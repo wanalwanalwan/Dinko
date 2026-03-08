@@ -5,6 +5,7 @@ struct DrillQueueView: View {
     @State private var viewModel: DrillQueueViewModel?
     @State private var expandedDrillId: UUID?
     @State private var historyExpanded = false
+    @State private var contentReady = false
 
     var body: some View {
         Group {
@@ -24,6 +25,7 @@ struct DrillQueueView: View {
                 )
                 viewModel = vm
                 await vm.loadDrills()
+                withAnimation { contentReady = true }
             }
         }
         .onAppear {
@@ -54,9 +56,11 @@ struct DrillQueueView: View {
                 VStack(spacing: AppSpacing.xs) {
                     if !viewModel.pendingDrills.isEmpty {
                         sessionSummaryCard(viewModel)
+                            .staggeredAppearance(index: 0)
 
-                        ForEach(viewModel.pendingDrills) { drill in
+                        ForEach(Array(viewModel.pendingDrills.enumerated()), id: \.element.id) { index, drill in
                             drillCard(drill, viewModel: viewModel)
+                                .staggeredAppearance(index: index + 1)
                         }
                     }
 
@@ -67,6 +71,7 @@ struct DrillQueueView: View {
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
                 .padding(.bottom, AppSpacing.xl)
+                .contentLoadTransition(isLoaded: contentReady)
             }
             .refreshable {
                 await viewModel.loadDrills()
@@ -106,7 +111,7 @@ struct DrillQueueView: View {
     private func drillCard(_ drill: Drill, viewModel: DrillQueueViewModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(AppAnimations.springSmooth) {
                     expandedDrillId = expandedDrillId == drill.id ? nil : drill.id
                 }
             } label: {
@@ -317,7 +322,7 @@ struct DrillQueueView: View {
     private func historyCard(_ viewModel: DrillQueueViewModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(AppAnimations.springSmooth) {
                     historyExpanded.toggle()
                 }
             } label: {

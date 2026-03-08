@@ -18,6 +18,8 @@
 		B10000010000000000000002 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000002 /* Colors.swift */; };
 		B10000010000000000000003 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000003 /* Typography.swift */; };
 		B10000010000000000000004 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000004 /* Spacing.swift */; };
+		P10000010000000000000001 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = P20000010000000000000001 /* Animations.swift */; };
+		P10000010000000000000002 /* AnimationModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = P20000010000000000000002 /* AnimationModifiers.swift */; };
 		B10000010000000000000005 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000005 /* PreviewData.swift */; };
 		B10000010000000000000006 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000006 /* ProgressBar.swift */; };
 		B10000010000000000000007 /* RatingBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000007 /* RatingBadge.swift */; };
@@ -129,6 +131,8 @@
 		B20000010000000000000002 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		B20000010000000000000003 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 		B20000010000000000000004 /* Spacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spacing.swift; sourceTree = "<group>"; };
+		P20000010000000000000001 /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
+		P20000010000000000000002 /* AnimationModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationModifiers.swift; sourceTree = "<group>"; };
 		B20000010000000000000005 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		B20000010000000000000006 /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
 		B20000010000000000000007 /* RatingBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingBadge.swift; sourceTree = "<group>"; };
@@ -331,6 +335,7 @@
 				B20000010000000000000002 /* Colors.swift */,
 				B20000010000000000000003 /* Typography.swift */,
 				B20000010000000000000004 /* Spacing.swift */,
+				P20000010000000000000001 /* Animations.swift */,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
@@ -339,6 +344,7 @@
 			isa = PBXGroup;
 			children = (
 				B2000001000000000000000A /* AchievementBadge.swift */,
+				P20000010000000000000002 /* AnimationModifiers.swift */,
 				B20000010000000000000009 /* CheckerItem.swift */,
 				B2000001000000000000000F /* CompletedSkillCardView.swift */,
 				B2000001000000000000000E /* DrillCardView.swift */,
@@ -683,6 +689,8 @@
 				B10000010000000000000002 /* Colors.swift in Sources */,
 				B10000010000000000000003 /* Typography.swift in Sources */,
 				B10000010000000000000004 /* Spacing.swift in Sources */,
+				P10000010000000000000001 /* Animations.swift in Sources */,
+				P10000010000000000000002 /* AnimationModifiers.swift in Sources */,
 				B10000010000000000000005 /* PreviewData.swift in Sources */,
 				B10000010000000000000006 /* ProgressBar.swift in Sources */,
 				B10000010000000000000007 /* RatingBadge.swift in Sources */,

@@ -7,6 +7,7 @@ struct HomeView: View {
     @Binding var selectedTab: Int
     @State private var viewModel: HomeViewModel?
     @State private var rawSelectedDate: Date?
+    @State private var contentReady = false
 
     var body: some View {
         Group {
@@ -27,6 +28,7 @@ struct HomeView: View {
                 )
                 viewModel = vm
                 await vm.loadDashboard()
+                withAnimation { contentReady = true }
             }
         }
         .onAppear {
@@ -51,14 +53,20 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: AppSpacing.lg) {
                 greetingHeader(viewModel)
+                    .staggeredAppearance(index: 0)
                 progressChart(viewModel)
+                    .staggeredAppearance(index: 1)
                 recommendedDrillsSection(viewModel)
+                    .staggeredAppearance(index: 2)
                 completedSkillsSection(viewModel)
+                    .staggeredAppearance(index: 3)
                 streakBanner(viewModel)
+                    .staggeredAppearance(index: 4)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
             .padding(.bottom, AppSpacing.lg)
+            .contentLoadTransition(isLoaded: contentReady)
         }
         .refreshable {
             await viewModel.loadDashboard()
@@ -404,7 +412,7 @@ struct HomeView: View {
                     } label: {
                         DrillCardView(drill: drill)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
             }
         }
