@@ -142,6 +142,11 @@ struct ChatView: View {
                 Text("Analyzing your session...")
                     .font(AppTypography.callout)
                     .foregroundStyle(AppColors.textSecondary)
+                Button { viewModel.cancelSending() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.6))
+                }
             }
             .padding(.horizontal, AppSpacing.xs)
             .padding(.vertical, AppSpacing.xxs)
@@ -229,14 +234,14 @@ struct ChatView: View {
                 .padding(.top, AppSpacing.xs)
                 .padding(.bottom, AppSpacing.xxs)
                 .onSubmit {
-                    Task { await viewModel.sendMessage() }
+                    viewModel.send()
                 }
 
             HStack {
                 Spacer()
 
                 Button {
-                    Task { await viewModel.sendMessage() }
+                    viewModel.send()
                 } label: {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 32))

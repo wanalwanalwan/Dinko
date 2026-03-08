@@ -7,6 +7,7 @@ final class ChatViewModel {
     var inputText = ""
     var isSending = false
 
+    private var sendTask: Task<Void, Never>?
     private let agentService = AgentService()
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
@@ -35,6 +36,28 @@ final class ChatViewModel {
         } catch {
             totalSkills = 0
         }
+    }
+
+    func send() {
+        sendTask = Task { await sendMessage() }
+    }
+
+    func cancelSending() {
+        sendTask?.cancel()
+        sendTask = nil
+
+        // Remove the loading bubble if present
+        if let lastAgent = messages.last, lastAgent.role == .agent, case .loading = lastAgent.content {
+            messages.removeLast()
+        }
+
+        // Remove the preceding user message and restore its text
+        if let lastUser = messages.last, lastUser.role == .user, case .text(let original) = lastUser.content {
+            messages.removeLast()
+            inputText = original
+        }
+
+        isSending = false
     }
 
     func sendMessage() async {
@@ -123,6 +146,7 @@ final class ChatViewModel {
                 ))
             }
         } catch {
+            if Task.isCancelled { return }
             replaceMessage(id: loadingId, with: ChatMessage(
                 id: loadingId,
                 role: .agent,
@@ -287,7 +311,7 @@ final class ChatViewModel {
         messages.remove(at: errorIndex - 1)
 
         inputText = originalText
-        Task { await sendMessage() }
+        send()
     }
 
     func confirmDeletion(messageId: UUID) async {
