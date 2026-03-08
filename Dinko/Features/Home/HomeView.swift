@@ -484,6 +484,8 @@ struct HomeView: View {
             RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
                 .fill(Color(hex: "1C1C2E"))
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Streak: \(viewModel.streakDays) days in a row. \(viewModel.daysToWeeklyGoal) more to hit your weekly goal.")
     }
 }
 

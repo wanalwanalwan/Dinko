@@ -4,6 +4,7 @@ struct ChatView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: ChatViewModel?
     @FocusState private var isInputFocused: Bool
+    private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         Group {
@@ -33,6 +34,21 @@ struct ChatView: View {
         ZStack(alignment: .bottom) {
             // Messages
             ScrollViewReader { proxy in
+                VStack(spacing: 0) {
+                if !networkMonitor.isConnected {
+                    HStack(spacing: AppSpacing.xxs) {
+                        Image(systemName: "wifi.slash")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("You're offline. Messages will send when reconnected.")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.vertical, AppSpacing.xxs)
+                    .padding(.horizontal, AppSpacing.sm)
+                    .frame(maxWidth: .infinity)
+                    .background(AppColors.coral.opacity(0.9))
+                }
+
                 ScrollView {
                     LazyVStack(spacing: AppSpacing.xs) {
                         if viewModel.messages.isEmpty {
@@ -62,6 +78,7 @@ struct ChatView: View {
                         }
                     }
                 }
+                } // VStack
             }
 
             // Floating input bar
@@ -148,6 +165,7 @@ struct ChatView: View {
                         .font(.system(size: 18))
                         .foregroundStyle(AppColors.textSecondary.opacity(0.6))
                 }
+                .accessibilityLabel("Cancel analysis")
             }
             .padding(.horizontal, AppSpacing.xs)
             .padding(.vertical, AppSpacing.xxs)
@@ -200,18 +218,29 @@ struct ChatView: View {
             )
 
         case .error(let errorText):
+            let isOffline = errorText.contains("offline") || errorText.contains("connection")
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                Label("Something went wrong", systemImage: "exclamationmark.triangle.fill")
+                Label(
+                    isOffline ? "No Connection" : "Something went wrong",
+                    systemImage: isOffline ? "wifi.slash" : "exclamationmark.triangle.fill"
+                )
                     .font(AppTypography.callout)
                     .foregroundStyle(AppColors.coral)
                 Text(errorText)
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColors.textSecondary)
-                Button("Retry") {
+                Button {
                     viewModel.retrySession(messageId: message.id)
+                } label: {
+                    Label("Try Again", systemImage: "arrow.counterclockwise")
+                        .font(AppTypography.callout)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, AppSpacing.xs)
+                        .padding(.vertical, AppSpacing.xxxs)
                 }
-                .font(AppTypography.callout)
+                .buttonStyle(.bordered)
                 .tint(AppColors.coral)
+                .accessibilityLabel("Retry sending message")
             }
             .padding(AppSpacing.xs)
             .background(AppColors.coral.opacity(0.08))
@@ -247,14 +276,15 @@ struct ChatView: View {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 32))
                         .foregroundStyle(
-                            viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending
+                            viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending || !networkMonitor.isConnected
                                 ? AppColors.textSecondary.opacity(0.3)
                                 : AppColors.teal
                         )
                 }
                 .disabled(
-                    viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending
+                    viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending || !networkMonitor.isConnected
                 )
+                .accessibilityLabel("Send message")
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.bottom, AppSpacing.xs)

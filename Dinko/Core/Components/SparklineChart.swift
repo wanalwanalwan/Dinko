@@ -19,6 +19,8 @@ struct SparklineChart: View {
         .chartYAxis(.hidden)
         .chartLegend(.hidden)
         .frame(width: 50, height: AppSpacing.sparklineHeight)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Rating trend from \(data.first ?? 0) to \(data.last ?? 0) percent")
     }
 }
 

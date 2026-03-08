@@ -34,5 +34,7 @@ struct CompletedSkillCardView: View {
         .frame(width: 220, alignment: .leading)
         .background(AppColors.successGreen.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(skill.name), completed in \(skill.daysToComplete) day\(skill.daysToComplete == 1 ? "" : "s")\(skill.subskills.isEmpty ? "" : ", \(skill.subskills.count) subskills mastered")")
     }
 }

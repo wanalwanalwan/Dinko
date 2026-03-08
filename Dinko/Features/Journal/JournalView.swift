@@ -151,6 +151,9 @@ struct JournalEntryCard: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Journal entry at \(timeString), \(entry.skillUpdatesCount) skill updates, \(entry.drillsCount) drills")
+        .accessibilityHint(isExpanded ? "Tap to collapse" : "Tap to expand details")
     }
 
     // MARK: - Collapsed

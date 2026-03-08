@@ -51,6 +51,8 @@ struct SkillDeletionCard: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Delete skill: \(preview.skillName)\(preview.subskillNames.isEmpty ? "" : ", including \(preview.subskillNames.count) subskills")")
     }
 
     @ViewBuilder

@@ -66,6 +66,8 @@ struct SessionPreviewCard: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Session analysis with \(preview.skillUpdates.count) skill updates and \(preview.drillRecommendations.count) drill recommendations")
     }
 
     // MARK: - Skill Updates

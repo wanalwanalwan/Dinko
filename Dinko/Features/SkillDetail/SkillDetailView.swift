@@ -220,6 +220,8 @@ struct SkillDetailView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.lg)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(skill.name), \(viewModel.latestRating) percent, \(tier.displayName)")
     }
 
     // MARK: - Subskills
@@ -559,6 +561,7 @@ struct SkillDetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.sm)
             }
+            .accessibilityLabel("Delete \(skill.name)")
         }
     }
 }

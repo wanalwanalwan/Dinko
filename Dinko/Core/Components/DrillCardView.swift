@@ -33,6 +33,8 @@ struct DrillCardView: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(drill.drillName), \(drill.durationMinutes) minutes, \(difficultyLabel), Focus: \(drill.targetSubskill ?? drill.skillName)")
     }
 
     // MARK: - Drill Type Pill

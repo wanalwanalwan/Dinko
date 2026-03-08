@@ -161,6 +161,9 @@ struct DrillQueueView: View {
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(drill.name), \(drill.durationMinutes) minutes")
+        .accessibilityHint(expandedDrillId == drill.id ? "Tap to collapse" : "Tap to expand details")
     }
 
     // MARK: - Expanded Drill Content

@@ -170,7 +170,22 @@ final class AgentService {
         request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (data, response) = try await session.data(for: request)
+        request.timeoutInterval = 60
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch let urlError as URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost:
+                throw AgentError.offline
+            case .timedOut:
+                throw AgentError.server("Request timed out. The AI coach may be busy — please try again.")
+            default:
+                throw AgentError.server("Network error: \(urlError.localizedDescription)")
+            }
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AgentError.invalidResponse
@@ -220,12 +235,14 @@ enum AgentError: LocalizedError {
     case invalidURL
     case invalidResponse
     case server(String)
+    case offline
 
     var errorDescription: String? {
         switch self {
         case .invalidURL: "Invalid server URL"
         case .invalidResponse: "Invalid response from server"
         case .server(let message): message
+        case .offline: "You're offline. Please check your connection and try again."
         }
     }
 }

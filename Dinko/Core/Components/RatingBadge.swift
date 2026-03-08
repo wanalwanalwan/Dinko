@@ -30,6 +30,8 @@ struct RatingBadge: View {
             }
         }
         .frame(width: size, height: size)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(showCheckmark ? "Completed" : "\(rating) percent rating")
     }
 }
 

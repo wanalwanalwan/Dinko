@@ -65,6 +65,8 @@ struct SkillCard: View {
         .padding(AppSpacing.sm)
         .background(tier.color.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(skill.name), \(tier.displayName), \(rating) percent\(delta.map { $0 > 0 ? ", up \($0) percent this week" : $0 < 0 ? ", down \(abs($0)) percent this week" : "" } ?? "")")
     }
 }
 

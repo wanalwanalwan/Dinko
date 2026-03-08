@@ -61,6 +61,8 @@ struct SkillCreationCard: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Create new skill: \(preview.skillName), category: \(preview.category.displayName)")
     }
 
     @ViewBuilder
