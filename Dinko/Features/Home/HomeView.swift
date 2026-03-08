@@ -27,8 +27,8 @@ struct HomeView: View {
                     sessionRepository: dependencies.sessionRepository
                 )
                 viewModel = vm
-                await vm.loadDashboard()
                 withAnimation { contentReady = true }
+                await vm.loadDashboard()
             }
         }
         .onAppear {

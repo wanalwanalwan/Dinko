@@ -25,8 +25,8 @@ struct ChatView: View {
                     journalEntryRepository: dependencies.journalEntryRepository
                 )
                 viewModel = vm
-                await vm.loadStats()
                 withAnimation { contentReady = true }
+                await vm.loadStats()
             }
         }
     }

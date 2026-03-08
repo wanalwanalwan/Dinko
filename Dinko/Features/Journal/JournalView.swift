@@ -21,8 +21,8 @@ struct JournalView: View {
                     journalEntryRepository: dependencies.journalEntryRepository
                 )
                 viewModel = vm
-                await vm.loadEntries()
                 withAnimation { contentReady = true }
+                await vm.loadEntries()
             }
         }
     }

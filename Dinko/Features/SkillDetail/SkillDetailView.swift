@@ -31,8 +31,8 @@ struct SkillDetailView: View {
                     drillRepository: dependencies.drillRepository
                 )
                 viewModel = vm
-                await vm.loadDetail()
                 withAnimation { contentReady = true }
+                await vm.loadDetail()
             }
         }
         .onAppear {

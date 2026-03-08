@@ -24,8 +24,8 @@ struct DrillQueueView: View {
                     skillRepository: dependencies.skillRepository
                 )
                 viewModel = vm
-                await vm.loadDrills()
                 withAnimation { contentReady = true }
+                await vm.loadDrills()
             }
         }
         .onAppear {

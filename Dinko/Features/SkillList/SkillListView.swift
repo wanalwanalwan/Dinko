@@ -49,8 +49,8 @@ struct SkillListView: View {
                     skillRatingRepository: dependencies.skillRatingRepository
                 )
                 viewModel = vm
-                await vm.loadSkills()
                 withAnimation { contentReady = true }
+                await vm.loadSkills()
             }
         }
         .onAppear {
