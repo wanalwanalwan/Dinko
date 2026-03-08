@@ -44,12 +44,12 @@ struct ContentView: View {
                 }
 
                 NavigationStack {
-                    JournalView()
+                    TimelineView()
                 }
                 .tag(4)
                 .tabItem {
                     Image(systemName: "book")
-                    Text("Journal")
+                    Text("Timeline")
                 }
             }
             .tint(AppColors.teal)

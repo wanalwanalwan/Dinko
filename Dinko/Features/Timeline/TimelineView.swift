@@ -1,23 +1,23 @@
 import SwiftUI
 
-struct JournalView: View {
+struct TimelineView: View {
     @Environment(\.dependencies) private var dependencies
-    @State private var viewModel: JournalViewModel?
+    @State private var viewModel: TimelineViewModel?
     @State private var contentReady = false
 
     var body: some View {
         Group {
             if let viewModel {
-                journalContent(viewModel)
+                timelineContent(viewModel)
             } else {
                 ProgressView()
             }
         }
-        .navigationTitle("Journal")
+        .navigationTitle("Timeline")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             if viewModel == nil {
-                let vm = JournalViewModel(
+                let vm = TimelineViewModel(
                     journalEntryRepository: dependencies.journalEntryRepository
                 )
                 viewModel = vm
@@ -28,7 +28,7 @@ struct JournalView: View {
     }
 
     @ViewBuilder
-    private func journalContent(_ viewModel: JournalViewModel) -> some View {
+    private func timelineContent(_ viewModel: TimelineViewModel) -> some View {
         if viewModel.dayGroups.isEmpty && !viewModel.isLoading {
             emptyState
         } else {
@@ -57,11 +57,11 @@ struct JournalView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(AppColors.teal.opacity(0.5))
 
-            Text("No Journal Entries Yet")
+            Text("No Entries Yet")
                 .font(AppTypography.title)
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("Log a session in the Coach tab and confirm it to create your first journal entry.")
+            Text("Log a session in the Coach tab and confirm it to create your first entry.")
                 .font(AppTypography.callout)
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)
@@ -71,7 +71,7 @@ struct JournalView: View {
         }
     }
 
-    private func daySection(_ group: JournalDayGroup, viewModel: JournalViewModel) -> some View {
+    private func daySection(_ group: TimelineDayGroup, viewModel: TimelineViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xxs) {
             Text(group.displayDate)
                 .font(AppTypography.caption)
@@ -80,7 +80,7 @@ struct JournalView: View {
                 .padding(.leading, AppSpacing.xxxs)
 
             ForEach(group.entries) { entry in
-                JournalEntryCard(entry: entry)
+                TimelineEntryCard(entry: entry)
                     .contextMenu {
                         Button(role: .destructive) {
                             Task { await viewModel.deleteEntry(entry.id) }
@@ -93,9 +93,9 @@ struct JournalView: View {
     }
 }
 
-// MARK: - Journal Entry Card
+// MARK: - Timeline Entry Card
 
-struct JournalEntryCard: View {
+struct TimelineEntryCard: View {
     let entry: JournalEntry
     @State private var isExpanded = false
 
@@ -157,7 +157,7 @@ struct JournalEntryCard: View {
         }
         .buttonStyle(.pressable)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Journal entry at \(timeString), \(entry.skillUpdatesCount) skill updates, \(entry.drillsCount) drills")
+        .accessibilityLabel("Timeline entry at \(timeString), \(entry.skillUpdatesCount) skill updates, \(entry.drillsCount) drills")
         .accessibilityHint(isExpanded ? "Tap to collapse" : "Tap to expand details")
     }
 
@@ -301,6 +301,6 @@ struct JournalEntryCard: View {
 
 #Preview {
     NavigationStack {
-        JournalView()
+        TimelineView()
     }
 }

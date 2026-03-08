@@ -93,8 +93,8 @@
 		J10000010000000000000002 /* JournalEntryEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* JournalEntryEntity+Ext.swift */; };
 		J10000010000000000000003 /* JournalEntryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000003 /* JournalEntryRepository.swift */; };
 		J10000010000000000000004 /* JournalEntryRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */; };
-		J10000010000000000000005 /* JournalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000005 /* JournalViewModel.swift */; };
-		J10000010000000000000006 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000006 /* JournalView.swift */; };
+		J10000010000000000000005 /* TimelineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000005 /* TimelineViewModel.swift */; };
+		J10000010000000000000006 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000006 /* TimelineView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -206,8 +206,8 @@
 		J20000010000000000000002 /* JournalEntryEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalEntryEntity+Ext.swift"; sourceTree = "<group>"; };
 		J20000010000000000000003 /* JournalEntryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryRepository.swift; sourceTree = "<group>"; };
 		J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryRepositoryImpl.swift; sourceTree = "<group>"; };
-		J20000010000000000000005 /* JournalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalViewModel.swift; sourceTree = "<group>"; };
-		J20000010000000000000006 /* JournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
+		J20000010000000000000005 /* TimelineViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineViewModel.swift; sourceTree = "<group>"; };
+		J20000010000000000000006 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -446,7 +446,7 @@
 				F70000000000000000000001 /* Auth */,
 				E70000020000000000000001 /* Chat */,
 				E70000030000000000000001 /* Drills */,
-				J70000000000000000000001 /* Journal */,
+				J70000000000000000000001 /* Timeline */,
 				M70000000000000000000001 /* Onboarding */,
 			);
 			path = Features;
@@ -524,13 +524,13 @@
 			path = Drills;
 			sourceTree = "<group>";
 		};
-		J70000000000000000000001 /* Journal */ = {
+		J70000000000000000000001 /* Timeline */ = {
 			isa = PBXGroup;
 			children = (
-				J20000010000000000000005 /* JournalViewModel.swift */,
-				J20000010000000000000006 /* JournalView.swift */,
+				J20000010000000000000005 /* TimelineViewModel.swift */,
+				J20000010000000000000006 /* TimelineView.swift */,
 			);
-			path = Journal;
+			path = Timeline;
 			sourceTree = "<group>";
 		};
 		M70000000000000000000001 /* Onboarding */ = {
@@ -760,8 +760,8 @@
 				J10000010000000000000002 /* JournalEntryEntity+Ext.swift in Sources */,
 				J10000010000000000000003 /* JournalEntryRepository.swift in Sources */,
 				J10000010000000000000004 /* JournalEntryRepositoryImpl.swift in Sources */,
-				J10000010000000000000005 /* JournalViewModel.swift in Sources */,
-				J10000010000000000000006 /* JournalView.swift in Sources */,
+				J10000010000000000000005 /* TimelineViewModel.swift in Sources */,
+				J10000010000000000000006 /* TimelineView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

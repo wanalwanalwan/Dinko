@@ -1,6 +1,6 @@
 import Foundation
 
-struct JournalDayGroup: Identifiable {
+struct TimelineDayGroup: Identifiable {
     let id: Date
     let displayDate: String
     var entries: [JournalEntry]
@@ -8,8 +8,8 @@ struct JournalDayGroup: Identifiable {
 
 @MainActor
 @Observable
-final class JournalViewModel {
-    private(set) var dayGroups: [JournalDayGroup] = []
+final class TimelineViewModel {
+    private(set) var dayGroups: [TimelineDayGroup] = []
     private(set) var isLoading = false
 
     private let journalEntryRepository: JournalEntryRepository
@@ -38,14 +38,14 @@ final class JournalViewModel {
         }
     }
 
-    private func groupByDay(_ entries: [JournalEntry]) -> [JournalDayGroup] {
+    private func groupByDay(_ entries: [JournalEntry]) -> [TimelineDayGroup] {
         let calendar = Calendar.current
         let grouped = Dictionary(grouping: entries) { entry in
             calendar.startOfDay(for: entry.date)
         }
 
         return grouped.keys.sorted(by: >).map { dayStart in
-            JournalDayGroup(
+            TimelineDayGroup(
                 id: dayStart,
                 displayDate: formatDayHeader(dayStart),
                 entries: grouped[dayStart] ?? []
