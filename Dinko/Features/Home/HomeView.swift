@@ -376,7 +376,7 @@ struct HomeView: View {
                 .foregroundStyle(isSelected ? .white : AppColors.textSecondary)
                 .padding(.horizontal, AppSpacing.xs)
                 .padding(.vertical, 6)
-                .background(isSelected ? AppColors.teal : Color(.systemBackground))
+                .background(isSelected ? AppColors.teal : AppColors.background)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -490,7 +490,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
-                .fill(Color(hex: "1C1C2E"))
+                .fill(AppColors.surfaceDark)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Streak: \(viewModel.streakDays) days in a row. \(viewModel.daysToWeeklyGoal) more to hit your weekly goal.")

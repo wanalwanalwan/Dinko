@@ -14,7 +14,7 @@ struct RatingBadge: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color(.systemFill), lineWidth: lineWidth)
+                .stroke(AppColors.separator, lineWidth: lineWidth)
 
             Circle()
                 .trim(from: 0, to: animatedProgress)
@@ -51,7 +51,7 @@ struct RatingBadge: View {
     VStack(spacing: 24) {
         HStack(spacing: 16) {
             RatingBadge(rating: 0)
-            RatingBadge(rating: 45, ringColor: .orange)
+            RatingBadge(rating: 45, ringColor: AppColors.drillOrange)
             RatingBadge(rating: 75, ringColor: AppColors.teal)
             RatingBadge(rating: 100, ringColor: AppColors.teal, showCheckmark: true)
         }

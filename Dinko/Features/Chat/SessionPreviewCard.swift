@@ -293,7 +293,7 @@ struct SessionPreviewCard: View {
             ForEach(preview.saturatedSkills, id: \.skillName) { info in
                 HStack(alignment: .top, spacing: AppSpacing.xxs) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(AppColors.warningOrange)
                         .font(.system(size: 13))
                         .frame(width: 20)
 
@@ -304,7 +304,7 @@ struct SessionPreviewCard: View {
             }
         }
         .padding(AppSpacing.xs)
-        .background(Color.orange.opacity(0.08))
+        .background(AppColors.warningOrange.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 

@@ -12,9 +12,8 @@ struct SplashScreenView: View {
             // Gradient background matching the app icon's teal-green palette
             LinearGradient(
                 colors: [
-                    Color(hex: "7EC8C4"),
-                    Color(hex: "A8D5A0"),
-                    Color(hex: "D4E4A0")
+                    AppColors.splashGradientStart,
+                    AppColors.splashGradientEnd
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing

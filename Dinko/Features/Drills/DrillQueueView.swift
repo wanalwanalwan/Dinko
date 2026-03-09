@@ -164,7 +164,7 @@ struct DrillQueueView: View {
         .padding(AppSpacing.sm)
         .frame(minHeight: 44)
         .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(drill.name), \(drill.durationMinutes) minutes")
@@ -261,11 +261,11 @@ struct DrillQueueView: View {
 
     private func skillPillColor(_ name: String) -> Color {
         let lower = name.lowercased()
-        if lower.contains("drive") || lower.contains("attack") { return Color(hex: "4A6CF7") }
-        if lower.contains("dink") || lower.contains("drop") || lower.contains("touch") { return .purple }
+        if lower.contains("drive") || lower.contains("attack") { return AppColors.teal }
+        if lower.contains("dink") || lower.contains("drop") || lower.contains("touch") { return AppColors.drillPurple }
         if lower.contains("return") || lower.contains("serve") { return AppColors.successGreen }
-        if lower.contains("counter") { return .orange }
-        if lower.contains("strategy") || lower.contains("position") { return Color(hex: "8B5CF6") }
+        if lower.contains("counter") { return AppColors.drillOrange }
+        if lower.contains("strategy") || lower.contains("position") { return AppColors.drillPurple }
         if lower.contains("movement") || lower.contains("footwork") { return AppColors.coral }
         return AppColors.teal
     }

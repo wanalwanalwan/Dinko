@@ -53,10 +53,10 @@ struct DrillCardView: View {
     private var drillTypeInfo: (icon: String, label: String, color: Color) {
         let lower = drill.drillName.lowercased()
         if lower.contains("reflex") || lower.contains("reaction") {
-            return ("⚡", "Reflex", .orange)
+            return ("⚡", "Reflex", AppColors.drillOrange)
         }
         if lower.contains("placement") || lower.contains("target") || lower.contains("accuracy") {
-            return ("🎯", "Placement", Color(hex: "4A6CF7"))
+            return ("🎯", "Placement", AppColors.teal)
         }
         if lower.contains("power") || lower.contains("smash") || lower.contains("speed") {
             return ("🔥", "Power", AppColors.coral)
@@ -65,18 +65,18 @@ struct DrillCardView: View {
             return ("🎯", "Touch", AppColors.successGreen)
         }
         if lower.contains("strategy") || lower.contains("position") || lower.contains("transition") {
-            return ("🧠", "Strategy", .purple)
+            return ("🧠", "Strategy", AppColors.drillPurple)
         }
         if lower.contains("serve") || lower.contains("return") {
-            return ("🎯", "Serve", Color(hex: "4A6CF7"))
+            return ("🎯", "Serve", AppColors.teal)
         }
         if lower.contains("drive") || lower.contains("attack") {
             return ("🔥", "Attack", AppColors.coral)
         }
         if lower.contains("counter") {
-            return ("⚡", "Counter", .orange)
+            return ("⚡", "Counter", AppColors.drillOrange)
         }
-        return ("🏸", "Drill", Color(hex: "4A6CF7"))
+        return ("🏸", "Drill", AppColors.teal)
     }
 
     private var difficultyLabel: String {

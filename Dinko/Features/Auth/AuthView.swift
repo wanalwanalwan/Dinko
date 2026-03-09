@@ -114,6 +114,6 @@ struct AuthView: View {
                 .padding(.horizontal, AppSpacing.lg)
             }
         }
-        .background(Color(.systemBackground))
+        .background(AppColors.background)
     }
 }

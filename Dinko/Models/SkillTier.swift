@@ -30,9 +30,9 @@ enum SkillTier: String, CaseIterable {
     var color: Color {
         switch self {
         case .beginner: AppColors.lockedGray
-        case .developing: Color(hex: "5B9BD5")
+        case .developing: AppColors.tierBlue
         case .solid: AppColors.teal
-        case .advanced: Color(hex: "F5A623")
+        case .advanced: AppColors.tierGold
         case .weapon: AppColors.coral
         }
     }

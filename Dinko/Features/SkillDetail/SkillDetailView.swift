@@ -130,14 +130,14 @@ struct SkillDetailView: View {
 
     private func completionCelebration(_ viewModel: SkillDetailViewModel) -> some View {
         ZStack {
-            Color.black.opacity(celebrationVisible ? 0.5 : 0)
+            AppColors.overlayScrim.opacity(celebrationVisible ? 0.5 : 0)
                 .ignoresSafeArea()
                 .animation(AppAnimations.fadeIn, value: celebrationVisible)
 
             VStack(spacing: AppSpacing.lg) {
                 Image(systemName: "trophy.fill")
                     .font(.system(size: 64))
-                    .foregroundStyle(Color(red: 1.0, green: 0.84, blue: 0.0))
+                    .foregroundStyle(AppColors.trophyGold)
                     .scaleEffect(celebrationVisible ? 1.0 : 0.6)
 
                 Text("Skill Completed!")

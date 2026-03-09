@@ -23,7 +23,7 @@ struct OnboardingView: View {
             dotIndicator
                 .padding(.bottom, AppSpacing.xl)
         }
-        .background(Color(.systemBackground))
+        .background(AppColors.background)
     }
 
     // MARK: - Dot Indicator

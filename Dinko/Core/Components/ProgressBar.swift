@@ -12,7 +12,7 @@ struct ProgressBar: View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(Color(.systemFill))
+                    .fill(AppColors.separator)
                     .frame(height: 8)
 
                 Capsule()
