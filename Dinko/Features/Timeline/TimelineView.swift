@@ -228,6 +228,23 @@ struct TimelineEntryCard: View {
                       systemImage: "figure.pickleball")
                     .font(AppTypography.callout)
                     .foregroundStyle(AppColors.coral)
+            } else {
+                // Info-only entry — show coach insight or user note as summary
+                let summary = !entry.coachInsight.isEmpty ? entry.coachInsight : entry.userNote
+                if !summary.isEmpty {
+                    HStack(alignment: .top, spacing: AppSpacing.xxs) {
+                        Image(systemName: "bubble.left.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(AppColors.teal)
+                            .padding(.top, 2)
+
+                        Text(summary)
+                            .font(AppTypography.callout)
+                            .foregroundStyle(AppColors.textPrimary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
             }
         }
     }
