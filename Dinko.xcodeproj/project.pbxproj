@@ -89,6 +89,7 @@
 		B1000001000000000000000D /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000D /* SectionHeaderView.swift */; };
 		B1000001000000000000000E /* DrillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000E /* DrillCardView.swift */; };
 		B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000F /* CompletedSkillCardView.swift */; };
+		B10000010000000000000010 /* CoachMascot.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000010 /* CoachMascot.swift */; };
 		J10000010000000000000001 /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000001 /* JournalEntry.swift */; };
 		J10000010000000000000002 /* JournalEntryEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* JournalEntryEntity+Ext.swift */; };
 		J10000010000000000000003 /* JournalEntryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000003 /* JournalEntryRepository.swift */; };
@@ -202,6 +203,7 @@
 		B2000001000000000000000D /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		B2000001000000000000000E /* DrillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillCardView.swift; sourceTree = "<group>"; };
 		B2000001000000000000000F /* CompletedSkillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedSkillCardView.swift; sourceTree = "<group>"; };
+		B20000010000000000000010 /* CoachMascot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMascot.swift; sourceTree = "<group>"; };
 		J20000010000000000000001 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
 		J20000010000000000000002 /* JournalEntryEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalEntryEntity+Ext.swift"; sourceTree = "<group>"; };
 		J20000010000000000000003 /* JournalEntryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryRepository.swift; sourceTree = "<group>"; };
@@ -346,6 +348,7 @@
 				B2000001000000000000000A /* AchievementBadge.swift */,
 				P20000010000000000000002 /* AnimationModifiers.swift */,
 				B20000010000000000000009 /* CheckerItem.swift */,
+				B20000010000000000000010 /* CoachMascot.swift */,
 				B2000001000000000000000F /* CompletedSkillCardView.swift */,
 				B2000001000000000000000E /* DrillCardView.swift */,
 				B2000001000000000000000B /* MotivationalBanner.swift */,
@@ -756,6 +759,7 @@
 				B1000001000000000000000D /* SectionHeaderView.swift in Sources */,
 				B1000001000000000000000E /* DrillCardView.swift in Sources */,
 				B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */,
+				B10000010000000000000010 /* CoachMascot.swift in Sources */,
 				J10000010000000000000001 /* JournalEntry.swift in Sources */,
 				J10000010000000000000002 /* JournalEntryEntity+Ext.swift in Sources */,
 				J10000010000000000000003 /* JournalEntryRepository.swift in Sources */,

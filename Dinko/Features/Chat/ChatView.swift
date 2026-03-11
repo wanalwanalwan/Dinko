@@ -100,9 +100,7 @@ struct ChatView: View {
             Spacer()
                 .frame(height: 60)
 
-            Image(systemName: "bubble.left.and.text.bubble.right")
-                .font(.system(size: 48))
-                .foregroundStyle(AppColors.teal.opacity(0.5))
+            CoachMascot(state: .idle, size: 88)
 
             Text("How was your session?")
                 .font(AppTypography.title)
@@ -128,7 +126,8 @@ struct ChatView: View {
             }
 
         case .agent:
-            HStack {
+            HStack(alignment: .top, spacing: AppSpacing.xxs) {
+                CoachMascot(state: mascotState(for: message), size: 36)
                 agentBubbleContent(message, viewModel: viewModel)
                 Spacer(minLength: 40)
             }
@@ -252,6 +251,23 @@ struct ChatView: View {
             .padding(AppSpacing.xs)
             .background(AppColors.coral.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm))
+        }
+    }
+
+    // MARK: - Mascot State Mapping
+
+    private func mascotState(for message: ChatMessage) -> MascotState {
+        switch message.content {
+        case .text:
+            return .talking
+        case .loading:
+            return .thinking
+        case .sessionPreview(let preview):
+            return preview.confirmState == .confirmed ? .celebrating : .talking
+        case .skillDeletion, .skillCreation:
+            return .talking
+        case .error:
+            return .idle
         }
     }
 
