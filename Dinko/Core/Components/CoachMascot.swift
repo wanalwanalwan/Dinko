@@ -78,7 +78,7 @@ private struct MascotAnimation: ViewModifier {
     func body(content: Content) -> some View {
         switch state {
         case .idle:
-            content.offset(y: isAnimating ? -2 : 2)
+            content.offset(y: isAnimating ? -8 : 8)
         case .thinking:
             content.scaleEffect(isAnimating ? 1.0 : 0.95)
         case .talking:

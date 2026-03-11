@@ -55,6 +55,9 @@ struct ChatView: View {
                     LazyVStack(spacing: AppSpacing.xs) {
                         if viewModel.messages.isEmpty {
                             emptyState
+                        } else {
+                            // Coach header at top of conversation
+                            coachHeader
                         }
 
                         ForEach(viewModel.messages) { message in
@@ -71,7 +74,8 @@ struct ChatView: View {
                             .frame(height: 80)
                     }
                     .padding(.horizontal, AppSpacing.sm)
-                    .padding(.vertical, AppSpacing.xs)
+                    .padding(.top, AppSpacing.lg)
+                    .padding(.bottom, AppSpacing.xs)
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .onTapGesture {
@@ -91,6 +95,22 @@ struct ChatView: View {
             inputBar(viewModel)
         }
         .contentLoadTransition(isLoaded: contentReady)
+    }
+
+    // MARK: - Coach Header
+
+    private var coachHeader: some View {
+        VStack(spacing: AppSpacing.xxxs) {
+            Text("AI Pickleball Coach")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+
+            Text("Your personal training partner")
+                .font(.system(size: 13, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, AppSpacing.sm)
     }
 
     // MARK: - Empty State
@@ -121,44 +141,77 @@ struct ChatView: View {
         switch message.role {
         case .user:
             HStack {
-                Spacer(minLength: 60)
+                Spacer(minLength: UIScreen.main.bounds.width * 0.3)
                 userBubbleContent(message)
             }
 
         case .agent:
-            HStack(alignment: .top, spacing: AppSpacing.xxs) {
-                CoachMascot(state: mascotState(for: message), size: 36)
+            agentMessageRow(message, viewModel: viewModel)
+        }
+    }
+
+    // MARK: - Agent Message Row
+
+    @ViewBuilder
+    private func agentMessageRow(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
+        if case .text(let text) = message.content {
+            // Split long text into conversational chunks
+            let chunks = splitIntoChunks(text)
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                ForEach(Array(chunks.enumerated()), id: \.offset) { index, chunk in
+                    HStack(alignment: .top, spacing: 10) {
+                        if index == 0 {
+                            CoachMascot(state: .talking, size: 30)
+                        } else {
+                            Spacer().frame(width: 30)
+                        }
+
+                        Text(chunk)
+                            .font(AppTypography.body)
+                            .lineSpacing(4)
+                            .foregroundStyle(AppColors.textPrimary)
+                            .padding(14)
+                            .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading)
+                            .background(Color(hex: "F4F6F8"))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                        Spacer(minLength: UIScreen.main.bounds.width * 0.1)
+                    }
+                }
+            }
+        } else {
+            // Non-text content (loading, session preview, cards, errors)
+            HStack(alignment: .top, spacing: 10) {
+                CoachMascot(state: mascotState(for: message), size: 30)
                 agentBubbleContent(message, viewModel: viewModel)
-                Spacer(minLength: 40)
+                Spacer(minLength: 0)
             }
         }
     }
+
+    // MARK: - User Bubble
 
     private func userBubbleContent(_ message: ChatMessage) -> some View {
         Group {
             if case .text(let text) = message.content {
                 Text(text)
                     .font(AppTypography.body)
+                    .lineSpacing(4)
                     .foregroundStyle(.white)
-                    .padding(.horizontal, AppSpacing.xs)
-                    .padding(.vertical, AppSpacing.xxs)
+                    .padding(14)
                     .background(AppColors.teal)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
             }
         }
     }
 
+    // MARK: - Agent Bubble Content (non-text types)
+
     @ViewBuilder
     private func agentBubbleContent(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
         switch message.content {
-        case .text(let text):
-            Text(text)
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.textPrimary)
-                .padding(.horizontal, AppSpacing.xs)
-                .padding(.vertical, AppSpacing.xxs)
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm))
+        case .text:
+            EmptyView() // Handled by agentMessageRow
 
         case .loading:
             HStack(spacing: AppSpacing.xxs) {
@@ -173,10 +226,9 @@ struct ChatView: View {
                 }
                 .accessibilityLabel("Cancel analysis")
             }
-            .padding(.horizontal, AppSpacing.xs)
-            .padding(.vertical, AppSpacing.xxs)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm))
+            .padding(14)
+            .background(Color(hex: "F4F6F8"))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
 
         case .sessionPreview(let preview):
             SessionPreviewCard(
@@ -248,10 +300,50 @@ struct ChatView: View {
                 .tint(AppColors.coral)
                 .accessibilityLabel("Retry sending message")
             }
-            .padding(AppSpacing.xs)
+            .padding(14)
             .background(AppColors.coral.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
+    }
+
+    // MARK: - Text Splitting
+
+    /// Splits a long AI message into conversational chunks.
+    /// Splits on sentence boundaries, targeting 1-3 sentences per chunk.
+    private func splitIntoChunks(_ text: String) -> [String] {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return [trimmed] }
+
+        // Split into sentences
+        var sentences: [String] = []
+        trimmed.enumerateSubstrings(in: trimmed.startIndex..., options: .bySentences) { substring, _, _, _ in
+            if let s = substring {
+                sentences.append(s.trimmingCharacters(in: .whitespaces))
+            }
+        }
+
+        guard sentences.count > 3 else { return [trimmed] }
+
+        // Group sentences into chunks of ~2 sentences each
+        var chunks: [String] = []
+        var current: [String] = []
+        for sentence in sentences {
+            current.append(sentence)
+            if current.count >= 2 {
+                chunks.append(current.joined(separator: " "))
+                current = []
+            }
+        }
+        if !current.isEmpty {
+            // Append remainder to last chunk if it's just 1 sentence, otherwise make new chunk
+            if current.count == 1, let last = chunks.last {
+                chunks[chunks.count - 1] = last + " " + current.joined()
+            } else {
+                chunks.append(current.joined(separator: " "))
+            }
+        }
+
+        return chunks
     }
 
     // MARK: - Mascot State Mapping
