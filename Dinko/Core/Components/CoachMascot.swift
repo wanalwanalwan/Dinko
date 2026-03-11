@@ -28,6 +28,7 @@ enum MascotState {
 struct CoachMascot: View {
     let state: MascotState
     var size: CGFloat = 36
+    var animated: Bool = true
 
     @State private var isAnimating = false
 
@@ -37,37 +38,32 @@ struct CoachMascot: View {
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: size, height: size)
-            .modifier(MascotAnimation(state: state, isAnimating: isAnimating))
+            .modifier(MascotAnimation(state: state, isAnimating: animated ? isAnimating : false))
             .accessibilityLabel(state.accessibilityLabel)
             .onAppear {
-                switch state {
-                case .idle, .thinking:
-                    withAnimation(
-                        Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)
-                    ) {
-                        isAnimating = true
-                    }
-                case .talking, .celebrating:
-                    withAnimation(AppAnimations.springBouncy) {
-                        isAnimating = true
-                    }
-                }
+                guard animated else { return }
+                startAnimation()
             }
             .onChange(of: state) {
+                guard animated else { return }
                 isAnimating = false
-                switch state {
-                case .idle, .thinking:
-                    withAnimation(
-                        Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)
-                    ) {
-                        isAnimating = true
-                    }
-                case .talking, .celebrating:
-                    withAnimation(AppAnimations.springBouncy) {
-                        isAnimating = true
-                    }
-                }
+                startAnimation()
             }
+    }
+
+    private func startAnimation() {
+        switch state {
+        case .idle, .thinking:
+            withAnimation(
+                Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)
+            ) {
+                isAnimating = true
+            }
+        case .talking, .celebrating:
+            withAnimation(AppAnimations.springBouncy) {
+                isAnimating = true
+            }
+        }
     }
 }
 
