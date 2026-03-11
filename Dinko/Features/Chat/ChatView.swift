@@ -101,16 +101,16 @@ struct ChatView: View {
 
     private var coachHeader: some View {
         VStack(spacing: AppSpacing.xxxs) {
-            Text("AI Pickleball Coach")
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+            Text("AI Pickleball Coach \u{1F3D3}")
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
             Text("Your personal training partner")
                 .font(.system(size: 13, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
+                .foregroundStyle(AppColors.textSecondary.opacity(0.7))
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, AppSpacing.sm)
+        .padding(.bottom, AppSpacing.md)
     }
 
     // MARK: - Empty State
@@ -157,13 +157,13 @@ struct ChatView: View {
         if case .text(let text) = message.content {
             // Split long text into conversational chunks
             let chunks = splitIntoChunks(text)
-            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 ForEach(Array(chunks.enumerated()), id: \.offset) { index, chunk in
-                    HStack(alignment: .top, spacing: 10) {
+                    HStack(alignment: .top, spacing: 8) {
                         if index == 0 {
-                            CoachMascot(state: .talking, size: 30)
+                            CoachMascot(state: .talking, size: 28)
                         } else {
-                            Spacer().frame(width: 30)
+                            Spacer().frame(width: 28)
                         }
 
                         Text(chunk)
@@ -171,18 +171,19 @@ struct ChatView: View {
                             .lineSpacing(4)
                             .foregroundStyle(AppColors.textPrimary)
                             .padding(14)
-                            .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading)
+                            .frame(maxWidth: 270, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
                             .background(Color(hex: "F4F6F8"))
                             .clipShape(RoundedRectangle(cornerRadius: 16))
 
-                        Spacer(minLength: UIScreen.main.bounds.width * 0.1)
+                        Spacer()
                     }
                 }
             }
         } else {
             // Non-text content (loading, session preview, cards, errors)
-            HStack(alignment: .top, spacing: 10) {
-                CoachMascot(state: mascotState(for: message), size: 30)
+            HStack(alignment: .top, spacing: 8) {
+                CoachMascot(state: mascotState(for: message), size: 28)
                 agentBubbleContent(message, viewModel: viewModel)
                 Spacer(minLength: 0)
             }
@@ -199,6 +200,8 @@ struct ChatView: View {
                     .lineSpacing(4)
                     .foregroundStyle(.white)
                     .padding(14)
+                    .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: .trailing)
+                    .fixedSize(horizontal: false, vertical: true)
                     .background(AppColors.teal)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
             }
@@ -308,8 +311,7 @@ struct ChatView: View {
 
     // MARK: - Text Splitting
 
-    /// Splits a long AI message into conversational chunks.
-    /// Splits on sentence boundaries, targeting 1-3 sentences per chunk.
+    /// Splits a long AI message into conversational chunks (1 sentence each).
     private func splitIntoChunks(_ text: String) -> [String] {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [trimmed] }
@@ -318,32 +320,17 @@ struct ChatView: View {
         var sentences: [String] = []
         trimmed.enumerateSubstrings(in: trimmed.startIndex..., options: .bySentences) { substring, _, _, _ in
             if let s = substring {
-                sentences.append(s.trimmingCharacters(in: .whitespaces))
+                let cleaned = s.trimmingCharacters(in: .whitespaces)
+                if !cleaned.isEmpty {
+                    sentences.append(cleaned)
+                }
             }
         }
 
-        guard sentences.count > 3 else { return [trimmed] }
+        // Only split if there are multiple sentences
+        guard sentences.count > 1 else { return [trimmed] }
 
-        // Group sentences into chunks of ~2 sentences each
-        var chunks: [String] = []
-        var current: [String] = []
-        for sentence in sentences {
-            current.append(sentence)
-            if current.count >= 2 {
-                chunks.append(current.joined(separator: " "))
-                current = []
-            }
-        }
-        if !current.isEmpty {
-            // Append remainder to last chunk if it's just 1 sentence, otherwise make new chunk
-            if current.count == 1, let last = chunks.last {
-                chunks[chunks.count - 1] = last + " " + current.joined()
-            } else {
-                chunks.append(current.joined(separator: " "))
-            }
-        }
-
-        return chunks
+        return sentences
     }
 
     // MARK: - Mascot State Mapping
