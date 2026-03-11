@@ -474,17 +474,13 @@ final class ChatViewModel {
                 lines.append("User: \(text)")
 
             case (.agent, .sessionPreview(let preview)):
-                var parts: [String] = []
-                for update in preview.skillUpdates {
-                    let sign = update.delta >= 0 ? "+" : ""
-                    parts.append("\(update.skill) from \(update.old)% to \(update.new)% (\(sign)\(update.delta)%)")
-                }
-                if !parts.isEmpty {
-                    lines.append("Coach: Suggested \(parts.joined(separator: "; "))")
-                }
-                let drillNames = preview.drillRecommendations.map(\.name)
-                if !drillNames.isEmpty {
-                    lines.append("Coach: Recommended drills: \(drillNames.joined(separator: ", "))")
+                // Only include a brief note — NOT skill names/updates, which would
+                // cause the extraction phase to re-extract them on the next turn.
+                switch preview.confirmState {
+                case .confirmed:
+                    lines.append("Coach: [Previous session was logged and confirmed]")
+                default:
+                    lines.append("Coach: [Session update was suggested]")
                 }
 
             case (.agent, .skillDeletion(let preview)):
