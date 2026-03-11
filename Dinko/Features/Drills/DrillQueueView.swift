@@ -83,10 +83,7 @@ struct DrillQueueView: View {
 
     private func sessionSummaryCard(_ viewModel: DrillQueueViewModel) -> some View {
         HStack(spacing: AppSpacing.sm) {
-            Image(systemName: "figure.run")
-                .font(.system(size: 28, weight: .semibold))
-                .foregroundStyle(AppColors.teal)
-                .frame(width: 44, height: 44)
+            CoachMascot(state: .idle, size: 44)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(viewModel.pendingDrills.count) Drill\(viewModel.pendingDrills.count == 1 ? "" : "s") Queued")
