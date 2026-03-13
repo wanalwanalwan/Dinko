@@ -1,17 +1,56 @@
 import SwiftUI
 
 struct DrillDetailView: View {
-    let drill: HomeRecommendedDrill
-    let onComplete: () async -> Void
+    private let drillName: String
+    private let skillName: String
+    private let durationMinutes: Int
+    private let priority: String
+    private let drillDescription: String
+    private let equipment: String
+    private let playerCount: Int
+    private let reason: String
+    private let targetSubskill: String?
+    private let onComplete: () async -> Void
+    private let onSkip: (() async -> Void)?
 
     @Environment(\.dismiss) private var dismiss
+
+    // Existing init for HomeRecommendedDrill (HomeView compatibility)
+    init(drill: HomeRecommendedDrill, onComplete: @escaping () async -> Void) {
+        self.drillName = drill.drillName
+        self.skillName = drill.skillName
+        self.durationMinutes = drill.durationMinutes
+        self.priority = drill.priority
+        self.drillDescription = drill.drillDescription
+        self.equipment = drill.equipment
+        self.playerCount = drill.playerCount
+        self.reason = drill.reason
+        self.targetSubskill = drill.targetSubskill
+        self.onComplete = onComplete
+        self.onSkip = nil
+    }
+
+    // New init for Drill type (DrillQueueView)
+    init(drill: Drill, skillName: String, onComplete: @escaping () async -> Void, onSkip: @escaping () async -> Void) {
+        self.drillName = drill.name
+        self.skillName = skillName
+        self.durationMinutes = drill.durationMinutes
+        self.priority = drill.priority
+        self.drillDescription = drill.drillDescription
+        self.equipment = drill.equipment
+        self.playerCount = drill.playerCount
+        self.reason = drill.reason
+        self.targetSubskill = drill.targetSubskill
+        self.onComplete = onComplete
+        self.onSkip = onSkip
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.md) {
                 heroSection
                 detailsCard
-                if !drill.reason.isEmpty {
+                if !reason.isEmpty {
                     reasonCard
                 }
                 actionButtons
@@ -32,15 +71,15 @@ struct DrillDetailView: View {
                 .font(.system(size: 56))
                 .foregroundStyle(AppColors.teal)
 
-            Text(drill.drillName)
+            Text(drillName)
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
                 .multilineTextAlignment(.center)
 
             HStack(spacing: AppSpacing.xs) {
-                Label("\(drill.durationMinutes) min", systemImage: "clock")
+                Label("\(durationMinutes) min", systemImage: "clock")
                 Text("\u{00B7}")
-                Text(drill.skillName)
+                Text(skillName)
                     .foregroundStyle(AppColors.teal)
             }
             .font(.system(size: 14, design: .rounded))
@@ -54,38 +93,38 @@ struct DrillDetailView: View {
 
     private var detailsCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            if !drill.drillDescription.isEmpty {
+            if !drillDescription.isEmpty {
                 VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
                     Text("DESCRIPTION")
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
 
-                    Text(drill.drillDescription)
+                    Text(drillDescription)
                         .font(.system(size: 15, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
                 }
             }
 
-            if let subskill = drill.targetSubskill {
+            if let subskill = targetSubskill {
                 Divider()
                 infoRow(icon: "target", label: "Focus", value: subskill)
             }
 
-            if !drill.equipment.isEmpty {
+            if !equipment.isEmpty {
                 Divider()
-                infoRow(icon: "wrench.and.screwdriver", label: "Equipment", value: drill.equipment)
+                infoRow(icon: "wrench.and.screwdriver", label: "Equipment", value: equipment)
             }
 
-            if drill.playerCount > 1 {
+            if playerCount > 1 {
                 Divider()
-                infoRow(icon: "person.2", label: "Players", value: "\(drill.playerCount)")
+                infoRow(icon: "person.2", label: "Players", value: "\(playerCount)")
             }
 
             Divider()
             infoRow(
-                icon: drill.priority == "high" ? "exclamationmark.circle.fill" : "circle.fill",
+                icon: priority == "high" ? "exclamationmark.circle.fill" : "circle.fill",
                 label: "Priority",
-                value: drill.priority.capitalized,
+                value: priority.capitalized,
                 valueColor: priorityColor
             )
         }
@@ -114,7 +153,7 @@ struct DrillDetailView: View {
     }
 
     private var priorityColor: Color {
-        switch drill.priority {
+        switch priority {
         case "high": AppColors.coral
         case "medium": AppColors.teal
         default: AppColors.textSecondary
@@ -129,7 +168,7 @@ struct DrillDetailView: View {
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
 
-            Text(drill.reason)
+            Text(reason)
                 .font(.system(size: 15, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
         }
@@ -156,6 +195,22 @@ struct DrillDetailView: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(AppColors.teal)
+
+            if let onSkip {
+                Button {
+                    Task {
+                        await onSkip()
+                        dismiss()
+                    }
+                } label: {
+                    Label("Skip Drill", systemImage: "forward.fill")
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.xs)
+                }
+                .buttonStyle(.bordered)
+                .tint(AppColors.textSecondary)
+            }
         }
     }
 }

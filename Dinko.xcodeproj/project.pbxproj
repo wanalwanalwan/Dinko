@@ -96,6 +96,11 @@
 		J10000010000000000000004 /* JournalEntryRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */; };
 		J10000010000000000000005 /* TimelineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000005 /* TimelineViewModel.swift */; };
 		J10000010000000000000006 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000006 /* TimelineView.swift */; };
+		Q10000010000000000000001 /* HeroDrillCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000001 /* HeroDrillCard.swift */; };
+		Q10000010000000000000002 /* TrainingSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000002 /* TrainingSummaryCard.swift */; };
+		Q10000010000000000000003 /* DrillProgressionPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000003 /* DrillProgressionPath.swift */; };
+		Q10000010000000000000004 /* DrillNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000004 /* DrillNodeView.swift */; };
+		Q10000010000000000000005 /* CoachBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000005 /* CoachBubbleView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -210,6 +215,11 @@
 		J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryRepositoryImpl.swift; sourceTree = "<group>"; };
 		J20000010000000000000005 /* TimelineViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineViewModel.swift; sourceTree = "<group>"; };
 		J20000010000000000000006 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		Q20000010000000000000001 /* HeroDrillCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroDrillCard.swift; sourceTree = "<group>"; };
+		Q20000010000000000000002 /* TrainingSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingSummaryCard.swift; sourceTree = "<group>"; };
+		Q20000010000000000000003 /* DrillProgressionPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillProgressionPath.swift; sourceTree = "<group>"; };
+		Q20000010000000000000004 /* DrillNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillNodeView.swift; sourceTree = "<group>"; };
+		Q20000010000000000000005 /* CoachBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachBubbleView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -520,9 +530,14 @@
 		E70000030000000000000001 /* Drills */ = {
 			isa = PBXGroup;
 			children = (
+				Q20000010000000000000005 /* CoachBubbleView.swift */,
+				E30000020000000000000007 /* DrillDetailView.swift */,
+				Q20000010000000000000004 /* DrillNodeView.swift */,
+				Q20000010000000000000003 /* DrillProgressionPath.swift */,
 				E30000020000000000000005 /* DrillQueueView.swift */,
 				E30000020000000000000006 /* DrillQueueViewModel.swift */,
-				E30000020000000000000007 /* DrillDetailView.swift */,
+				Q20000010000000000000001 /* HeroDrillCard.swift */,
+				Q20000010000000000000002 /* TrainingSummaryCard.swift */,
 			);
 			path = Drills;
 			sourceTree = "<group>";
@@ -766,6 +781,11 @@
 				J10000010000000000000004 /* JournalEntryRepositoryImpl.swift in Sources */,
 				J10000010000000000000005 /* TimelineViewModel.swift in Sources */,
 				J10000010000000000000006 /* TimelineView.swift in Sources */,
+				Q10000010000000000000001 /* HeroDrillCard.swift in Sources */,
+				Q10000010000000000000002 /* TrainingSummaryCard.swift in Sources */,
+				Q10000010000000000000003 /* DrillProgressionPath.swift in Sources */,
+				Q10000010000000000000004 /* DrillNodeView.swift in Sources */,
+				Q10000010000000000000005 /* CoachBubbleView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

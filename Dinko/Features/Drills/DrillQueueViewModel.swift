@@ -7,9 +7,51 @@ final class DrillQueueViewModel {
     private(set) var completedDrills: [Drill] = []
     private(set) var skillNames: [UUID: String] = [:]
     var errorMessage: String?
+    var showCelebration = false
 
     var totalEstimatedMinutes: Int {
         pendingDrills.reduce(0) { $0 + $1.durationMinutes }
+    }
+
+    var focusSkillName: String? {
+        let skillCounts = pendingDrills.reduce(into: [UUID: Int]()) { counts, drill in
+            counts[drill.skillId, default: 0] += 1
+        }
+        guard let topSkillId = skillCounts.max(by: { $0.value < $1.value })?.key else { return nil }
+        return skillNames[topSkillId]
+    }
+
+    var sessionProgress: Double {
+        let total = completedTodayCount + pendingDrills.count
+        guard total > 0 else { return 0 }
+        return Double(completedTodayCount) / Double(total)
+    }
+
+    var completedTodayCount: Int {
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        return completedDrills.filter { $0.updatedAt >= startOfDay }.count
+    }
+
+    var nextDrillXP: Int {
+        guard let first = pendingDrills.first else { return 0 }
+        return first.durationMinutes * 2
+    }
+
+    var mascotTip: String {
+        let tips = [
+            "Focus on form over power today!",
+            "Soft hands win points. Keep it loose!",
+            "Reset to ready position after every shot.",
+            "Watch the ball all the way to your paddle.",
+            "Patience at the kitchen line pays off!",
+            "Practice your third shot drop today.",
+            "Stay low and balanced on dinks.",
+            "Move your feet, not just your arm!",
+            "Aim for consistency, not winners.",
+            "Deep returns give you time to advance."
+        ]
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        return tips[dayOfYear % tips.count]
     }
 
     private let drillRepository: DrillRepository
@@ -56,7 +98,10 @@ final class DrillQueueViewModel {
     func markDone(_ drillId: UUID) async {
         do {
             try await drillRepository.updateStatus(drillId, status: .completed)
+            showCelebration = true
             await loadDrills()
+            try? await Task.sleep(for: .seconds(2))
+            showCelebration = false
         } catch {
             errorMessage = error.localizedDescription
         }

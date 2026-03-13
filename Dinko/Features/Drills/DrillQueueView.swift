@@ -3,7 +3,6 @@ import SwiftUI
 struct DrillQueueView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: DrillQueueViewModel?
-    @State private var expandedDrillId: UUID?
     @State private var historyExpanded = false
     @State private var contentReady = false
 
@@ -53,265 +52,75 @@ struct DrillQueueView: View {
             )
         } else {
             ScrollView {
-                VStack(spacing: AppSpacing.xs) {
+                VStack(spacing: AppSpacing.sm) {
+                    // Coach bubble with tip
                     if !viewModel.pendingDrills.isEmpty {
-                        sessionSummaryCard(viewModel)
-                            .staggeredAppearance(index: 0)
-
-                        ForEach(Array(viewModel.pendingDrills.enumerated()), id: \.element.id) { index, drill in
-                            drillCard(drill, viewModel: viewModel)
-                                .staggeredAppearance(index: index + 1)
-                        }
+                        CoachBubbleView(
+                            tip: viewModel.showCelebration ? "Great work! Keep that momentum going!" : viewModel.mascotTip,
+                            isCelebrating: viewModel.showCelebration
+                        )
+                        .staggeredAppearance(index: 0)
                     }
 
+                    // Hero card for first pending drill
+                    if let firstDrill = viewModel.pendingDrills.first {
+                        NavigationLink {
+                            DrillDetailView(
+                                drill: firstDrill,
+                                skillName: viewModel.skillNames[firstDrill.skillId] ?? "Skill",
+                                onComplete: { await viewModel.markDone(firstDrill.id) },
+                                onSkip: { await viewModel.skip(firstDrill.id) }
+                            )
+                        } label: {
+                            HeroDrillCard(
+                                drill: firstDrill,
+                                skillName: viewModel.skillNames[firstDrill.skillId],
+                                xp: viewModel.nextDrillXP
+                            )
+                        }
+                        .buttonStyle(.pressable)
+                        .staggeredAppearance(index: 1)
+                    }
+
+                    // Training summary
+                    if !viewModel.pendingDrills.isEmpty {
+                        TrainingSummaryCard(
+                            pendingCount: viewModel.pendingDrills.count,
+                            totalMinutes: viewModel.totalEstimatedMinutes,
+                            focusSkill: viewModel.focusSkillName,
+                            completedCount: viewModel.completedTodayCount,
+                            progress: viewModel.sessionProgress
+                        )
+                        .staggeredAppearance(index: 2)
+                    }
+
+                    // Progression path for remaining drills
+                    if viewModel.pendingDrills.count > 1 {
+                        DrillProgressionPath(
+                            drills: Array(viewModel.pendingDrills.dropFirst()),
+                            skillNames: viewModel.skillNames,
+                            onComplete: { drillId in await viewModel.markDone(drillId) },
+                            onSkip: { drillId in await viewModel.skip(drillId) }
+                        )
+                        .staggeredAppearance(index: 3)
+                    }
+
+                    // History section
                     if !viewModel.completedDrills.isEmpty {
                         historyCard(viewModel)
+                            .staggeredAppearance(index: 4)
                     }
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
                 .padding(.bottom, AppSpacing.xl)
                 .contentLoadTransition(isLoaded: contentReady)
+                .animation(AppAnimations.springSmooth, value: viewModel.pendingDrills.count)
             }
             .refreshable {
                 await viewModel.loadDrills()
             }
         }
-    }
-
-    // MARK: - Session Summary Card
-
-    private func sessionSummaryCard(_ viewModel: DrillQueueViewModel) -> some View {
-        HStack(spacing: AppSpacing.sm) {
-            CoachMascot(state: .idle, size: 44, animated: false)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("\(viewModel.pendingDrills.count) Drill\(viewModel.pendingDrills.count == 1 ? "" : "s") Queued")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Text("~\(viewModel.totalEstimatedMinutes) minutes total practice")
-                    .font(.system(size: 14, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-
-            Spacer()
-        }
-        .padding(AppSpacing.md)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
-    }
-
-    // MARK: - Drill Card
-
-    private func drillCard(_ drill: Drill, viewModel: DrillQueueViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation(AppAnimations.springSmooth) {
-                    expandedDrillId = expandedDrillId == drill.id ? nil : drill.id
-                }
-            } label: {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(alignment: .center, spacing: AppSpacing.xs) {
-                        Image(systemName: "circle")
-                            .font(.system(size: 22))
-                            .foregroundStyle(AppColors.separator)
-
-                        Text(drill.name)
-                            .font(.system(size: 17, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(2)
-
-                        Spacer()
-
-                        Image(systemName: expandedDrillId == drill.id ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-
-                    if let focusText = drillFocusLabel(drill, viewModel: viewModel) {
-                        Text(focusText)
-                            .font(.system(size: 14, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                            .lineLimit(1)
-                            .padding(.leading, 34)
-                    }
-
-                    HStack(spacing: AppSpacing.xs) {
-                        Label("\(drill.durationMinutes) min", systemImage: "timer")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-
-                        if let skillName = viewModel.skillNames[drill.skillId] {
-                            skillPillBadge(formatDisplayText(skillName))
-                        }
-                    }
-                    .padding(.leading, 34)
-                }
-            }
-            .buttonStyle(.plain)
-
-            if expandedDrillId == drill.id {
-                expandedDrillContent(drill, viewModel: viewModel)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        }
-        .padding(AppSpacing.sm)
-        .frame(minHeight: 44)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("\(drill.name), \(drill.durationMinutes) minutes")
-        .accessibilityHint(expandedDrillId == drill.id ? "Tap to collapse" : "Tap to expand details")
-    }
-
-    // MARK: - Expanded Drill Content
-
-    private func expandedDrillContent(_ drill: Drill, viewModel: DrillQueueViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Divider()
-                .padding(.top, AppSpacing.xs)
-
-            if !drill.drillDescription.isEmpty {
-                expandedSection("INSTRUCTIONS", content: drill.drillDescription)
-            }
-
-            if !drill.reason.isEmpty {
-                expandedSection("WHY THIS DRILL", content: drill.reason)
-            }
-
-            if let subskill = drill.targetSubskill, !subskill.isEmpty {
-                expandedSection("FOCUS", content: formatDisplayText(subskill))
-            }
-
-            if !drill.equipment.isEmpty || drill.playerCount > 1 {
-                HStack(spacing: AppSpacing.xs) {
-                    if !drill.equipment.isEmpty {
-                        Label(drill.equipment, systemImage: "wrench.and.screwdriver")
-                            .font(.system(size: 13, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-
-                    if drill.playerCount > 1 {
-                        Label("\(drill.playerCount) players", systemImage: "person.2")
-                            .font(.system(size: 13, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                }
-            }
-
-            HStack(spacing: AppSpacing.xs) {
-                Button {
-                    Task { await viewModel.markDone(drill.id) }
-                } label: {
-                    Label("Done", systemImage: "checkmark.circle.fill")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.successGreen)
-                }
-                .buttonStyle(.bordered)
-                .tint(AppColors.successGreen)
-
-                Button {
-                    Task { await viewModel.skip(drill.id) }
-                } label: {
-                    Label("Skip", systemImage: "forward.fill")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-                .buttonStyle(.bordered)
-            }
-            .padding(.top, AppSpacing.xxxs)
-        }
-        .padding(.leading, 34)
-        .padding(.top, AppSpacing.xxxs)
-    }
-
-    private func expandedSection(_ label: String, content: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-                .tracking(0.5)
-
-            Text(content)
-                .font(.system(size: 14, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary.opacity(0.85))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    // MARK: - Skill Pill Badge
-
-    private func skillPillBadge(_ name: String) -> some View {
-        let color = skillPillColor(name)
-        return Text(name)
-            .font(.system(size: 12, weight: .medium, design: .rounded))
-            .foregroundStyle(color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.12))
-            .clipShape(Capsule())
-    }
-
-    private func skillPillColor(_ name: String) -> Color {
-        let lower = name.lowercased()
-        if lower.contains("drive") || lower.contains("attack") { return AppColors.teal }
-        if lower.contains("dink") || lower.contains("drop") || lower.contains("touch") { return AppColors.drillPurple }
-        if lower.contains("return") || lower.contains("serve") { return AppColors.successGreen }
-        if lower.contains("counter") { return AppColors.drillOrange }
-        if lower.contains("strategy") || lower.contains("position") { return AppColors.drillPurple }
-        if lower.contains("movement") || lower.contains("footwork") { return AppColors.coral }
-        return AppColors.teal
-    }
-
-    // MARK: - Display Text Helpers
-
-    private func drillFocusLabel(_ drill: Drill, viewModel: DrillQueueViewModel) -> String? {
-        if let subskill = drill.targetSubskill, !subskill.isEmpty {
-            return formatDisplayText(subskill) + " practice"
-        }
-        if let skillName = viewModel.skillNames[drill.skillId] {
-            return formatDisplayText(skillName) + " practice"
-        }
-        return nil
-    }
-
-    private func formatDisplayText(_ text: String) -> String {
-        let lower = text.lowercased()
-
-        let markers = ["called ", "named "]
-        for marker in markers {
-            if let range = lower.range(of: marker) {
-                let after = String(text[range.upperBound...])
-                let extracted = after.prefix(while: { $0 != "," && $0 != "." && $0 != "!" })
-                let trimmed = extracted.trimmingCharacters(in: .whitespaces)
-                if !trimmed.isEmpty { return trimmed }
-            }
-        }
-
-        let conversationalWords = ["can you", "was working", "working on", "create new",
-                                   "super beginner", "beginner level", "i want", "please"]
-        let isConversational = conversationalWords.contains(where: { lower.contains($0) })
-
-        if isConversational {
-            let firstClause = text.split(separator: ",").first
-                .map(String.init)?
-                .trimmingCharacters(in: .whitespaces) ?? text
-
-            let stopWords: Set<String> = ["can", "you", "create", "new", "skill", "called",
-                                          "was", "working", "on", "that", "today", "super",
-                                          "i", "please", "want", "to", "a", "my"]
-            let cleaned = firstClause.split(separator: " ")
-                .filter { !stopWords.contains($0.lowercased()) }
-                .joined(separator: " ")
-
-            return cleaned.isEmpty ? text : cleaned
-        }
-
-        return text
     }
 
     // MARK: - History Card
