@@ -263,6 +263,8 @@ final class HomeViewModel {
     }
 
     private func computeChartData(since cutoff: Date) {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
         var series: [HomeSkillChartSeries] = []
 
         for skill in cachedSkills {
@@ -271,12 +273,19 @@ final class HomeViewModel {
             var dataPoints: [HomeChartDataPoint] = []
 
             if childSkills.isEmpty {
-                // Leaf skill: deduplicate by day, keep only latest per day
-                let ratings = (cachedRatings[skill.id] ?? [])
-                    .filter { $0.date >= cutoff }
+                // Leaf skill: collect all ratings for this skill
+                let allRatings = cachedRatings[skill.id] ?? []
+
+                // Anchor: most recent rating BEFORE the cutoff (so the line has a start)
+                if let anchor = allRatings.last(where: { $0.date < cutoff }) {
+                    dataPoints.append(HomeChartDataPoint(date: calendar.startOfDay(for: cutoff), rating: anchor.rating))
+                }
+
+                // Ratings within the window, deduplicated by day
+                let windowRatings = allRatings.filter { $0.date >= cutoff }
                 var latestByDay: [Date: SkillRating] = [:]
-                for r in ratings {
-                    let day = Calendar.current.startOfDay(for: r.date)
+                for r in windowRatings {
+                    let day = calendar.startOfDay(for: r.date)
                     if let existing = latestByDay[day] {
                         if r.date > existing.date {
                             latestByDay[day] = r
@@ -288,29 +297,78 @@ final class HomeViewModel {
                 for (day, r) in latestByDay.sorted(by: { $0.key < $1.key }) {
                     dataPoints.append(HomeChartDataPoint(date: day, rating: r.rating))
                 }
+
+                // Carry-forward: extend the last known rating to today
+                if let lastPoint = dataPoints.last, lastPoint.date < today {
+                    dataPoints.append(HomeChartDataPoint(date: today, rating: lastPoint.rating))
+                }
             } else {
-                // Parent skill: build a synthetic timeline from child ratings
+                // Parent skill: build a synthetic timeline from child AND parent ratings
+                // Collect all relevant dates from children and the parent itself
                 var dateSet: Set<Date> = []
                 for child in childSkills {
                     for r in (cachedRatings[child.id] ?? []) where r.date >= cutoff {
-                        dateSet.insert(Calendar.current.startOfDay(for: r.date))
+                        dateSet.insert(calendar.startOfDay(for: r.date))
                     }
                 }
+                // Also include dates from direct parent ratings (AI session updates)
+                for r in (cachedRatings[skill.id] ?? []) where r.date >= cutoff {
+                    dateSet.insert(calendar.startOfDay(for: r.date))
+                }
+
+                // Check if any child/parent has data before cutoff for an anchor
+                var hasAnchor = false
+                for child in childSkills {
+                    if (cachedRatings[child.id] ?? []).contains(where: { $0.date < cutoff }) {
+                        hasAnchor = true
+                        break
+                    }
+                }
+                if !hasAnchor {
+                    hasAnchor = (cachedRatings[skill.id] ?? []).contains(where: { $0.date < cutoff })
+                }
+                if hasAnchor {
+                    dateSet.insert(calendar.startOfDay(for: cutoff))
+                }
+
+                // Always include today for carry-forward
+                if !dateSet.isEmpty {
+                    dateSet.insert(today)
+                }
+
                 let sortedDates = dateSet.sorted()
 
                 for date in sortedDates {
                     var total = 0
                     var count = 0
+                    let endOfDay = calendar.date(byAdding: .day, value: 1, to: date) ?? date
+
                     for child in childSkills {
                         let childRatings = cachedRatings[child.id] ?? []
-                        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: date) ?? date
                         if let latest = childRatings.last(where: { $0.date < endOfDay }) {
                             total += latest.rating
                             count += 1
                         }
                     }
+
+                    // Also consider direct parent ratings (from AI session updates)
+                    let parentRatings = cachedRatings[skill.id] ?? []
+                    if let latestParent = parentRatings.last(where: { $0.date < endOfDay }) {
+                        // Use parent rating if no child data, or blend it in
+                        if count == 0 {
+                            total += latestParent.rating
+                            count += 1
+                        }
+                    }
+
                     if count > 0 {
-                        dataPoints.append(HomeChartDataPoint(date: date, rating: total / count))
+                        let avg = total / count
+                        // Avoid duplicate values at the same rating if the carry-forward
+                        // would just repeat the last point at the same value
+                        if let last = dataPoints.last, last.date == date {
+                            continue
+                        }
+                        dataPoints.append(HomeChartDataPoint(date: date, rating: avg))
                     }
                 }
             }
