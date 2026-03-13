@@ -7,6 +7,7 @@ struct CoachBubbleView: View {
     var body: some View {
         HStack(alignment: .top, spacing: AppSpacing.xs) {
             CoachMascot(state: isCelebrating ? .celebrating : .idle, size: 56, animated: true)
+                .offset(y: -4)
 
             Text(tip)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
