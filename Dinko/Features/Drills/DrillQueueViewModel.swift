@@ -9,6 +9,11 @@ final class DrillQueueViewModel {
     var errorMessage: String?
     var showCelebration = false
 
+    var totalDrillsCompleted: Int {
+        get { UserDefaults.standard.integer(forKey: "dinko_total_drills_completed") }
+        set { UserDefaults.standard.set(newValue, forKey: "dinko_total_drills_completed") }
+    }
+
     var totalEstimatedMinutes: Int {
         pendingDrills.reduce(0) { $0 + $1.durationMinutes }
     }
@@ -30,11 +35,6 @@ final class DrillQueueViewModel {
     var completedTodayCount: Int {
         let startOfDay = Calendar.current.startOfDay(for: Date())
         return completedDrills.filter { $0.updatedAt >= startOfDay }.count
-    }
-
-    var nextDrillXP: Int {
-        guard let first = pendingDrills.first else { return 0 }
-        return first.durationMinutes * 2
     }
 
     var mascotTip: String {
@@ -98,10 +98,29 @@ final class DrillQueueViewModel {
     func markDone(_ drillId: UUID) async {
         do {
             try await drillRepository.updateStatus(drillId, status: .completed)
+            totalDrillsCompleted += 1
             showCelebration = true
             await loadDrills()
             try? await Task.sleep(for: .seconds(2))
             showCelebration = false
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func doRep(_ drillId: UUID) async {
+        do {
+            try await drillRepository.incrementReps(drillId)
+            await loadDrills()
+
+            // Check if the drill just completed (no longer in pending)
+            let justCompleted = !pendingDrills.contains(where: { $0.id == drillId })
+            if justCompleted {
+                totalDrillsCompleted += 1
+                showCelebration = true
+                try? await Task.sleep(for: .seconds(2))
+                showCelebration = false
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -68,14 +68,14 @@ struct DrillQueueView: View {
                             DrillDetailView(
                                 drill: firstDrill,
                                 skillName: viewModel.skillNames[firstDrill.skillId] ?? "Skill",
-                                onComplete: { await viewModel.markDone(firstDrill.id) },
+                                onComplete: { await viewModel.doRep(firstDrill.id) },
                                 onSkip: { await viewModel.skip(firstDrill.id) }
                             )
                         } label: {
                             HeroDrillCard(
                                 drill: firstDrill,
                                 skillName: viewModel.skillNames[firstDrill.skillId],
-                                xp: viewModel.nextDrillXP
+                                totalCompleted: viewModel.totalDrillsCompleted
                             )
                         }
                         .buttonStyle(.pressable)
@@ -89,7 +89,8 @@ struct DrillQueueView: View {
                             totalMinutes: viewModel.totalEstimatedMinutes,
                             focusSkill: viewModel.focusSkillName,
                             completedCount: viewModel.completedTodayCount,
-                            progress: viewModel.sessionProgress
+                            progress: viewModel.sessionProgress,
+                            totalCompleted: viewModel.totalDrillsCompleted
                         )
                         .staggeredAppearance(index: 2)
                     }
@@ -99,7 +100,7 @@ struct DrillQueueView: View {
                         DrillProgressionPath(
                             drills: Array(viewModel.pendingDrills.dropFirst()),
                             skillNames: viewModel.skillNames,
-                            onComplete: { drillId in await viewModel.markDone(drillId) },
+                            onComplete: { drillId in await viewModel.doRep(drillId) },
                             onSkip: { drillId in await viewModel.skip(drillId) }
                         )
                         .staggeredAppearance(index: 3)

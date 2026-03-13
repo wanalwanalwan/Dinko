@@ -12,8 +12,13 @@ struct Drill: Identifiable, Hashable {
     var reason: String
     var priority: String
     var status: DrillStatus
+    var targetReps: Int
+    var completedReps: Int
     var createdDate: Date
     var updatedAt: Date
+
+    var isRepComplete: Bool { completedReps >= targetReps }
+    var repsRemaining: Int { max(0, targetReps - completedReps) }
 
     init(
         id: UUID = UUID(),
@@ -27,6 +32,8 @@ struct Drill: Identifiable, Hashable {
         reason: String = "",
         priority: String = "medium",
         status: DrillStatus = .pending,
+        targetReps: Int = 1,
+        completedReps: Int = 0,
         createdDate: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -41,6 +48,8 @@ struct Drill: Identifiable, Hashable {
         self.reason = reason
         self.priority = priority
         self.status = status
+        self.targetReps = targetReps
+        self.completedReps = completedReps
         self.createdDate = createdDate
         self.updatedAt = updatedAt
     }

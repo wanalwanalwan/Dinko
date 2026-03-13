@@ -3,13 +3,13 @@ import SwiftUI
 enum DrillNodeState {
     case next
     case completed
-    case locked
+    case upcoming
 
     var circleSize: CGFloat {
         switch self {
         case .next: 48
         case .completed: 40
-        case .locked: 36
+        case .upcoming: 36
         }
     }
 
@@ -17,7 +17,7 @@ enum DrillNodeState {
         switch self {
         case .next: "play.fill"
         case .completed: "checkmark"
-        case .locked: "lock.fill"
+        case .upcoming: "play.fill"
         }
     }
 
@@ -25,7 +25,7 @@ enum DrillNodeState {
         switch self {
         case .next: 18
         case .completed: 16
-        case .locked: 14
+        case .upcoming: 14
         }
     }
 
@@ -33,7 +33,7 @@ enum DrillNodeState {
         switch self {
         case .next: AppColors.teal
         case .completed: AppColors.successGreen
-        case .locked: AppColors.lockedGray
+        case .upcoming: AppColors.teal
         }
     }
 }
@@ -74,7 +74,7 @@ struct DrillNodeView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(drill.name)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(state == .locked ? AppColors.textSecondary : AppColors.textPrimary)
+                    .foregroundStyle(AppColors.textPrimary)
                     .lineLimit(2)
 
                 HStack(spacing: AppSpacing.xxs) {
@@ -87,7 +87,7 @@ struct DrillNodeView: View {
                             .foregroundStyle(AppColors.textSecondary)
                         Text(skillName)
                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(state == .locked ? AppColors.textSecondary : AppColors.teal)
+                            .foregroundStyle(AppColors.teal)
                             .lineLimit(1)
                     }
                 }
@@ -95,14 +95,24 @@ struct DrillNodeView: View {
 
             Spacer()
 
-            // XP badge
-            Text("+\(drill.durationMinutes * 2) XP")
-                .font(.system(size: 12, weight: .bold, design: .rounded))
-                .foregroundStyle(state == .locked ? AppColors.textSecondary : AppColors.teal)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background((state == .locked ? AppColors.lockedGray : AppColors.teal).opacity(0.12))
-                .clipShape(Capsule())
+            // Rep indicator or duration badge
+            if drill.targetReps > 1 {
+                Text("Rep \(drill.completedReps)/\(drill.targetReps)")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.teal)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppColors.teal.opacity(0.12))
+                    .clipShape(Capsule())
+            } else {
+                Text("\(drill.durationMinutes) min")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.teal)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppColors.teal.opacity(0.12))
+                    .clipShape(Capsule())
+            }
         }
         .padding(.vertical, AppSpacing.xxs)
         .contentShape(Rectangle())
@@ -119,7 +129,7 @@ struct DrillNodeView: View {
     VStack(spacing: 20) {
         DrillNodeView(drill: sampleDrill, state: .next, skillName: "Dinking")
         DrillNodeView(drill: sampleDrill, state: .completed, skillName: "Dinking")
-        DrillNodeView(drill: sampleDrill, state: .locked, skillName: "Dinking")
+        DrillNodeView(drill: sampleDrill, state: .upcoming, skillName: "Dinking")
     }
     .padding()
 }

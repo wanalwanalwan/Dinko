@@ -14,6 +14,8 @@ extension DrillEntity {
             reason: reason ?? "",
             priority: priority ?? "medium",
             status: DrillStatus(rawValue: status ?? "pending") ?? .pending,
+            targetReps: Int(targetReps),
+            completedReps: Int(completedReps),
             createdDate: createdDate ?? Date(),
             updatedAt: updatedAt ?? Date()
         )
@@ -31,6 +33,8 @@ extension DrillEntity {
         reason = drill.reason
         priority = drill.priority
         status = drill.status.rawValue
+        targetReps = Int16(drill.targetReps)
+        completedReps = Int16(drill.completedReps)
         createdDate = drill.createdDate
         updatedAt = drill.updatedAt
     }

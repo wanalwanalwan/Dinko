@@ -16,7 +16,7 @@ struct DrillProgressionPath: View {
                 .padding(.bottom, AppSpacing.xs)
 
             ForEach(Array(drills.enumerated()), id: \.element.id) { index, drill in
-                let state: DrillNodeState = index == 0 ? .next : .locked
+                let state: DrillNodeState = index == 0 ? .next : .upcoming
 
                 VStack(spacing: 0) {
                     // Connector line above (skip for first)

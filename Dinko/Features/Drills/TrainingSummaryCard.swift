@@ -6,6 +6,7 @@ struct TrainingSummaryCard: View {
     let focusSkill: String?
     let completedCount: Int
     let progress: Double
+    var totalCompleted: Int = 0
 
     private var totalCount: Int { completedCount + pendingCount }
 
@@ -19,6 +20,7 @@ struct TrainingSummaryCard: View {
             HStack(spacing: AppSpacing.sm) {
                 statItem(icon: "flame.fill", value: "\(totalCount)", label: "Drills", color: AppColors.coral)
                 statItem(icon: "clock", value: "\(totalMinutes)", label: "min", color: AppColors.teal)
+                statItem(icon: "figure.pickleball", value: "\(totalCompleted)", label: "Total", color: AppColors.successGreen)
                 if let focusSkill {
                     statItem(icon: "target", value: focusSkill, label: "Focus", color: AppColors.drillPurple)
                 }

@@ -68,4 +68,21 @@ final class DrillRepositoryImpl: DrillRepository {
             }
         }
     }
+
+    func incrementReps(_ id: UUID) async throws {
+        let context = persistence.newBackgroundContext()
+        try await context.perform {
+            let request = DrillEntity.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            request.fetchLimit = 1
+            if let entity = try context.fetch(request).first {
+                entity.completedReps += 1
+                if entity.completedReps >= entity.targetReps {
+                    entity.status = "completed"
+                }
+                entity.updatedAt = Date()
+                try context.save()
+            }
+        }
+    }
 }

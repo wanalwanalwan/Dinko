@@ -40,6 +40,7 @@
         <relationship name="skill" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SkillEntity" inverseName="ratings" inverseEntity="SkillEntity"/>
     </entity>
     <entity name="DrillEntity" representedClassName="DrillEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="completedReps" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="createdDate" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="drillDescription" optional="YES" attributeType="String"/>
         <attribute name="durationMinutes" attributeType="Integer 16" defaultValueString="10" usesScalarValueType="YES"/>
@@ -52,6 +53,7 @@
         <attribute name="skillId" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="status" attributeType="String" defaultValueString="pending"/>
         <attribute name="syncStatus" attributeType="String" defaultValueString="pending"/>
+        <attribute name="targetReps" attributeType="Integer 16" defaultValueString="1" usesScalarValueType="YES"/>
         <attribute name="targetSubskill" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
     </entity>

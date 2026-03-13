@@ -3,7 +3,7 @@ import SwiftUI
 struct HeroDrillCard: View {
     let drill: Drill
     let skillName: String?
-    let xp: Int
+    let totalCompleted: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -16,7 +16,7 @@ struct HeroDrillCard: View {
 
                 Spacer()
 
-                Text("+\(xp) XP")
+                Label("\(totalCompleted) Completed", systemImage: "figure.pickleball")
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.teal)
                     .padding(.horizontal, 10)
@@ -37,6 +37,13 @@ struct HeroDrillCard: View {
                     .font(.system(size: 14, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                     .lineLimit(1)
+            }
+
+            // Rep progress (multi-rep drills only)
+            if drill.targetReps > 1 {
+                Text("Rep \(drill.completedReps + 1) of \(drill.targetReps)")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.coral)
             }
 
             // Meta row
@@ -98,7 +105,7 @@ struct HeroDrillCard: View {
         priority: "high"
     )
 
-    HeroDrillCard(drill: drill, skillName: "Dinking", xp: 30)
+    HeroDrillCard(drill: drill, skillName: "Dinking", totalCompleted: 12)
         .padding()
         .background(AppColors.background)
 }

@@ -6,4 +6,5 @@ protocol DrillRepository {
     func save(_ drill: Drill) async throws
     func delete(_ id: UUID) async throws
     func updateStatus(_ id: UUID, status: DrillStatus) async throws
+    func incrementReps(_ id: UUID) async throws
 }

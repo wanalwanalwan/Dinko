@@ -10,6 +10,8 @@ struct DrillDetailView: View {
     private let playerCount: Int
     private let reason: String
     private let targetSubskill: String?
+    private let targetReps: Int
+    private let completedReps: Int
     private let onComplete: () async -> Void
     private let onSkip: (() async -> Void)?
 
@@ -26,6 +28,8 @@ struct DrillDetailView: View {
         self.playerCount = drill.playerCount
         self.reason = drill.reason
         self.targetSubskill = drill.targetSubskill
+        self.targetReps = 1
+        self.completedReps = 0
         self.onComplete = onComplete
         self.onSkip = nil
     }
@@ -41,6 +45,8 @@ struct DrillDetailView: View {
         self.playerCount = drill.playerCount
         self.reason = drill.reason
         self.targetSubskill = drill.targetSubskill
+        self.targetReps = drill.targetReps
+        self.completedReps = drill.completedReps
         self.onComplete = onComplete
         self.onSkip = onSkip
     }
@@ -182,13 +188,19 @@ struct DrillDetailView: View {
 
     private var actionButtons: some View {
         VStack(spacing: AppSpacing.xs) {
+            if targetReps > 1 {
+                Text("Rep \(completedReps + 1) of \(targetReps)")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.coral)
+            }
+
             Button {
                 Task {
                     await onComplete()
                     dismiss()
                 }
             } label: {
-                Label("Complete Drill", systemImage: "checkmark.circle.fill")
+                Label("Do Drill", systemImage: "play.circle.fill")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, AppSpacing.xs)
