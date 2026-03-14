@@ -138,20 +138,23 @@ struct DrillDetailView: View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
             sectionHeader("HOW IT WORKS")
 
-            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(descriptionSteps.enumerated()), id: \.offset) { index, step in
-                    HStack(alignment: .top, spacing: AppSpacing.xs) {
-                        Text("\(index + 1)")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .frame(width: 24, height: 24)
-                            .background(AppColors.teal)
-                            .clipShape(Circle())
+                    HStack(spacing: AppSpacing.xs) {
+                        RoundedRectangle(cornerRadius: 1.5)
+                            .fill(AppColors.teal)
+                            .frame(width: 3)
 
                         Text(step)
                             .font(.system(size: 15, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
+                            .padding(.vertical, AppSpacing.xs)
+                    }
+
+                    if index < descriptionSteps.count - 1 {
+                        Divider()
+                            .padding(.leading, 3 + AppSpacing.xs)
                     }
                 }
             }
