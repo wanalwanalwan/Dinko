@@ -5,30 +5,16 @@ struct DinkoApp: App {
     private let dependencies = DependencyContainer()
     @State private var authViewModel = AuthViewModel()
     @State private var showPersistenceError = false
+    @State private var showSplash = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if authViewModel.isCheckingSession {
-                    ZStack {
-                        LinearGradient(
-                            colors: [
-                                AppColors.splashGradientStart,
-                                AppColors.splashGradientEnd
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        .ignoresSafeArea()
-
-                        Image("AppIconImage")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 160, height: 160)
-                            .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
-                            .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
-                    }
+                if showSplash {
+                    SplashScreenView(onFinished: {
+                        showSplash = false
+                    })
                 } else if authViewModel.isAuthenticated {
                     if hasCompletedOnboarding {
                         ContentView()
