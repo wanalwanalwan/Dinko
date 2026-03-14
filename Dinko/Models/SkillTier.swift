@@ -36,4 +36,14 @@ enum SkillTier: String, CaseIterable {
         case .weapon: AppColors.coral
         }
     }
+
+    var sfSymbol: String {
+        switch self {
+        case .beginner: "leaf.fill"
+        case .developing: "arrow.up.right"
+        case .solid: "checkmark.seal.fill"
+        case .advanced: "star.fill"
+        case .weapon: "bolt.shield.fill"
+        }
+    }
 }

@@ -26,4 +26,16 @@ enum SkillCategory: String, CaseIterable, Codable, Identifiable {
         case .serves: return "🎯"
         }
     }
+
+    var sfSymbol: String {
+        switch self {
+        case .dinking: return "hand.raised.fill"
+        case .drops: return "arrow.down.to.line"
+        case .drives: return "bolt.horizontal.fill"
+        case .defense: return "shield.lefthalf.filled"
+        case .offense: return "flame.fill"
+        case .strategy: return "brain.head.profile"
+        case .serves: return "arrow.up.forward"
+        }
+    }
 }

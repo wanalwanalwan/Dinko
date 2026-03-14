@@ -67,11 +67,9 @@ struct SkillListView: View {
         } else {
             ScrollView {
                 VStack(spacing: AppSpacing.sm) {
-                    // Summary card
                     overviewCard(viewModel)
                         .staggeredAppearance(index: 0)
 
-                    // Skill cards
                     ForEach(Array(viewModel.skills.enumerated()), id: \.element.id) { index, skill in
                         NavigationLink(value: skill) {
                             SkillCard(
@@ -102,57 +100,60 @@ struct SkillListView: View {
         let ratings = viewModel.skills.map { viewModel.latestRatings[$0.id] ?? 0 }
         let avgRating = ratings.isEmpty ? 0 : ratings.reduce(0, +) / ratings.count
         let improvingCount = viewModel.ratingDeltas.values.filter { $0 > 0 }.count
+        let avgTier = SkillTier(rating: avgRating)
 
-        return HStack(spacing: 0) {
-            overviewStat(
-                value: "\(viewModel.skills.count)",
-                label: "Skills",
-                icon: "figure.pickleball"
-            )
+        return HStack(spacing: AppSpacing.sm) {
+            // Overall progress ring
+            RatingBadge(rating: avgRating, size: 64, ringColor: avgTier.color)
 
-            divider
+            // Stats column
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Overall Level")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
 
-            overviewStat(
-                value: "\(avgRating)%",
-                label: "Average",
-                icon: "chart.bar.fill"
-            )
+                Text(avgTier.displayName)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
 
-            divider
+                HStack(spacing: AppSpacing.xs) {
+                    statPill(
+                        icon: "figure.pickleball",
+                        value: "\(viewModel.skills.count)",
+                        label: "skills"
+                    )
 
-            overviewStat(
-                value: "\(improvingCount)",
-                label: "Improving",
-                icon: "arrow.up.right"
-            )
+                    if improvingCount > 0 {
+                        statPill(
+                            icon: "arrow.up.right",
+                            value: "\(improvingCount)",
+                            label: "improving",
+                            color: AppColors.successGreen
+                        )
+                    }
+                }
+            }
+
+            Spacer()
         }
-        .padding(.vertical, AppSpacing.sm)
+        .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
-    private func overviewStat(value: String, label: String, icon: String) -> some View {
-        VStack(spacing: 4) {
+    private func statPill(icon: String, value: String, label: String, color: Color = AppColors.teal) -> some View {
+        HStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(AppColors.teal)
-
-            Text(value)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
-
-            Text(label)
-                .font(.system(size: 12, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
+                .font(.system(size: 9, weight: .semibold))
+            Text("\(value) \(label)")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
         }
-        .frame(maxWidth: .infinity)
-    }
-
-    private var divider: some View {
-        Rectangle()
-            .fill(AppColors.separator)
-            .frame(width: 1, height: 36)
+        .foregroundStyle(color)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.1))
+        .clipShape(Capsule())
     }
 
     // MARK: - Empty State

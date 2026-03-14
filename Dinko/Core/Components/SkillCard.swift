@@ -7,81 +7,97 @@ struct SkillCard: View {
     var delta: Int?
 
     private var tier: SkillTier { SkillTier(rating: rating) }
+    private var progress: Double { min(max(Double(rating) / 100.0, 0), 1) }
+
+    @State private var animatedProgress: Double = 0
 
     var body: some View {
-        HStack(spacing: AppSpacing.sm) {
-            // Left: progress ring with category icon inside
-            ZStack {
-                Circle()
-                    .fill(tier.color.opacity(0.1))
+        VStack(spacing: 0) {
+            HStack(spacing: AppSpacing.xs) {
+                // Category icon in rounded square
+                Image(systemName: skill.category.sfSymbol)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(tier.color.gradient)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                RatingBadge(
-                    rating: rating,
-                    size: 52,
-                    ringColor: tier.color,
-                    showLabel: false
-                )
+                // Skill info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(skill.name)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
 
-                Text(skill.category.iconName)
-                    .font(.system(size: 20))
-            }
-            .frame(width: 52, height: 52)
-
-            // Center: skill info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(skill.name)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-
-                HStack(spacing: AppSpacing.xxs) {
-                    // Tier badge
-                    Text(tier.displayName.uppercased())
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                    HStack(spacing: 6) {
+                        // Tier badge with icon
+                        HStack(spacing: 3) {
+                            Image(systemName: tier.sfSymbol)
+                                .font(.system(size: 8, weight: .bold))
+                            Text(tier.displayName.uppercased())
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                        }
                         .foregroundStyle(tier.color)
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(tier.color.opacity(0.12))
                         .clipShape(Capsule())
 
-                    // Delta indicator
-                    if let delta, delta != 0 {
-                        HStack(spacing: 2) {
-                            Image(systemName: delta > 0 ? "arrow.up.right" : "arrow.down.right")
-                                .font(.system(size: 9, weight: .semibold))
-                            Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
-                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        // Delta
+                        if let delta, delta != 0 {
+                            HStack(spacing: 2) {
+                                Image(systemName: delta > 0 ? "arrow.up.right" : "arrow.down.right")
+                                    .font(.system(size: 8, weight: .bold))
+                                Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
+                                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                            }
+                            .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
                         }
-                        .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background((delta > 0 ? AppColors.successGreen : AppColors.coral).opacity(0.1))
-                        .clipShape(Capsule())
                     }
                 }
-            }
 
-            Spacer()
+                Spacer()
 
-            // Right: rating percentage + chevron
-            VStack(spacing: 2) {
-                Text("\(rating)")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                // Rating
+                Text("\(rating)%")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(tier.color)
-                Text("%")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppColors.textSecondary.opacity(0.4))
             }
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+            // Progress bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(tier.color.opacity(0.12))
+                        .frame(height: 4)
+
+                    Capsule()
+                        .fill(tier.color.gradient)
+                        .frame(width: geo.size.width * animatedProgress, height: 4)
+                }
+            }
+            .frame(height: 4)
+            .padding(.top, AppSpacing.xs)
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .onAppear {
+            withAnimation(AppAnimations.springSmooth) {
+                animatedProgress = progress
+            }
+        }
+        .onChange(of: rating) {
+            withAnimation(AppAnimations.springSmooth) {
+                animatedProgress = progress
+            }
+        }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(skill.name), \(tier.displayName), \(rating) percent\(delta.map { $0 > 0 ? ", up \($0) percent this week" : $0 < 0 ? ", down \(abs($0)) percent this week" : "" } ?? "")")
+        .accessibilityLabel("\(skill.name), \(tier.displayName), \(rating) percent\(delta.map { $0 > 0 ? ", up \($0) percent" : $0 < 0 ? ", down \(abs($0)) percent" : "" } ?? "")")
     }
 }
 
@@ -90,7 +106,7 @@ struct SkillCard: View {
         SkillCard(
             skill: PreviewData.sampleServe,
             subskillCount: 3,
-            rating: 75,
+            rating: 85,
             delta: 3
         )
         SkillCard(
@@ -100,7 +116,7 @@ struct SkillCard: View {
             delta: -2
         )
         SkillCard(
-            skill: PreviewData.sampleVolley,
+            skill: PreviewData.sampleFootwork,
             subskillCount: 0,
             rating: 12,
             delta: nil
