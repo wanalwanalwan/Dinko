@@ -69,9 +69,7 @@ struct DrillDetailView: View {
                         setupSection
                     }
 
-                    if !equipmentItems.isEmpty {
-                        equipmentSection
-                    }
+
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
@@ -239,39 +237,6 @@ struct DrillDetailView: View {
             Text(value)
                 .font(.system(size: 14, weight: .medium, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
-        }
-    }
-
-    // MARK: - Equipment
-
-    private var equipmentItems: [String] {
-        equipment
-            .components(separatedBy: ",")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-    }
-
-    private var equipmentSection: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            sectionHeader("EQUIPMENT")
-
-            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                ForEach(equipmentItems, id: \.self) { item in
-                    HStack(spacing: AppSpacing.xxs) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(AppColors.successGreen)
-
-                        Text(item)
-                            .font(.system(size: 14, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-                    }
-                }
-            }
-            .padding(AppSpacing.sm)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
     }
 
