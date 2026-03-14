@@ -16,7 +16,14 @@ struct HeroDrillCard: View {
 
                 Spacer()
 
-                Label("\(totalCompleted) Completed", systemImage: "figure.pickleball")
+                Label {
+                    Text("\(totalCompleted) Completed")
+                } icon: {
+                    Image("coach-idle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                }
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.teal)
                     .padding(.horizontal, 10)

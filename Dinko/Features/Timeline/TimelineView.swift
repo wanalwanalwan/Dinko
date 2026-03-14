@@ -358,9 +358,10 @@ struct TimelineEntryCard: View {
 
     private var drillOnlyBadge: some View {
         HStack(spacing: AppSpacing.xxs) {
-            Image(systemName: "figure.pickleball")
-                .font(.system(size: 14))
-                .foregroundStyle(AppColors.coral)
+            Image("coach-idle")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 16, height: 16)
 
             Text("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") added")
                 .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -461,9 +462,10 @@ struct TimelineEntryCard: View {
                     let drillNames = entry.drillNamesSummary.components(separatedBy: ", ")
                     ForEach(drillNames, id: \.self) { name in
                         HStack(spacing: AppSpacing.xxs) {
-                            Image(systemName: "figure.pickleball")
-                                .font(.system(size: 11))
-                                .foregroundStyle(AppColors.coral)
+                            Image("coach-idle")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 14, height: 14)
                             Text(name)
                                 .font(.system(size: 13, design: .rounded))
                                 .foregroundStyle(AppColors.textPrimary)

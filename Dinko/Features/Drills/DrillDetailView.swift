@@ -86,9 +86,7 @@ struct DrillDetailView: View {
 
     private var headerSection: some View {
         VStack(spacing: AppSpacing.xs) {
-            Image(systemName: "figure.pickleball")
-                .font(.system(size: 40))
-                .foregroundStyle(AppColors.teal)
+            CoachMascot(state: .idle, size: 48, animated: false)
 
             Text(drillName)
                 .font(.system(size: 22, weight: .bold, design: .rounded))

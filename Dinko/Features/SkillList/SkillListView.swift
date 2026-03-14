@@ -153,11 +153,15 @@ struct SkillListView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        ContentUnavailableView(
-            "No Skills Yet",
-            systemImage: "figure.pickleball",
-            description: Text("Add your first skill to start tracking your progress.")
-        )
+        ContentUnavailableView {
+            Label {
+                Text("No Skills Yet")
+            } icon: {
+                CoachMascot(state: .idle, size: 48, animated: false)
+            }
+        } description: {
+            Text("Add your first skill to start tracking your progress.")
+        }
     }
 }
 

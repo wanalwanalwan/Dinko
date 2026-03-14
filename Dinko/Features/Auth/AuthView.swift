@@ -11,9 +11,7 @@ struct AuthView: View {
 
                 // Logo / Branding
                 VStack(spacing: AppSpacing.xxs) {
-                    Image(systemName: "figure.pickleball")
-                        .font(.system(size: 64))
-                        .foregroundStyle(AppColors.teal)
+                    CoachMascot(state: .idle, size: 72, animated: true)
 
                     Text("DinkIt")
                         .font(AppTypography.largeTitle)

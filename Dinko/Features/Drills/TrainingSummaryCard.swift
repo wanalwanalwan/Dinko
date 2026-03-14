@@ -20,7 +20,7 @@ struct TrainingSummaryCard: View {
             HStack(spacing: AppSpacing.sm) {
                 statItem(icon: "flame.fill", value: "\(totalCount)", label: "Drills", color: AppColors.coral)
                 statItem(icon: "clock", value: "\(totalMinutes)", label: "min", color: AppColors.teal)
-                statItem(icon: "figure.pickleball", value: "\(totalCompleted)", label: "Total", color: AppColors.successGreen)
+                mascotStatItem(value: "\(totalCompleted)", label: "Total")
                 if let focusSkill {
                     statItem(icon: "target", value: focusSkill, label: "Focus", color: AppColors.drillPurple)
                 }
@@ -39,6 +39,24 @@ struct TrainingSummaryCard: View {
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+    }
+
+    private func mascotStatItem(value: String, label: String) -> some View {
+        HStack(spacing: 4) {
+            Image("coach-idle")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 16, height: 16)
+
+            Text(value)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+                .lineLimit(1)
+
+            Text(label)
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+        }
     }
 
     private func statItem(icon: String, value: String, label: String, color: Color) -> some View {
