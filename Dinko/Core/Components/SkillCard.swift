@@ -81,23 +81,33 @@ struct SkillCard: View {
     }
 }
 
+private struct SkillCardPreviewItem: Identifiable {
+    let id: Int
+    let skill: Skill
+    let subskillCount: Int
+    let rating: Int
+    let delta: Int?
+}
+
+private let skillCardPreviewItems: [SkillCardPreviewItem] = [
+    .init(id: 0, skill: PreviewData.sampleServe, subskillCount: 3, rating: 85, delta: 3),
+    .init(id: 1, skill: PreviewData.sampleDink, subskillCount: 2, rating: 45, delta: -2),
+    .init(id: 2, skill: PreviewData.sampleFootwork, subskillCount: 0, rating: 12, delta: nil),
+    .init(id: 3, skill: PreviewData.sampleVolley, subskillCount: 1, rating: 68, delta: 5),
+    .init(id: 4, skill: PreviewData.sampleThirdShot, subskillCount: 2, rating: 33, delta: 1),
+    .init(id: 5, skill: PreviewData.sampleStrategy, subskillCount: 0, rating: 91, delta: nil),
+]
+
 #Preview {
     VStack(spacing: 0) {
-        ForEach(Array([
-            (PreviewData.sampleServe, 3, 85, Optional(3)),
-            (PreviewData.sampleDink, 2, 45, Optional(-2)),
-            (PreviewData.sampleFootwork, 0, 12, nil as Int?),
-            (PreviewData.sampleVolley, 1, 68, Optional(5)),
-            (PreviewData.sampleThirdShot, 2, 33, Optional(1)),
-            (PreviewData.sampleStrategy, 0, 91, nil as Int?),
-        ].enumerated()), id: \.offset) { index, item in
+        ForEach(skillCardPreviewItems) { item in
             SkillCard(
-                skill: item.0,
-                subskillCount: item.1,
-                rating: item.2,
-                delta: item.3
+                skill: item.skill,
+                subskillCount: item.subskillCount,
+                rating: item.rating,
+                delta: item.delta
             )
-            if index < 5 {
+            if item.id < skillCardPreviewItems.count - 1 {
                 Divider()
                     .padding(.leading, 34)
             }
