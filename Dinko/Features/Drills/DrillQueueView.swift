@@ -53,15 +53,6 @@ struct DrillQueueView: View {
         } else {
             ScrollView {
                 VStack(spacing: AppSpacing.sm) {
-                    // Coach bubble with tip
-                    if !viewModel.pendingDrills.isEmpty {
-                        CoachBubbleView(
-                            tip: viewModel.showCelebration ? "Great work! Keep that momentum going!" : viewModel.mascotTip,
-                            isCelebrating: viewModel.showCelebration
-                        )
-                        .staggeredAppearance(index: 0)
-                    }
-
                     // Hero card for first pending drill
                     if let firstDrill = viewModel.pendingDrills.first {
                         NavigationLink {
@@ -79,7 +70,7 @@ struct DrillQueueView: View {
                             )
                         }
                         .buttonStyle(.pressable)
-                        .staggeredAppearance(index: 1)
+                        .staggeredAppearance(index: 0)
                     }
 
                     // Training summary
@@ -92,7 +83,7 @@ struct DrillQueueView: View {
                             progress: viewModel.sessionProgress,
                             totalCompleted: viewModel.totalDrillsCompleted
                         )
-                        .staggeredAppearance(index: 2)
+                        .staggeredAppearance(index: 1)
                     }
 
                     // Progression path for remaining drills
@@ -103,13 +94,13 @@ struct DrillQueueView: View {
                             onComplete: { drillId in await viewModel.doRep(drillId) },
                             onSkip: { drillId in await viewModel.skip(drillId) }
                         )
-                        .staggeredAppearance(index: 3)
+                        .staggeredAppearance(index: 2)
                     }
 
                     // History section
                     if !viewModel.completedDrills.isEmpty {
                         historyCard(viewModel)
-                            .staggeredAppearance(index: 4)
+                            .staggeredAppearance(index: 3)
                     }
                 }
                 .padding(.horizontal, AppSpacing.sm)
