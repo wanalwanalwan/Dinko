@@ -12,52 +12,60 @@ struct SkillCard: View {
     @State private var animatedProgress: Double = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            // Row 1: Skill name + percentage
-            HStack(alignment: .firstTextBaseline) {
-                Text(skill.name)
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
+        VStack(alignment: .leading, spacing: 3) {
+            // Primary row: dot + name + progress bar + percentage
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(tier.color)
+                    .frame(width: 8, height: 8)
 
-                Spacer()
+                Text(skill.name)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(1)
+
+                Spacer(minLength: 4)
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(tier.color.opacity(0.12))
+
+                        Capsule()
+                            .fill(tier.color.gradient)
+                            .frame(width: max(geo.size.width * animatedProgress, 0))
+                    }
+                }
+                .frame(width: 56, height: 4)
+                .clipShape(Capsule())
 
                 Text("\(rating)%")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .monospacedDigit()
                     .foregroundStyle(tier.color)
+                    .frame(width: 40, alignment: .trailing)
             }
 
-            // Row 2: Tier badge
-            Text(tier.displayName.uppercased())
-                .font(.system(size: 11, weight: .bold, design: .rounded))
-                .foregroundStyle(tier.color)
-                .tracking(0.5)
+            // Secondary row: tier label + delta
+            HStack(spacing: 4) {
+                Text(tier.displayName.uppercased())
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .tracking(0.5)
 
-            // Row 3: Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(tier.color.opacity(0.12))
-
-                    Capsule()
-                        .fill(tier.color.gradient)
-                        .frame(width: max(geo.size.width * animatedProgress, 0))
+                if let delta, delta != 0 {
+                    Text("\u{00B7}")
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
                 }
             }
-            .frame(height: 6)
-            .clipShape(Capsule())
-
-            // Row 4: Delta
-            if let delta, delta != 0 {
-                Text(delta > 0 ? "+\(delta)% this week" : "\(delta)% this week")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
-            }
+            .padding(.leading, 18) // align with skill name (8 dot + 10 spacing)
         }
-        .padding(AppSpacing.sm)
-        .padding(.vertical, AppSpacing.xxxs)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.vertical, AppSpacing.xs)
         .onAppear {
             withAnimation(AppAnimations.springSmooth) {
                 animatedProgress = overallProgress
@@ -74,26 +82,30 @@ struct SkillCard: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
-        SkillCard(
-            skill: PreviewData.sampleServe,
-            subskillCount: 3,
-            rating: 85,
-            delta: 3
-        )
-        SkillCard(
-            skill: PreviewData.sampleDink,
-            subskillCount: 2,
-            rating: 45,
-            delta: -2
-        )
-        SkillCard(
-            skill: PreviewData.sampleFootwork,
-            subskillCount: 0,
-            rating: 12,
-            delta: nil
-        )
+    VStack(spacing: 0) {
+        ForEach(Array([
+            (PreviewData.sampleServe, 3, 85, Optional(3)),
+            (PreviewData.sampleDink, 2, 45, Optional(-2)),
+            (PreviewData.sampleFootwork, 0, 12, nil as Int?),
+            (PreviewData.sampleVolley, 1, 68, Optional(5)),
+            (PreviewData.sampleThirdShot, 2, 33, Optional(1)),
+            (PreviewData.sampleStrategy, 0, 91, nil as Int?),
+        ].enumerated()), id: \.offset) { index, item in
+            SkillCard(
+                skill: item.0,
+                subskillCount: item.1,
+                rating: item.2,
+                delta: item.3
+            )
+            if index < 5 {
+                Divider()
+                    .padding(.leading, 34)
+            }
+        }
     }
+    .background(AppColors.cardBackground)
+    .clipShape(RoundedRectangle(cornerRadius: 16))
+    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     .padding()
     .background(AppColors.background)
 }

@@ -66,22 +66,33 @@ struct SkillListView: View {
             emptyState
         } else {
             ScrollView {
-                VStack(spacing: AppSpacing.md) {
+                VStack(spacing: AppSpacing.sm) {
                     overviewCard(viewModel)
                         .staggeredAppearance(index: 0)
 
-                    ForEach(Array(viewModel.skills.enumerated()), id: \.element.id) { index, skill in
-                        NavigationLink(value: skill) {
-                            SkillCard(
-                                skill: skill,
-                                subskillCount: viewModel.subskillCounts[skill.id] ?? 0,
-                                rating: viewModel.latestRatings[skill.id] ?? 0,
-                                delta: viewModel.ratingDeltas[skill.id]
-                            )
+                    // Grouped skills card
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.skills.enumerated()), id: \.element.id) { index, skill in
+                            NavigationLink(value: skill) {
+                                SkillCard(
+                                    skill: skill,
+                                    subskillCount: viewModel.subskillCounts[skill.id] ?? 0,
+                                    rating: viewModel.latestRatings[skill.id] ?? 0,
+                                    delta: viewModel.ratingDeltas[skill.id]
+                                )
+                            }
+                            .buttonStyle(.pressable)
+
+                            if index < viewModel.skills.count - 1 {
+                                Divider()
+                                    .padding(.leading, 34) // align with skill name
+                            }
                         }
-                        .buttonStyle(.pressable)
-                        .staggeredAppearance(index: index + 1)
                     }
+                    .background(AppColors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+                    .staggeredAppearance(index: 1)
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
