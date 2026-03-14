@@ -99,7 +99,7 @@ struct DrillDetailView: View {
             HStack(spacing: AppSpacing.xxs) {
                 metadataPill(emoji: "\u{23F1}", text: "\(durationMinutes) min")
                 if let subskill = targetSubskill {
-                    metadataPill(emoji: "\u{1F3AF}", text: subskill)
+                    metadataPill(emoji: "\u{1F3AF}", text: subskill.replacingOccurrences(of: "_", with: " ").capitalized)
                 }
                 metadataPill(emoji: "\u{1F9E0}", text: skillName)
             }

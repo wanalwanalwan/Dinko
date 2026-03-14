@@ -33,7 +33,7 @@ struct HeroDrillCard: View {
 
             // Subskill / focus
             if let subskill = drill.targetSubskill, !subskill.isEmpty {
-                Text(subskill)
+                Text(subskill.replacingOccurrences(of: "_", with: " ").capitalized)
                     .font(.system(size: 14, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                     .lineLimit(1)

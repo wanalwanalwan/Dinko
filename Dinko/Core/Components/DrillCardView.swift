@@ -21,7 +21,7 @@ struct DrillCardView: View {
                     .multilineTextAlignment(.leading)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    metadataRow("Focus", value: drill.targetSubskill ?? drill.skillName)
+                    metadataRow("Focus", value: (drill.targetSubskill ?? drill.skillName).replacingOccurrences(of: "_", with: " ").capitalized)
                     metadataRow("Level", value: difficultyLabel)
                 }
             }
