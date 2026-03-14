@@ -415,10 +415,10 @@ struct SkillDetailView: View {
                 }
             } label: {
                 HStack(alignment: .top, spacing: AppSpacing.xxs) {
-                    Image(systemName: drill.priorityIcon)
-                        .foregroundStyle(drill.priorityColor)
-                        .font(.system(size: 14))
-                        .frame(width: 20)
+                    Circle()
+                        .fill(drill.priorityColor)
+                        .frame(width: 8, height: 8)
+                        .padding(.top, 6)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(drill.name)
@@ -434,7 +434,7 @@ struct SkillDetailView: View {
                                 Text("\u{2022}")
                                     .font(AppTypography.caption)
                                     .foregroundStyle(AppColors.textSecondary)
-                                Text(subskill)
+                                Text(subskill.replacingOccurrences(of: "_", with: " ").capitalized)
                                     .font(AppTypography.caption)
                                     .foregroundStyle(AppColors.teal)
                             }
