@@ -55,9 +55,6 @@ struct ChatView: View {
                     LazyVStack(spacing: AppSpacing.xs) {
                         if viewModel.messages.isEmpty {
                             emptyState
-                        } else {
-                            // Coach header at top of conversation
-                            coachHeader
                         }
 
                         ForEach(viewModel.messages) { message in
@@ -95,22 +92,6 @@ struct ChatView: View {
             inputBar(viewModel)
         }
         .contentLoadTransition(isLoaded: contentReady)
-    }
-
-    // MARK: - Coach Header
-
-    private var coachHeader: some View {
-        VStack(spacing: AppSpacing.xxxs) {
-            Text("AI Pickleball Coach \u{1F3D3}")
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
-
-            Text("Your personal training partner")
-                .font(.system(size: 13, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary.opacity(0.7))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.bottom, AppSpacing.md)
     }
 
     // MARK: - Empty State
@@ -184,6 +165,7 @@ struct ChatView: View {
             // Non-text content (loading, session preview, cards, errors)
             HStack(alignment: .top, spacing: 8) {
                 CoachMascot(state: mascotState(for: message), size: 28)
+                    .padding(.top, 12) // align with content inside padded bubble
                 agentBubbleContent(message, viewModel: viewModel)
                 Spacer(minLength: 0)
             }
