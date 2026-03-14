@@ -66,7 +66,12 @@ struct SkillListView: View {
             emptyState
         } else {
             ScrollView {
-                LazyVStack(spacing: AppSpacing.xs) {
+                VStack(spacing: AppSpacing.sm) {
+                    // Summary card
+                    overviewCard(viewModel)
+                        .staggeredAppearance(index: 0)
+
+                    // Skill cards
                     ForEach(Array(viewModel.skills.enumerated()), id: \.element.id) { index, skill in
                         NavigationLink(value: skill) {
                             SkillCard(
@@ -77,11 +82,12 @@ struct SkillListView: View {
                             )
                         }
                         .buttonStyle(.pressable)
-                        .staggeredAppearance(index: index)
+                        .staggeredAppearance(index: index + 1)
                     }
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
+                .padding(.bottom, AppSpacing.xl)
                 .contentLoadTransition(isLoaded: contentReady)
             }
             .refreshable {
@@ -89,6 +95,67 @@ struct SkillListView: View {
             }
         }
     }
+
+    // MARK: - Overview Card
+
+    private func overviewCard(_ viewModel: SkillListViewModel) -> some View {
+        let ratings = viewModel.skills.map { viewModel.latestRatings[$0.id] ?? 0 }
+        let avgRating = ratings.isEmpty ? 0 : ratings.reduce(0, +) / ratings.count
+        let improvingCount = viewModel.ratingDeltas.values.filter { $0 > 0 }.count
+
+        return HStack(spacing: 0) {
+            overviewStat(
+                value: "\(viewModel.skills.count)",
+                label: "Skills",
+                icon: "figure.pickleball"
+            )
+
+            divider
+
+            overviewStat(
+                value: "\(avgRating)%",
+                label: "Average",
+                icon: "chart.bar.fill"
+            )
+
+            divider
+
+            overviewStat(
+                value: "\(improvingCount)",
+                label: "Improving",
+                icon: "arrow.up.right"
+            )
+        }
+        .padding(.vertical, AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    private func overviewStat(value: String, label: String, icon: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(AppColors.teal)
+
+            Text(value)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+
+            Text(label)
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(AppColors.separator)
+            .frame(width: 1, height: 36)
+    }
+
+    // MARK: - Empty State
 
     private var emptyState: some View {
         ContentUnavailableView(

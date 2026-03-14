@@ -5,6 +5,7 @@ struct RatingBadge: View {
     var size: CGFloat = 60
     var ringColor: Color = AppColors.teal
     var showCheckmark: Bool = false
+    var showLabel: Bool = true
 
     @State private var animatedProgress: Double = 0
 
@@ -25,7 +26,7 @@ struct RatingBadge: View {
                 Image(systemName: "checkmark")
                     .font(.system(size: size * 0.3, weight: .bold))
                     .foregroundStyle(ringColor)
-            } else {
+            } else if showLabel {
                 Text("\(rating)%")
                     .font(size > 100 ? AppTypography.ratingLarge : AppTypography.ratingBadge)
                     .foregroundStyle(AppColors.textPrimary)

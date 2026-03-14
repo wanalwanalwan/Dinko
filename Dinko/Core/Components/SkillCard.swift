@@ -8,63 +8,78 @@ struct SkillCard: View {
 
     private var tier: SkillTier { SkillTier(rating: rating) }
 
-    private var lastUpdatedText: String {
-        let calendar = Calendar.current
-        let days = calendar.dateComponents(
-            [.day],
-            from: calendar.startOfDay(for: skill.updatedAt),
-            to: calendar.startOfDay(for: Date())
-        ).day ?? 0
-        switch days {
-        case 0: return "Last updated today"
-        case 1: return "Last updated yesterday"
-        default: return "Last updated \(days) days ago"
-        }
-    }
-
     var body: some View {
-        HStack(alignment: .center, spacing: AppSpacing.sm) {
-            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+        HStack(spacing: AppSpacing.sm) {
+            // Left: progress ring with category icon inside
+            ZStack {
+                Circle()
+                    .fill(tier.color.opacity(0.1))
+
+                RatingBadge(
+                    rating: rating,
+                    size: 52,
+                    ringColor: tier.color,
+                    showLabel: false
+                )
+
+                Text(skill.category.iconName)
+                    .font(.system(size: 20))
+            }
+            .frame(width: 52, height: 52)
+
+            // Center: skill info
+            VStack(alignment: .leading, spacing: 4) {
                 Text(skill.name)
-                    .font(AppTypography.headline)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
-                Text(tier.displayName.uppercased())
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundStyle(tier.color)
-                    .padding(.horizontal, AppSpacing.xxs)
-                    .padding(.vertical, AppSpacing.xxxs)
-                    .background(tier.color.opacity(0.15))
-                    .clipShape(Capsule())
+                HStack(spacing: AppSpacing.xxs) {
+                    // Tier badge
+                    Text(tier.displayName.uppercased())
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(tier.color)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(tier.color.opacity(0.12))
+                        .clipShape(Capsule())
 
-                HStack(spacing: AppSpacing.xxxs) {
-                    Text(lastUpdatedText)
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-
+                    // Delta indicator
                     if let delta, delta != 0 {
-                        Text("·")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: 10))
-                            .foregroundStyle(AppColors.teal)
-
-                        Text(delta > 0 ? "+\(delta)% this week" : "\(delta)% this week")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.teal)
+                        HStack(spacing: 2) {
+                            Image(systemName: delta > 0 ? "arrow.up.right" : "arrow.down.right")
+                                .font(.system(size: 9, weight: .semibold))
+                            Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
+                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background((delta > 0 ? AppColors.successGreen : AppColors.coral).opacity(0.1))
+                        .clipShape(Capsule())
                     }
                 }
             }
 
             Spacer()
 
-            RatingBadge(rating: rating, ringColor: tier.color)
+            // Right: rating percentage + chevron
+            VStack(spacing: 2) {
+                Text("\(rating)")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(tier.color)
+                Text("%")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(AppColors.textSecondary.opacity(0.5))
         }
         .padding(AppSpacing.sm)
-        .background(tier.color.opacity(0.08))
+        .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(skill.name), \(tier.displayName), \(rating) percent\(delta.map { $0 > 0 ? ", up \($0) percent this week" : $0 < 0 ? ", down \(abs($0)) percent this week" : "" } ?? "")")
     }
@@ -87,7 +102,7 @@ struct SkillCard: View {
         SkillCard(
             skill: PreviewData.sampleVolley,
             subskillCount: 0,
-            rating: 0,
+            rating: 12,
             delta: nil
         )
     }
