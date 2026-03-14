@@ -4,7 +4,9 @@ struct SplashScreenView: View {
     @State private var iconScale: CGFloat = 0.4
     @State private var iconOpacity: Double = 1.0
     @State private var backgroundOpacity: Double = 1.0
-    @State private var hasAnimated = false
+
+    /// Static flag survives SwiftUI view recreation (parent re-evaluation)
+    private static var hasAnimated = false
 
     let onFinished: () -> Void
 
@@ -32,8 +34,11 @@ struct SplashScreenView: View {
         }
         .opacity(backgroundOpacity)
         .task {
-            guard !hasAnimated else { return }
-            hasAnimated = true
+            guard !Self.hasAnimated else {
+                onFinished()
+                return
+            }
+            Self.hasAnimated = true
 
             // Phase 1: Zoom in with spring
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
