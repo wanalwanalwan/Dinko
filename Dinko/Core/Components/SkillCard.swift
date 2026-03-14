@@ -14,15 +14,16 @@ struct SkillCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             // Primary row: dot + name + progress bar + percentage
-            HStack(spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
                 Circle()
                     .fill(tier.color)
                     .frame(width: 8, height: 8)
+                    .padding(.top, 6) // center with first line of text
 
                 Text(skill.name)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
-                    .lineLimit(1)
+                    .lineLimit(2)
 
                 Spacer(minLength: 4)
 
@@ -38,12 +39,14 @@ struct SkillCard: View {
                 }
                 .frame(width: 56, height: 4)
                 .clipShape(Capsule())
+                .padding(.top, 8) // center with first line of text
 
                 Text("\(rating)%")
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(tier.color)
                     .frame(width: 40, alignment: .trailing)
+                    .padding(.top, 1)
             }
 
             // Secondary row: tier label + delta
@@ -95,7 +98,8 @@ private let skillCardPreviewItems: [SkillCardPreviewItem] = [
     .init(id: 2, skill: PreviewData.sampleFootwork, subskillCount: 0, rating: 12, delta: nil),
     .init(id: 3, skill: PreviewData.sampleVolley, subskillCount: 1, rating: 68, delta: 5),
     .init(id: 4, skill: PreviewData.sampleThirdShot, subskillCount: 2, rating: 33, delta: 1),
-    .init(id: 5, skill: PreviewData.sampleStrategy, subskillCount: 0, rating: 91, delta: nil),
+    .init(id: 5, skill: Skill(name: "Backhand Topspin Counter Attack"), subskillCount: 0, rating: 57, delta: 4),
+    .init(id: 6, skill: PreviewData.sampleStrategy, subskillCount: 0, rating: 91, delta: nil),
 ]
 
 #Preview {
