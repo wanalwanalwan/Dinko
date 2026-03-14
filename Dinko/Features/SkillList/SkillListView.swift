@@ -66,7 +66,7 @@ struct SkillListView: View {
             emptyState
         } else {
             ScrollView {
-                VStack(spacing: AppSpacing.sm) {
+                VStack(spacing: AppSpacing.md) {
                     overviewCard(viewModel)
                         .staggeredAppearance(index: 0)
 
@@ -101,73 +101,42 @@ struct SkillListView: View {
         let avgRating = ratings.isEmpty ? 0 : ratings.reduce(0, +) / ratings.count
         let improvingCount = viewModel.ratingDeltas.values.filter { $0 > 0 }.count
         let avgTier = SkillTier(rating: avgRating)
+        let tierLevel = SkillTier.allCases.firstIndex(of: avgTier).map { $0 + 1 } ?? 1
 
-        return HStack(spacing: AppSpacing.sm) {
-            RatingBadge(rating: avgRating, size: 72, ringColor: avgTier.color)
+        return VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            // Level label
+            Text("LEVEL \(tierLevel)")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(avgTier.color)
+                .tracking(1)
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("YOUR LEVEL")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+            // Tier name
+            Text(avgTier.displayName)
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+
+            // Progress to next tier
+            if let next = avgTier.nextTier {
+                let pointsToNext = SkillTier.pointsToNext(for: avgRating)
+                Text("\(pointsToNext) pts to \(next.displayName)")
+                    .font(.system(size: 13, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
-                    .tracking(1)
-
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(avgTier.displayName)
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    if let next = avgTier.nextTier {
-                        HStack(spacing: 2) {
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 9, weight: .bold))
-                            Text(next.displayName)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                        }
-                        .foregroundStyle(AppColors.textSecondary)
-                    }
-                }
-
-                // Overall tier progress bar
-                OverviewTierBar(rating: avgRating, tier: avgTier)
-
-                HStack(spacing: AppSpacing.xs) {
-                    statPill(
-                        icon: "figure.pickleball",
-                        value: "\(viewModel.skills.count)",
-                        label: "skills"
-                    )
-
-                    if improvingCount > 0 {
-                        statPill(
-                            icon: "arrow.up.right",
-                            value: "\(improvingCount)",
-                            label: "improving",
-                            color: AppColors.successGreen
-                        )
-                    }
-                }
             }
 
-            Spacer()
+            // Tier progress bar
+            OverviewTierBar(rating: avgRating, tier: avgTier)
+
+            // Stats
+            Text("\(viewModel.skills.count) skills \u{00B7} \(improvingCount) improving")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .padding(.top, AppSpacing.xxxs)
         }
-        .padding(AppSpacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppSpacing.md)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-    }
-
-    private func statPill(icon: String, value: String, label: String, color: Color = AppColors.teal) -> some View {
-        HStack(spacing: 3) {
-            Image(systemName: icon)
-                .font(.system(size: 9, weight: .semibold))
-            Text("\(value) \(label)")
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-        }
-        .foregroundStyle(color)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(color.opacity(0.1))
-        .clipShape(Capsule())
     }
 
     // MARK: - Empty State
@@ -190,30 +159,20 @@ private struct OverviewTierBar: View {
     @State private var animatedProgress: Double = 0
 
     private var tierProgress: Double { SkillTier.tierProgress(for: rating) }
-    private var pointsToNext: Int { SkillTier.pointsToNext(for: rating) }
 
     var body: some View {
-        HStack(spacing: 6) {
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(tier.color.opacity(0.12))
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(tier.color.opacity(0.12))
 
-                    Capsule()
-                        .fill(tier.color.gradient)
-                        .frame(width: max(geo.size.width * animatedProgress, 0))
-                }
-            }
-            .frame(height: 6)
-            .clipShape(Capsule())
-
-            if tier.nextTier != nil {
-                Text("\(pointsToNext) pts")
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .fixedSize()
+                Capsule()
+                    .fill(tier.color.gradient)
+                    .frame(width: max(geo.size.width * animatedProgress, 0))
             }
         }
+        .frame(height: 8)
+        .clipShape(Capsule())
         .onAppear {
             withAnimation(AppAnimations.springSmooth) {
                 animatedProgress = tierProgress
