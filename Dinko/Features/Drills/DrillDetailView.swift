@@ -57,7 +57,7 @@ struct DrillDetailView: View {
                 VStack(spacing: AppSpacing.lg) {
                     headerSection
 
-                    if !descriptionSteps.isEmpty {
+                    if !descriptionParagraphs.isEmpty {
                         howItWorksSection
                     }
 
@@ -125,12 +125,10 @@ struct DrillDetailView: View {
 
     // MARK: - How It Works
 
-    private var descriptionSteps: [String] {
+    private var descriptionParagraphs: [String] {
         drillDescription
-            .components(separatedBy: ". ")
-            .flatMap { $0.components(separatedBy: ".\n") }
+            .components(separatedBy: "\n")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .map { $0.hasSuffix(".") ? String($0.dropLast()) : $0 }
             .filter { !$0.isEmpty }
     }
 
@@ -138,24 +136,12 @@ struct DrillDetailView: View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
             sectionHeader("HOW IT WORKS")
 
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(descriptionSteps.enumerated()), id: \.offset) { index, step in
-                    HStack(spacing: AppSpacing.xs) {
-                        RoundedRectangle(cornerRadius: 1.5)
-                            .fill(AppColors.teal)
-                            .frame(width: 3)
-
-                        Text(step)
-                            .font(.system(size: 15, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.vertical, AppSpacing.xs)
-                    }
-
-                    if index < descriptionSteps.count - 1 {
-                        Divider()
-                            .padding(.leading, 3 + AppSpacing.xs)
-                    }
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                ForEach(Array(descriptionParagraphs.enumerated()), id: \.offset) { _, paragraph in
+                    Text(paragraph)
+                        .font(.system(size: 15, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(AppSpacing.sm)
