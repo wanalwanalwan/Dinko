@@ -34,7 +34,7 @@ struct DrillDetailView: View {
         self.onSkip = nil
     }
 
-    // New init for Drill type (DrillQueueView)
+    // Init for Drill type (DrillQueueView)
     init(drill: Drill, skillName: String, onComplete: @escaping () async -> Void, onSkip: @escaping () async -> Void) {
         self.drillName = drill.name
         self.skillName = skillName
@@ -52,29 +52,44 @@ struct DrillDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: AppSpacing.md) {
-                heroSection
-                detailsCard
-                if !reason.isEmpty {
-                    reasonCard
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                VStack(spacing: AppSpacing.lg) {
+                    headerSection
+
+                    if !descriptionSteps.isEmpty {
+                        howItWorksSection
+                    }
+
+                    if !reasonBullets.isEmpty {
+                        coachingTipsSection
+                    }
+
+                    if playerCount > 1 || targetReps > 1 {
+                        setupSection
+                    }
+
+                    if !equipmentItems.isEmpty {
+                        equipmentSection
+                    }
                 }
-                actionButtons
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.xxs)
+                .padding(.bottom, 120)
             }
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.top, AppSpacing.xs)
-            .padding(.bottom, AppSpacing.xl)
+
+            stickyActionBar
         }
-        .navigationTitle("Drill Details")
+        .background(AppColors.background)
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    // MARK: - Hero
+    // MARK: - Header
 
-    private var heroSection: some View {
+    private var headerSection: some View {
         VStack(spacing: AppSpacing.xs) {
             Image(systemName: "figure.pickleball")
-                .font(.system(size: 56))
+                .font(.system(size: 40))
                 .foregroundStyle(AppColors.teal)
 
             Text(drillName)
@@ -82,69 +97,138 @@ struct DrillDetailView: View {
                 .foregroundStyle(AppColors.textPrimary)
                 .multilineTextAlignment(.center)
 
-            HStack(spacing: AppSpacing.xs) {
-                Label("\(durationMinutes) min", systemImage: "clock")
-                Text("\u{00B7}")
-                Text(skillName)
-                    .foregroundStyle(AppColors.teal)
+            // Metadata pills
+            HStack(spacing: AppSpacing.xxs) {
+                metadataPill(emoji: "\u{23F1}", text: "\(durationMinutes) min")
+                if let subskill = targetSubskill {
+                    metadataPill(emoji: "\u{1F3AF}", text: subskill)
+                }
+                metadataPill(emoji: "\u{1F9E0}", text: skillName)
             }
-            .font(.system(size: 14, design: .rounded))
-            .foregroundStyle(AppColors.textSecondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.lg)
+        .padding(.vertical, AppSpacing.sm)
     }
 
-    // MARK: - Details Card
+    private func metadataPill(emoji: String, text: String) -> some View {
+        HStack(spacing: 4) {
+            Text(emoji)
+                .font(.system(size: 11))
+            Text(text)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, AppSpacing.xs)
+        .padding(.vertical, 6)
+        .background(AppColors.primaryTint)
+        .clipShape(Capsule())
+    }
 
-    private var detailsCard: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            if !drillDescription.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
-                    Text("DESCRIPTION")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
+    // MARK: - How It Works
 
-                    Text(drillDescription)
-                        .font(.system(size: 15, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
+    private var descriptionSteps: [String] {
+        drillDescription
+            .components(separatedBy: ". ")
+            .flatMap { $0.components(separatedBy: ".\n") }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0.hasSuffix(".") ? String($0.dropLast()) : $0 }
+            .filter { !$0.isEmpty }
+    }
+
+    private var howItWorksSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            sectionHeader("HOW IT WORKS")
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                ForEach(Array(descriptionSteps.enumerated()), id: \.offset) { index, step in
+                    HStack(alignment: .top, spacing: AppSpacing.xs) {
+                        Text("\(index + 1)")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .frame(width: 24, height: 24)
+                            .background(AppColors.teal)
+                            .clipShape(Circle())
+
+                        Text(step)
+                            .font(.system(size: 15, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
-
-            if let subskill = targetSubskill {
-                Divider()
-                infoRow(icon: "target", label: "Focus", value: subskill)
-            }
-
-            if !equipment.isEmpty {
-                Divider()
-                infoRow(icon: "wrench.and.screwdriver", label: "Equipment", value: equipment)
-            }
-
-            if playerCount > 1 {
-                Divider()
-                infoRow(icon: "person.2", label: "Players", value: "\(playerCount)")
-            }
-
-            Divider()
-            infoRow(
-                icon: priority == "high" ? "exclamationmark.circle.fill" : "circle.fill",
-                label: "Priority",
-                value: priority.capitalized,
-                valueColor: priorityColor
-            )
+            .padding(AppSpacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
-    private func infoRow(icon: String, label: String, value: String, valueColor: Color = AppColors.textPrimary) -> some View {
-        HStack(spacing: AppSpacing.xs) {
+    // MARK: - Coaching Tips
+
+    private var reasonBullets: [String] {
+        reason
+            .components(separatedBy: ". ")
+            .flatMap { $0.components(separatedBy: ".\n") }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0.hasSuffix(".") ? String($0.dropLast()) : $0 }
+            .filter { !$0.isEmpty }
+    }
+
+    private var coachingTipsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            sectionHeader("COACHING TIPS")
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                ForEach(reasonBullets, id: \.self) { tip in
+                    HStack(alignment: .top, spacing: AppSpacing.xxs) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppColors.warningOrange)
+                            .frame(width: 18)
+                            .padding(.top, 2)
+
+                        Text(tip)
+                            .font(.system(size: 14, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            .padding(AppSpacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+    }
+
+    // MARK: - Setup
+
+    private var setupSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            sectionHeader("SETUP")
+
+            VStack(spacing: AppSpacing.xxs) {
+                if playerCount > 1 {
+                    setupRow(icon: "person.2.fill", label: "Players", value: "\(playerCount)")
+                }
+                if targetReps > 1 {
+                    setupRow(icon: "arrow.counterclockwise", label: "Reps", value: "\(targetReps) total")
+                }
+            }
+            .padding(AppSpacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+    }
+
+    private func setupRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: AppSpacing.xxs) {
             Image(systemName: icon)
                 .font(.system(size: 14))
                 .foregroundStyle(AppColors.teal)
-                .frame(width: 20)
+                .frame(width: 22)
 
             Text(label)
                 .font(.system(size: 14, design: .rounded))
@@ -154,43 +238,59 @@ struct DrillDetailView: View {
 
             Text(value)
                 .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(valueColor)
-        }
-    }
-
-    private var priorityColor: Color {
-        switch priority {
-        case "high": AppColors.coral
-        case "medium": AppColors.teal
-        default: AppColors.textSecondary
-        }
-    }
-
-    // MARK: - Reason Card
-
-    private var reasonCard: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
-            Text("WHY THIS DRILL?")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-
-            Text(reason)
-                .font(.system(size: 15, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
-    // MARK: - Actions
+    // MARK: - Equipment
 
-    private var actionButtons: some View {
-        VStack(spacing: AppSpacing.xs) {
+    private var equipmentItems: [String] {
+        equipment
+            .components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    private var equipmentSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            sectionHeader("EQUIPMENT")
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                ForEach(equipmentItems, id: \.self) { item in
+                    HStack(spacing: AppSpacing.xxs) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(AppColors.successGreen)
+
+                        Text(item)
+                            .font(.system(size: 14, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                    }
+                }
+            }
+            .padding(AppSpacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+    }
+
+    // MARK: - Section Header
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 13, weight: .bold, design: .rounded))
+            .foregroundStyle(AppColors.textSecondary)
+            .tracking(1)
+    }
+
+    // MARK: - Sticky Action Bar
+
+    private var stickyActionBar: some View {
+        VStack(spacing: AppSpacing.xxs) {
             if targetReps > 1 {
                 Text("Rep \(completedReps + 1) of \(targetReps)")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.coral)
             }
 
@@ -200,13 +300,15 @@ struct DrillDetailView: View {
                     dismiss()
                 }
             } label: {
-                Label("Do Drill", systemImage: "play.circle.fill")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                Text("START DRILL")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .tracking(0.5)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xs)
+                    .padding(.vertical, AppSpacing.sm)
+                    .background(AppColors.teal)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
             }
-            .buttonStyle(.borderedProminent)
-            .tint(AppColors.teal)
 
             if let onSkip {
                 Button {
@@ -215,14 +317,19 @@ struct DrillDetailView: View {
                         dismiss()
                     }
                 } label: {
-                    Label("Skip Drill", systemImage: "forward.fill")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.xs)
+                    Text("Skip")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
                 }
-                .buttonStyle(.bordered)
-                .tint(AppColors.textSecondary)
             }
         }
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.top, AppSpacing.xs)
+        .padding(.bottom, AppSpacing.lg)
+        .background(
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .ignoresSafeArea(edges: .bottom)
+        )
     }
 }
