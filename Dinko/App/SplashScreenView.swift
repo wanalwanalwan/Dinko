@@ -4,6 +4,7 @@ struct SplashScreenView: View {
     @State private var iconScale: CGFloat = 0.4
     @State private var iconOpacity: Double = 1.0
     @State private var backgroundOpacity: Double = 1.0
+    @State private var hasAnimated = false
 
     let onFinished: () -> Void
 
@@ -31,6 +32,9 @@ struct SplashScreenView: View {
         }
         .opacity(backgroundOpacity)
         .task {
+            guard !hasAnimated else { return }
+            hasAnimated = true
+
             // Phase 1: Zoom in with spring
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                 iconScale = 1.0
