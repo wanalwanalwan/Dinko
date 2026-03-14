@@ -103,18 +103,32 @@ struct SkillListView: View {
         let avgTier = SkillTier(rating: avgRating)
 
         return HStack(spacing: AppSpacing.sm) {
-            // Overall progress ring
-            RatingBadge(rating: avgRating, size: 64, ringColor: avgTier.color)
+            RatingBadge(rating: avgRating, size: 72, ringColor: avgTier.color)
 
-            // Stats column
             VStack(alignment: .leading, spacing: 6) {
-                Text("Overall Level")
-                    .font(.system(size: 12, design: .rounded))
+                Text("YOUR LEVEL")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
+                    .tracking(1)
 
-                Text(avgTier.displayName)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(avgTier.displayName)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    if let next = avgTier.nextTier {
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 9, weight: .bold))
+                            Text(next.displayName)
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                        }
+                        .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+
+                // Overall tier progress bar
+                OverviewTierBar(rating: avgRating, tier: avgTier)
 
                 HStack(spacing: AppSpacing.xs) {
                     statPill(
@@ -164,6 +178,52 @@ struct SkillListView: View {
             systemImage: "figure.pickleball",
             description: Text("Add your first skill to start tracking your progress.")
         )
+    }
+}
+
+// MARK: - Overview Tier Progress Bar
+
+private struct OverviewTierBar: View {
+    let rating: Int
+    let tier: SkillTier
+
+    @State private var animatedProgress: Double = 0
+
+    private var tierProgress: Double { SkillTier.tierProgress(for: rating) }
+    private var pointsToNext: Int { SkillTier.pointsToNext(for: rating) }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(tier.color.opacity(0.12))
+
+                    Capsule()
+                        .fill(tier.color.gradient)
+                        .frame(width: max(geo.size.width * animatedProgress, 0))
+                }
+            }
+            .frame(height: 6)
+            .clipShape(Capsule())
+
+            if tier.nextTier != nil {
+                Text("\(pointsToNext) pts")
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .fixedSize()
+            }
+        }
+        .onAppear {
+            withAnimation(AppAnimations.springSmooth) {
+                animatedProgress = tierProgress
+            }
+        }
+        .onChange(of: rating) {
+            withAnimation(AppAnimations.springSmooth) {
+                animatedProgress = tierProgress
+            }
+        }
     }
 }
 
