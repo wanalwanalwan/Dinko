@@ -268,7 +268,7 @@ struct HomeView: View {
                         endPoint: .bottom
                     )
                 )
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.linear)
 
                 LineMark(
                     x: .value("Date", point.date),
@@ -276,7 +276,7 @@ struct HomeView: View {
                 )
                 .foregroundStyle(AppColors.teal)
                 .lineStyle(StrokeStyle(lineWidth: 2.5))
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.linear)
             }
 
             if let latest = points.last {

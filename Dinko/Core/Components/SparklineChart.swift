@@ -12,7 +12,7 @@ struct SparklineChart: View {
                     y: .value("Rating", value)
                 )
                 .foregroundStyle(AppColors.coral)
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.linear)
             }
         }
         .chartXAxis(.hidden)
