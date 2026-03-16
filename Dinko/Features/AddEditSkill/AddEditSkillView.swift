@@ -5,6 +5,7 @@ struct AddEditSkillView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: AddEditSkillViewModel?
     @State private var showingAddSubskill = false
+    @State private var showAdvancedOptions = false
     let skill: Skill?
     let parentSkillId: UUID?
 
@@ -16,7 +17,11 @@ struct AddEditSkillView: View {
     var body: some View {
         Group {
             if let viewModel {
-                formContent(viewModel)
+                if viewModel.isEditing {
+                    editFormContent(viewModel)
+                } else {
+                    createFormContent(viewModel)
+                }
             } else {
                 ProgressView()
             }
@@ -35,19 +40,328 @@ struct AddEditSkillView: View {
         }
     }
 
-    private func formContent(_ viewModel: AddEditSkillViewModel) -> some View {
+    // MARK: - Create Flow (Compact Bottom Sheet)
+
+    private func createFormContent(_ viewModel: AddEditSkillViewModel) -> some View {
+        VStack(spacing: 0) {
+            // Drag handle
+            Capsule()
+                .fill(Color(.systemGray4))
+                .frame(width: 36, height: 5)
+                .padding(.top, AppSpacing.xxs)
+                .padding(.bottom, AppSpacing.xs)
+
+            // Header
+            HStack {
+                Text(viewModel.navigationTitle)
+                    .font(AppTypography.title)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                Button("Cancel") { dismiss() }
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.sm)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    // Skill name
+                    createNameField(viewModel)
+
+                    // Category pills
+                    createCategoryPills(viewModel)
+
+                    // Advanced options (collapsed)
+                    createAdvancedSection(viewModel)
+
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .foregroundStyle(AppColors.coral)
+                            .font(AppTypography.caption)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.lg)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+
+            // Pinned create button
+            createButton(viewModel)
+        }
+        .background(AppColors.cardBackground)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.hidden)
+    }
+
+    // MARK: - Create: Name Field
+
+    private func createNameField(_ viewModel: AddEditSkillViewModel) -> some View {
+        TextField("e.g., Backhand Dink Control", text: Binding(
+            get: { viewModel.name },
+            set: { viewModel.name = $0 }
+        ))
+        .font(AppTypography.headline)
+        .foregroundStyle(AppColors.textPrimary)
+        .padding(AppSpacing.xs)
+        .background(AppColors.background)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+    }
+
+    // MARK: - Create: Category Pills
+
+    private func createCategoryPills(_ viewModel: AddEditSkillViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Text("Category")
+                .font(AppTypography.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(AppColors.textSecondary)
+
+            FlowLayout(spacing: AppSpacing.xxs) {
+                ForEach(SkillCategory.allCases) { category in
+                    let isSelected = viewModel.category == category
+                    Button {
+                        viewModel.category = category
+                    } label: {
+                        HStack(spacing: AppSpacing.xxxs) {
+                            Text(category.iconName)
+                                .font(.system(size: 13))
+                            Text(category.displayName)
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(isSelected ? AppColors.teal.opacity(0.12) : AppColors.background)
+                        .foregroundStyle(isSelected ? AppColors.teal : AppColors.textSecondary)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(
+                                    isSelected ? AppColors.teal.opacity(0.4) : AppColors.separator,
+                                    lineWidth: 1
+                                )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Create: Advanced Section (Collapsed)
+
+    private func createAdvancedSection(_ viewModel: AddEditSkillViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showAdvancedOptions.toggle()
+                }
+            } label: {
+                HStack(spacing: AppSpacing.xxs) {
+                    Image(systemName: showAdvancedOptions ? "chevron.down" : "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Text("More Options")
+                        .font(AppTypography.callout)
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Spacer()
+                }
+            }
+            .padding(.vertical, AppSpacing.xxxs)
+
+            if showAdvancedOptions {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    if viewModel.showInitialRating {
+                        createStartingLevel(viewModel)
+                    }
+
+                    createNotes(viewModel)
+
+                    if viewModel.showInlineSubskills {
+                        createSubskills(viewModel)
+                    }
+                }
+                .padding(.top, AppSpacing.xs)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+    }
+
+    // MARK: - Create: Starting Level (Compact)
+
+    private func createStartingLevel(_ viewModel: AddEditSkillViewModel) -> some View {
+        let isAutoCalculated = viewModel.hasSubskillRatings
+        let displayRating = isAutoCalculated ? viewModel.averageSubskillRating : Int(viewModel.initialRating)
+
+        return VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+            HStack {
+                Text("Starting Level")
+                    .font(AppTypography.callout)
+                    .fontWeight(.medium)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                Text("\(displayRating)%")
+                    .font(AppTypography.callout)
+                    .fontWeight(.bold)
+                    .foregroundStyle(AppColors.teal)
+            }
+
+            if isAutoCalculated {
+                Text("Avg of subskills")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            } else {
+                Slider(
+                    value: Binding(
+                        get: { viewModel.initialRating },
+                        set: { viewModel.initialRating = $0 }
+                    ),
+                    in: 0...100,
+                    step: 1
+                )
+                .tint(AppColors.teal)
+            }
+        }
+        .padding(AppSpacing.xs)
+        .background(AppColors.background)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+    }
+
+    // MARK: - Create: Notes
+
+    private func createNotes(_ viewModel: AddEditSkillViewModel) -> some View {
+        TextField("Notes (optional)", text: Binding(
+            get: { viewModel.skillDescription },
+            set: { viewModel.skillDescription = $0 }
+        ), axis: .vertical)
+        .font(AppTypography.body)
+        .foregroundStyle(AppColors.textPrimary)
+        .lineLimit(2...4)
+        .padding(AppSpacing.xs)
+        .background(AppColors.background)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+    }
+
+    // MARK: - Create: Subskills
+
+    private func createSubskills(_ viewModel: AddEditSkillViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Text("Break it down")
+                .font(AppTypography.callout)
+                .fontWeight(.medium)
+                .foregroundStyle(AppColors.textPrimary)
+
+            HStack(spacing: AppSpacing.xxs) {
+                TextField("Add a subskill...", text: Binding(
+                    get: { viewModel.newSubskillName },
+                    set: { viewModel.newSubskillName = $0 }
+                ))
+                .font(AppTypography.body)
+                .foregroundStyle(AppColors.textPrimary)
+                .onSubmit { viewModel.addPendingSubskill() }
+
+                Button {
+                    viewModel.addPendingSubskill()
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(AppColors.teal)
+                }
+                .disabled(viewModel.newSubskillName.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .padding(AppSpacing.xs)
+            .background(AppColors.background)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+
+            ForEach(Binding(
+                get: { viewModel.pendingSubskills },
+                set: { viewModel.pendingSubskills = $0 }
+            )) { $subskill in
+                VStack(spacing: AppSpacing.xxxs) {
+                    HStack(spacing: 0) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(AppColors.teal)
+                            .frame(width: 3)
+
+                        Text(subskill.name)
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textPrimary)
+                            .padding(.leading, AppSpacing.xxs)
+
+                        Spacer()
+
+                        Text("\(Int(subskill.rating))%")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.teal)
+                            .frame(width: 32, alignment: .trailing)
+
+                        Button { viewModel.removePendingSubskill(subskill) } label: {
+                            Image(systemName: "xmark")
+                                .font(.caption2)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .padding(AppSpacing.xxxs)
+                        }
+                    }
+
+                    Slider(value: $subskill.rating, in: 0...100, step: 1)
+                        .tint(AppColors.teal)
+                        .padding(.leading, AppSpacing.xxs)
+                }
+                .padding(.vertical, AppSpacing.xxs)
+                .padding(.horizontal, AppSpacing.xxs)
+                .background(AppColors.background)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+            }
+        }
+    }
+
+    // MARK: - Create: Action Button
+
+    private func createButton(_ viewModel: AddEditSkillViewModel) -> some View {
+        let buttonLabel = parentSkillId != nil ? "Create Subskill" : "Create Skill"
+
+        return Button {
+            Task {
+                if await viewModel.save() {
+                    dismiss()
+                }
+            }
+        } label: {
+            Group {
+                if viewModel.isSaving {
+                    ProgressView()
+                        .tint(.white)
+                } else {
+                    Text(buttonLabel)
+                }
+            }
+            .font(AppTypography.headline)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppSpacing.xs)
+            .background(viewModel.isValid ? AppColors.teal : AppColors.lockedGray)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+        }
+        .disabled(!viewModel.isValid || viewModel.isSaving)
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.bottom, AppSpacing.sm)
+        .padding(.top, AppSpacing.xxs)
+    }
+
+    // MARK: - Edit Flow (Existing Full Form)
+
+    private func editFormContent(_ viewModel: AddEditSkillViewModel) -> some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
                     skillInfoCard(viewModel)
-
-                    if viewModel.showInitialRating {
-                        startingLevelCard(viewModel)
-                    }
-
-                    if viewModel.showInlineSubskills {
-                        breakItDownSection(viewModel)
-                    }
 
                     if viewModel.showExistingSubskills {
                         existingSubskillsSection(viewModel)
@@ -105,11 +419,10 @@ struct AddEditSkillView: View {
         }
     }
 
-    // MARK: - Skill Info Card
+    // MARK: - Edit: Skill Info Card
 
     private func skillInfoCard(_ viewModel: AddEditSkillViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            // Skill Name
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Text("Skill Name")
                     .font(AppTypography.caption)
@@ -126,7 +439,6 @@ struct AddEditSkillView: View {
 
             Divider()
 
-            // Category
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Text("Category")
                     .font(AppTypography.caption)
@@ -162,7 +474,6 @@ struct AddEditSkillView: View {
 
             Divider()
 
-            // Notes
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 HStack(spacing: AppSpacing.xxxs) {
                     Text("Notes")
@@ -189,148 +500,7 @@ struct AddEditSkillView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
-    // MARK: - Starting Level Card
-
-    private func startingLevelCard(_ viewModel: AddEditSkillViewModel) -> some View {
-        let isAutoCalculated = viewModel.hasSubskillRatings
-        let displayRating = isAutoCalculated ? viewModel.averageSubskillRating : Int(viewModel.initialRating)
-
-        return VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            HStack {
-                Text("Starting Level")
-                    .font(AppTypography.headline)
-                    .foregroundStyle(AppColors.textPrimary)
-
-                if isAutoCalculated {
-                    Text("· avg of subskills")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-            }
-
-            Text(isAutoCalculated
-                 ? "Computed from your subskill ratings below"
-                 : "Give yourself an honest baseline")
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
-
-            Text("\(displayRating)%")
-                .font(AppTypography.ratingLarge)
-                .foregroundStyle(AppColors.teal)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.xxs)
-
-            if !isAutoCalculated {
-                Slider(
-                    value: Binding(
-                        get: { viewModel.initialRating },
-                        set: { viewModel.initialRating = $0 }
-                    ),
-                    in: 0...100,
-                    step: 1
-                )
-                .tint(AppColors.teal)
-
-                Text("You can skip this and rate later")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-        }
-        .padding(AppSpacing.sm)
-        .background(AppColors.background)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .animation(.easeInOut(duration: 0.2), value: isAutoCalculated)
-    }
-
-    // MARK: - Break It Down (Inline Subskills)
-
-    private func breakItDownSection(_ viewModel: AddEditSkillViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            HStack(spacing: AppSpacing.xxxs) {
-                Text("Break it down")
-                    .font(AppTypography.headline)
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Text("(optional)")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-
-            Text("Add specific areas to track within this skill")
-                .font(AppTypography.caption)
-                .foregroundStyle(AppColors.textSecondary)
-
-            // Add subskill input
-            HStack(spacing: AppSpacing.xxs) {
-                TextField("e.g., Contact point height", text: Binding(
-                    get: { viewModel.newSubskillName },
-                    set: { viewModel.newSubskillName = $0 }
-                ))
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.textPrimary)
-                .onSubmit {
-                    viewModel.addPendingSubskill()
-                }
-
-                Button {
-                    viewModel.addPendingSubskill()
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.body)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-                .disabled(viewModel.newSubskillName.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-            .padding(AppSpacing.xs)
-            .background(AppColors.background)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-
-            // Pending subskill chips with rating
-            ForEach(Binding(
-                get: { viewModel.pendingSubskills },
-                set: { viewModel.pendingSubskills = $0 }
-            )) { $subskill in
-                VStack(spacing: AppSpacing.xxs) {
-                    HStack(spacing: 0) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(AppColors.teal)
-                            .frame(width: 4)
-
-                        Text(subskill.name)
-                            .font(AppTypography.body)
-                            .foregroundStyle(AppColors.textPrimary)
-                            .padding(.leading, AppSpacing.xs)
-
-                        Spacer()
-
-                        Text("\(Int(subskill.rating))%")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.teal)
-                            .frame(width: 36, alignment: .trailing)
-
-                        Button {
-                            viewModel.removePendingSubskill(subskill)
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.caption)
-                                .foregroundStyle(AppColors.textSecondary)
-                                .padding(AppSpacing.xxs)
-                        }
-                    }
-
-                    Slider(value: $subskill.rating, in: 0...100, step: 1)
-                        .tint(AppColors.teal)
-                        .padding(.leading, AppSpacing.xs)
-                }
-                .padding(.vertical, AppSpacing.xs)
-                .padding(.horizontal, AppSpacing.xxs)
-                .background(AppColors.background)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-            }
-        }
-    }
-
-    // MARK: - Existing Subskills (Edit Mode)
+    // MARK: - Edit: Existing Subskills
 
     private func existingSubskillsSection(_ viewModel: AddEditSkillViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
