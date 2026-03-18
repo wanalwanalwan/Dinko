@@ -147,6 +147,44 @@ final class AuthService {
         return (access, refresh, user)
     }
 
+    // MARK: - JWT Expiry Check
+
+    /// Returns true if the access token is expired or will expire within the given buffer (seconds).
+    func isTokenExpired(buffer: TimeInterval = 60) -> Bool {
+        guard let access = KeychainHelper.load(key: keychainAccountAccess) else { return true }
+        guard let exp = Self.decodeJWTExpiry(access) else { return true }
+        return Date().addingTimeInterval(buffer) >= exp
+    }
+
+    /// Decode the `exp` claim from a JWT without verifying the signature.
+    static func decodeJWTExpiry(_ jwt: String) -> Date? {
+        let parts = jwt.split(separator: ".")
+        guard parts.count == 3 else { return nil }
+
+        var base64 = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+
+        // Pad to multiple of 4
+        while base64.count % 4 != 0 { base64.append("=") }
+
+        guard let data = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let exp = json["exp"] as? TimeInterval
+        else { return nil }
+
+        return Date(timeIntervalSince1970: exp)
+    }
+
+    /// Returns a valid access token, refreshing proactively if the current one is expired or about to expire.
+    func validAccessToken() async -> String? {
+        if !isTokenExpired(buffer: 60) {
+            return KeychainHelper.load(key: keychainAccountAccess)
+        }
+        // Token is expired or about to expire — refresh proactively
+        return await AuthService.tokenRefresher.refresh()
+    }
+
     func clearSession() {
         KeychainHelper.delete(key: keychainAccountAccess)
         KeychainHelper.delete(key: keychainAccountRefresh)
@@ -212,14 +250,20 @@ extension AuthService {
 
             let task = Task<String?, Never> {
                 let authService = AuthService.shared
-                guard let saved = authService.loadSavedSession() else { return nil }
+                guard let saved = authService.loadSavedSession() else {
+                    print("[Auth] Token refresh failed: no saved session found in Keychain")
+                    return nil
+                }
                 do {
                     let response = try await authService.refreshSession(refreshToken: saved.refreshToken)
                     if response.hasSession {
                         authService.saveSession(response)
                         return response.accessToken
                     }
-                } catch {}
+                    print("[Auth] Token refresh returned response without session tokens")
+                } catch {
+                    print("[Auth] Token refresh failed: \(error.localizedDescription)")
+                }
                 return nil
             }
 

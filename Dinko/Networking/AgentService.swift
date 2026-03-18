@@ -51,7 +51,12 @@ final class AgentService {
     }
 
     struct ErrorResponse: Codable {
-        let error: String
+        let error: String?
+        let msg: String?
+
+        var message: String {
+            error ?? msg ?? "Unknown error"
+        }
     }
 
     struct SkillSnapshotPayload: Codable {
@@ -133,10 +138,25 @@ final class AgentService {
     // MARK: - Private
 
     private func post<T: Codable>(body: [String: Any], authToken: String) async throws -> T {
-        // First attempt
-        let result: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: authToken)
+        // Proactively refresh if the token is expired or about to expire
+        let tokenToUse: String
+        if AuthService.shared.isTokenExpired(buffer: 60) {
+            if let freshToken = await refreshToken(), !freshToken.isEmpty {
+                tokenToUse = freshToken
+            } else {
+                // Refresh failed — session is dead, clear it and force re-auth
+                AuthService.shared.clearSession()
+                NotificationCenter.default.post(name: .authSessionExpired, object: nil)
+                throw AgentError.server("Your session has expired. Please sign in again.")
+            }
+        } else {
+            tokenToUse = authToken
+        }
 
-        // If 401, try refreshing the token and retry once
+        // First attempt with a valid (or freshly refreshed) token
+        let result: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: tokenToUse)
+
+        // If still 401, try refreshing once more as a fallback
         if result.1.statusCode == 401 {
             if let freshToken = await refreshToken(), !freshToken.isEmpty {
                 let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: freshToken)
@@ -201,8 +221,9 @@ final class AgentService {
                 throw AgentError.server("The AI coach is temporarily unavailable. Please try again in a moment.")
             }
 
-            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                throw AgentError.server(errorResponse.error)
+            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data),
+               (errorResponse.error != nil || errorResponse.msg != nil) {
+                throw AgentError.server(errorResponse.message)
             }
 
             // Don't show raw HTML to the user

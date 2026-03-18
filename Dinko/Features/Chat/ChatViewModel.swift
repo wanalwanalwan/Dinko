@@ -110,10 +110,11 @@ final class ChatViewModel {
             let note = messages.count > 1 ? buildContextualNote(text) : text
 
             // Call the Edge Function
+            let token = await getAuthToken()
             let response = try await agentService.logSession(
                 note: note,
                 skills: snapshots,
-                authToken: getAuthToken()
+                authToken: token
             )
 
             // Check if this is a general chat response (no session)
@@ -174,9 +175,10 @@ final class ChatViewModel {
         )
 
         do {
+            let token = await getAuthToken()
             _ = try await agentService.confirmSession(
                 sessionId: preview.sessionId,
-                authToken: getAuthToken()
+                authToken: token
             )
 
             for updateIndex in preview.selectedSkillUpdateIndices.sorted() {
@@ -561,7 +563,10 @@ final class ChatViewModel {
         return snapshots
     }
 
-    private func getAuthToken() -> String {
+    private func getAuthToken() async -> String {
+        if let token = await authService.validAccessToken() {
+            return token
+        }
         guard let saved = authService.loadSavedSession() else { return "" }
         return saved.accessToken
     }
