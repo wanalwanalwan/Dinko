@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://dtsmezwkxytpidtjgcid.supabase.co",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
@@ -1102,9 +1102,12 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Rate limit exceeded. Please wait before trying again." }, 429);
     }
 
-    // ---- Input validation: reject notes > 4000 characters ----
+    // ---- Input validation ----
     if (note && typeof note === "string" && note.length > 4000) {
       return jsonResponse({ error: "Note is too long. Please keep it under 4000 characters." }, 400);
+    }
+    if (skills && Array.isArray(skills) && skills.length > 100) {
+      return jsonResponse({ error: "Too many skills provided." }, 400);
     }
 
     // ---- action: log_session ----
@@ -1475,6 +1478,7 @@ Deno.serve(async (req: Request) => {
 
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);
   } catch (err) {
-    return jsonResponse({ error: (err as Error).message }, 500);
+    console.error("[dinkit-agent] Unhandled error:", (err as Error).message);
+    return jsonResponse({ error: "Something went wrong. Please try again." }, 500);
   }
 });

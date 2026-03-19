@@ -113,6 +113,7 @@ struct ChatView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, AppSpacing.lg)
         }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Message Bubbles

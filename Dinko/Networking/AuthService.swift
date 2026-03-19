@@ -251,7 +251,9 @@ extension AuthService {
             let task = Task<String?, Never> {
                 let authService = AuthService.shared
                 guard let saved = authService.loadSavedSession() else {
+                    #if DEBUG
                     print("[Auth] Token refresh failed: no saved session found in Keychain")
+                    #endif
                     return nil
                 }
                 do {
@@ -260,9 +262,13 @@ extension AuthService {
                         authService.saveSession(response)
                         return response.accessToken
                     }
+                    #if DEBUG
                     print("[Auth] Token refresh returned response without session tokens")
+                    #endif
                 } catch {
+                    #if DEBUG
                     print("[Auth] Token refresh failed: \(error.localizedDescription)")
+                    #endif
                 }
                 return nil
             }
