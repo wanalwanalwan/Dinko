@@ -12,12 +12,23 @@ final class AuthViewModel {
     var isLoading = false
     var errorMessage: String?
 
+    // Email verification state
+    private(set) var awaitingEmailVerification = false
+    private(set) var verificationEmail = ""
+    var resendCooldown = 0
+    private var resendTimer: Timer?
+
     private(set) var isAuthenticated = false
     private(set) var isCheckingSession = true
     private(set) var accessToken = ""
     private(set) var userId = ""
 
+    // Account deletion
+    var showDeleteConfirmation = false
+    var isDeletingAccount = false
+
     private let authService = AuthService.shared
+    private let agentService = AgentService()
 
     /// Try to restore a saved session on launch
     func restoreSession() async {
@@ -102,8 +113,8 @@ final class AuthViewModel {
                 if !trimmedLast.isEmpty {
                     UserDefaults.standard.set(trimmedLast, forKey: "dinko_last_name")
                 }
-                errorMessage = "Check your email to confirm your account, then sign in."
-                isSignUp = false
+                verificationEmail = trimmedEmail
+                awaitingEmailVerification = true
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -112,10 +123,80 @@ final class AuthViewModel {
         isLoading = false
     }
 
-    private static func isValidEmail(_ email: String) -> Bool {
-        let pattern = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
-        return email.range(of: pattern, options: .regularExpression) != nil
+    // MARK: - Email Verification
+
+    func resendVerificationEmail() async {
+        guard !verificationEmail.isEmpty, resendCooldown == 0 else { return }
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await authService.resendVerification(email: verificationEmail)
+            startResendCooldown()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
     }
+
+    func backToSignIn() {
+        awaitingEmailVerification = false
+        verificationEmail = ""
+        isSignUp = false
+        password = ""
+        errorMessage = nil
+        resendTimer?.invalidate()
+        resendCooldown = 0
+    }
+
+    private func startResendCooldown() {
+        resendCooldown = 60
+        resendTimer?.invalidate()
+        resendTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            Task { @MainActor in
+                guard let self else {
+                    timer.invalidate()
+                    return
+                }
+                self.resendCooldown -= 1
+                if self.resendCooldown <= 0 {
+                    timer.invalidate()
+                    self.resendCooldown = 0
+                }
+            }
+        }
+    }
+
+    // MARK: - Account Deletion
+
+    func deleteAccount() async {
+        isDeletingAccount = true
+
+        do {
+            try await agentService.deleteAccount(authToken: accessToken)
+        } catch {
+            // Even if the server call fails, clear local data so user isn't stuck
+            #if DEBUG
+            print("[Auth] Server account deletion failed: \(error.localizedDescription)")
+            #endif
+        }
+
+        // Clear all local data
+        authService.clearSession()
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.removeObject(forKey: "dinko_weekly_goal")
+        UserDefaults.standard.removeObject(forKey: "dinko_drill_preferences")
+
+        accessToken = ""
+        userId = ""
+        isDeletingAccount = false
+        isAuthenticated = false
+        email = ""
+        password = ""
+    }
+
+    // MARK: - Sign Out
 
     func signOut() async {
         await authService.signOut(accessToken: accessToken)
@@ -126,5 +207,10 @@ final class AuthViewModel {
         isAuthenticated = false
         email = ""
         password = ""
+    }
+
+    private static func isValidEmail(_ email: String) -> Bool {
+        let pattern = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        return email.range(of: pattern, options: .regularExpression) != nil
     }
 }

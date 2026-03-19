@@ -135,6 +135,19 @@ final class AgentService {
         return try await post(body: body, authToken: authToken)
     }
 
+    struct DeleteAccountResponse: Codable {
+        let deleted: Bool
+    }
+
+    /// Delete the user's account and all associated data
+    func deleteAccount(authToken: String) async throws {
+        let body: [String: Any] = [
+            "action": "delete_account",
+        ]
+
+        let _: DeleteAccountResponse = try await post(body: body, authToken: authToken)
+    }
+
     // MARK: - Private
 
     private func post<T: Codable>(body: [String: Any], authToken: String) async throws -> T {

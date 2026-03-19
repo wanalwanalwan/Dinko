@@ -113,6 +113,35 @@ final class AuthService {
         return try await post(path: "/token?grant_type=refresh_token", body: body)
     }
 
+    // MARK: - Resend Verification Email
+
+    func resendVerification(email: String) async throws {
+        guard let url = URL(string: "\(baseURL)/resend") else {
+            throw AuthServiceError.invalidURL
+        }
+
+        let body: [String: String] = ["type": "signup", "email": email]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+
+        if httpResponse.statusCode != 200 {
+            if let authError = try? JSONDecoder().decode(AuthError.self, from: data) {
+                throw AuthServiceError.server(authError.message)
+            }
+            throw AuthServiceError.server("Failed to resend verification email")
+        }
+    }
+
     // MARK: - Sign Out
 
     func signOut(accessToken: String) async {

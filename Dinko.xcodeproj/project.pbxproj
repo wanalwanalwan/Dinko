@@ -75,6 +75,7 @@
 		F10000000000000000000001 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* AuthService.swift */; };
 		F10000000000000000000002 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* AuthViewModel.swift */; };
 		F10000000000000000000003 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000003 /* AuthView.swift */; };
+		F10000000000000000000004 /* EmailVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000004 /* EmailVerificationView.swift */; };
 		E30000010000000000000001 /* Drill.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000001 /* Drill.swift */; };
 		E30000010000000000000002 /* DrillEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000002 /* DrillEntity+Ext.swift */; };
 		E30000010000000000000003 /* DrillRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000020000000000000003 /* DrillRepository.swift */; };
@@ -194,6 +195,7 @@
 		F20000000000000000000001 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		F20000000000000000000003 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		F20000000000000000000004 /* EmailVerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailVerificationView.swift; sourceTree = "<group>"; };
 		E30000020000000000000001 /* Drill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drill.swift; sourceTree = "<group>"; };
 		E30000020000000000000002 /* DrillEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DrillEntity+Ext.swift"; sourceTree = "<group>"; };
 		E30000020000000000000003 /* DrillRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRepository.swift; sourceTree = "<group>"; };
@@ -512,6 +514,7 @@
 			children = (
 				F20000000000000000000002 /* AuthViewModel.swift */,
 				F20000000000000000000003 /* AuthView.swift */,
+				F20000000000000000000004 /* EmailVerificationView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -760,6 +763,7 @@
 				N10000010000000000000001 /* NetworkMonitor.swift in Sources */,
 				F10000000000000000000002 /* AuthViewModel.swift in Sources */,
 				F10000000000000000000003 /* AuthView.swift in Sources */,
+				F10000000000000000000004 /* EmailVerificationView.swift in Sources */,
 				E30000010000000000000001 /* Drill.swift in Sources */,
 				E30000010000000000000002 /* DrillEntity+Ext.swift in Sources */,
 				E30000010000000000000003 /* DrillRepository.swift in Sources */,

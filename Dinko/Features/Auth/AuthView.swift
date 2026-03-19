@@ -4,6 +4,14 @@ struct AuthView: View {
     @Bindable var viewModel: AuthViewModel
 
     var body: some View {
+        if viewModel.awaitingEmailVerification {
+            EmailVerificationView(viewModel: viewModel)
+        } else {
+            authForm
+        }
+    }
+
+    private var authForm: some View {
         ScrollView {
             VStack(spacing: AppSpacing.lg) {
                 Spacer()

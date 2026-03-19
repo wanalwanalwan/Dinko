@@ -1085,6 +1085,38 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
+    // ---- action: delete_account (no AI or rate limit needed) ----
+    if (action === "delete_account") {
+      const tables = ["user_drill_queue", "user_roadmap", "session_logs"];
+      for (const table of tables) {
+        const { error: delError } = await supabase
+          .from(table)
+          .delete()
+          .eq("user_id", user.id);
+        if (delError) {
+          console.error(`[delete_account] Failed to delete from ${table}:`, delError.message);
+        }
+      }
+
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (serviceRoleKey) {
+        const adminClient = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          serviceRoleKey
+        );
+        const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(user.id);
+        if (deleteUserError) {
+          console.error("[delete_account] Failed to delete auth user:", deleteUserError.message);
+          return jsonResponse({ error: "Failed to delete account. Please try again." }, 500);
+        }
+      } else {
+        console.error("[delete_account] SUPABASE_SERVICE_ROLE_KEY not configured");
+        return jsonResponse({ error: "Account deletion is not configured. Please contact support." }, 500);
+      }
+
+      return jsonResponse({ deleted: true });
+    }
+
     const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
     if (!anthropicKey) {
       return jsonResponse({ error: "ANTHROPIC_API_KEY not configured" }, 500);

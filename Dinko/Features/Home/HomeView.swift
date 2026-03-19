@@ -44,6 +44,34 @@ struct HomeView: View {
         } message: {
             Text(viewModel?.errorMessage ?? "")
         }
+        .alert("Delete Account", isPresented: Binding(
+            get: { authViewModel?.showDeleteConfirmation ?? false },
+            set: { authViewModel?.showDeleteConfirmation = $0 }
+        )) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                Task { await authViewModel?.deleteAccount() }
+            }
+        } message: {
+            Text("This will permanently delete your account and all your data. This cannot be undone.")
+        }
+        .overlay {
+            if authViewModel?.isDeletingAccount == true {
+                ZStack {
+                    Color.black.opacity(0.3).ignoresSafeArea()
+                    VStack(spacing: AppSpacing.sm) {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                        Text("Deleting account...")
+                            .font(AppTypography.callout)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding(AppSpacing.lg)
+                    .background(AppColors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+            }
+        }
     }
 
     // MARK: - Main Content
@@ -95,17 +123,27 @@ struct HomeView: View {
 
             Spacer()
 
-            Button(role: .destructive) {
-                Task { await authViewModel?.signOut() }
+            Menu {
+                Button(role: .destructive) {
+                    Task { await authViewModel?.signOut() }
+                } label: {
+                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                }
+
+                Button(role: .destructive) {
+                    authViewModel?.showDeleteConfirmation = true
+                } label: {
+                    Label("Delete Account", systemImage: "trash")
+                }
             } label: {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
+                Image(systemName: "gearshape")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(AppColors.textSecondary)
                     .frame(width: 36, height: 36)
                     .background(AppColors.cardBackground)
                     .clipShape(Circle())
             }
-            .accessibilityLabel("Sign Out")
+            .accessibilityLabel("Account Settings")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, AppSpacing.xs)
