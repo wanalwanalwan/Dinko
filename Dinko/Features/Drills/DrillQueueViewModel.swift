@@ -10,8 +10,8 @@ final class DrillQueueViewModel {
     var showCelebration = false
 
     var totalDrillsCompleted: Int {
-        get { UserDefaults.standard.integer(forKey: "dinko_total_drills_completed") }
-        set { UserDefaults.standard.set(newValue, forKey: "dinko_total_drills_completed") }
+        get { UserDefaults.standard.integer(forKey: "pkkl_total_drills_completed") }
+        set { UserDefaults.standard.set(newValue, forKey: "pkkl_total_drills_completed") }
     }
 
     var totalEstimatedMinutes: Int {

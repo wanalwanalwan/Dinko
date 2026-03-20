@@ -31,10 +31,10 @@ final class OnboardingViewModel {
 
     private func persistPreferences() {
         if let days = trainingDaysPerWeek {
-            UserDefaults.standard.set(days, forKey: "dinko_weekly_goal")
+            UserDefaults.standard.set(days, forKey: "pkkl_weekly_goal")
         }
         if !drillPreferences.isEmpty {
-            UserDefaults.standard.set(Array(drillPreferences), forKey: "dinko_drill_preferences")
+            UserDefaults.standard.set(Array(drillPreferences), forKey: "pkkl_drill_preferences")
         }
     }
 

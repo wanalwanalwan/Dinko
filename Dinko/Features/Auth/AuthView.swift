@@ -21,7 +21,7 @@ struct AuthView: View {
                 VStack(spacing: AppSpacing.xxs) {
                     CoachMascot(state: .idle, size: 72, animated: true)
 
-                    Text("DinkIt")
+                    Text("pkklAI")
                         .font(AppTypography.largeTitle)
                         .foregroundStyle(AppColors.textPrimary)
 

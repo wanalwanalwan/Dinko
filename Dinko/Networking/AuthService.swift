@@ -8,9 +8,9 @@ final class AuthService {
     private let session = URLSession.shared
     private let baseURL = "\(SupabaseConfig.url)/auth/v1"
 
-    private let keychainAccountAccess = "dinkit_access_token"
-    private let keychainAccountRefresh = "dinkit_refresh_token"
-    private let userDefaultsUserKey = "dinkit_user_json"
+    private let keychainAccountAccess = "pkkl_access_token"
+    private let keychainAccountRefresh = "pkkl_refresh_token"
+    private let userDefaultsUserKey = "pkkl_user_json"
 
     // MARK: - Response Types
 
@@ -218,8 +218,8 @@ final class AuthService {
         KeychainHelper.delete(key: keychainAccountAccess)
         KeychainHelper.delete(key: keychainAccountRefresh)
         UserDefaults.standard.removeObject(forKey: userDefaultsUserKey)
-        UserDefaults.standard.removeObject(forKey: "dinko_first_name")
-        UserDefaults.standard.removeObject(forKey: "dinko_last_name")
+        UserDefaults.standard.removeObject(forKey: "pkkl_first_name")
+        UserDefaults.standard.removeObject(forKey: "pkkl_last_name")
     }
 
     // MARK: - Private

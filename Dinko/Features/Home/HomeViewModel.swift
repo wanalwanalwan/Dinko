@@ -171,13 +171,13 @@ final class HomeViewModel {
     }
 
     private func resolvePlayerName() {
-        if let firstName = UserDefaults.standard.string(forKey: "dinko_first_name"),
+        if let firstName = UserDefaults.standard.string(forKey: "pkkl_first_name"),
            !firstName.isEmpty {
             playerName = firstName.capitalized
             return
         }
 
-        if let data = UserDefaults.standard.data(forKey: "dinkit_user_json") {
+        if let data = UserDefaults.standard.data(forKey: "pkkl_user_json") {
             struct MinimalUser: Decodable { let email: String? }
             if let user = try? JSONDecoder().decode(MinimalUser.self, from: data),
                let email = user.email {
@@ -584,7 +584,7 @@ final class HomeViewModel {
         let sessions = try await sessionRepository.fetchAll()
         let calendar = Calendar.current
 
-        let savedGoal = UserDefaults.standard.integer(forKey: "dinko_weekly_goal")
+        let savedGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
         let weeklyGoal = savedGoal > 0 ? savedGoal : 7
 
         var activityDates: Set<Date> = []

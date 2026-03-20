@@ -95,10 +95,10 @@ final class AuthViewModel {
                     let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
                     let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
                     if !trimmedFirst.isEmpty {
-                        UserDefaults.standard.set(trimmedFirst, forKey: "dinko_first_name")
+                        UserDefaults.standard.set(trimmedFirst, forKey: "pkkl_first_name")
                     }
                     if !trimmedLast.isEmpty {
-                        UserDefaults.standard.set(trimmedLast, forKey: "dinko_last_name")
+                        UserDefaults.standard.set(trimmedLast, forKey: "pkkl_last_name")
                     }
                 }
                 isAuthenticated = true
@@ -108,10 +108,10 @@ final class AuthViewModel {
                 let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmedFirst.isEmpty {
-                    UserDefaults.standard.set(trimmedFirst, forKey: "dinko_first_name")
+                    UserDefaults.standard.set(trimmedFirst, forKey: "pkkl_first_name")
                 }
                 if !trimmedLast.isEmpty {
-                    UserDefaults.standard.set(trimmedLast, forKey: "dinko_last_name")
+                    UserDefaults.standard.set(trimmedLast, forKey: "pkkl_last_name")
                 }
                 verificationEmail = trimmedEmail
                 awaitingEmailVerification = true
@@ -185,8 +185,8 @@ final class AuthViewModel {
         // Clear all local data
         authService.clearSession()
         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
-        UserDefaults.standard.removeObject(forKey: "dinko_weekly_goal")
-        UserDefaults.standard.removeObject(forKey: "dinko_drill_preferences")
+        UserDefaults.standard.removeObject(forKey: "pkkl_weekly_goal")
+        UserDefaults.standard.removeObject(forKey: "pkkl_drill_preferences")
 
         accessToken = ""
         userId = ""

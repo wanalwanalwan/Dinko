@@ -466,7 +466,7 @@ final class ChatViewModel {
     private func buildContextualNote(_ currentText: String) -> String {
         var lines: [String] = []
 
-        if let prefs = UserDefaults.standard.stringArray(forKey: "dinko_drill_preferences"), !prefs.isEmpty {
+        if let prefs = UserDefaults.standard.stringArray(forKey: "pkkl_drill_preferences"), !prefs.isEmpty {
             lines.append("User's drill type preferences: \(prefs.joined(separator: ", ")).")
         }
 
