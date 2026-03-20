@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**pkklAI - Pickleball Skill Tracker**
+**pkkl AI - Pickleball Skill Tracker**
 
 *Last updated: February 7, 2026*
 
@@ -10,7 +10,7 @@ Dinko is a pickleball skill tracking app designed to help players monitor and im
 
 ## Data Collection
 
-**pkklAI does not collect, store, or transmit any personal data to external servers.** All information you enter into the app — including skills, ratings, progress checkers, and session notes — is stored exclusively on your device using local storage.
+**pkkl AI does not collect, store, or transmit any personal data to external servers.** All information you enter into the app — including skills, ratings, progress checkers, and session notes — is stored exclusively on your device using local storage.
 
 ## What We Don't Do
 
@@ -27,7 +27,7 @@ All app data is stored locally on your iPhone. If you delete the app, all data i
 
 ## Children's Privacy
 
-pkklAI does not knowingly collect any personal information from children. Since no data is collected from any user, the app is safe for users of all ages.
+pkkl AI does not knowingly collect any personal information from children. Since no data is collected from any user, the app is safe for users of all ages.
 
 ## Changes to This Policy
 

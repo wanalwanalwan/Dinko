@@ -1,7 +1,7 @@
-# pkklAI — Pickleball Skill Tracker
+# pkkl AI — Pickleball Skill Tracker
 
 ## Project Overview
-pkklAI is a native iOS pickleball skill tracker that helps players monitor and improve their game. Users can track skills with customizable progress checkers, rate their proficiency (0-100%), view historical trends via charts, and earn achievements.
+pkkl AI is a native iOS pickleball skill tracker that helps players monitor and improve their game. Users can track skills with customizable progress checkers, rate their proficiency (0-100%), view historical trends via charts, and earn achievements.
 
 ## Tech Stack
 - **UI**: SwiftUI (iOS 17+)
