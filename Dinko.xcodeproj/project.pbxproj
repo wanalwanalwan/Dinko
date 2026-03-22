@@ -102,6 +102,7 @@
 		Q10000010000000000000003 /* DrillProgressionPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000003 /* DrillProgressionPath.swift */; };
 		Q10000010000000000000004 /* DrillNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000004 /* DrillNodeView.swift */; };
 		Q10000010000000000000005 /* CoachBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000005 /* CoachBubbleView.swift */; };
+		R10000010000000000000001 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = R20000010000000000000001 /* AppleSignInCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -222,6 +223,8 @@
 		Q20000010000000000000003 /* DrillProgressionPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillProgressionPath.swift; sourceTree = "<group>"; };
 		Q20000010000000000000004 /* DrillNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillNodeView.swift; sourceTree = "<group>"; };
 		Q20000010000000000000005 /* CoachBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachBubbleView.swift; sourceTree = "<group>"; };
+		R20000010000000000000001 /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
+		R20000010000000000000002 /* Dinko.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Dinko.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -263,6 +266,7 @@
 			isa = PBXGroup;
 			children = (
 				A20000010000000000000001 /* DinkoApp.swift */,
+				R20000010000000000000002 /* Dinko.entitlements */,
 				A70000010000000000000010 /* App */,
 				J70000010000000000000010 /* Configuration */,
 				A70000010000000000000020 /* Core */,
@@ -512,6 +516,7 @@
 		F70000000000000000000001 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				R20000010000000000000001 /* AppleSignInCoordinator.swift */,
 				F20000000000000000000002 /* AuthViewModel.swift */,
 				F20000000000000000000003 /* AuthView.swift */,
 				F20000000000000000000004 /* EmailVerificationView.swift */,
@@ -790,6 +795,7 @@
 				Q10000010000000000000003 /* DrillProgressionPath.swift in Sources */,
 				Q10000010000000000000004 /* DrillNodeView.swift in Sources */,
 				Q10000010000000000000005 /* CoachBubbleView.swift in Sources */,
+				R10000010000000000000001 /* AppleSignInCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -953,6 +959,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dinko/Dinko.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Dinko/Preview Content\"";
@@ -982,6 +989,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dinko/Dinko.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Dinko/Preview Content\"";

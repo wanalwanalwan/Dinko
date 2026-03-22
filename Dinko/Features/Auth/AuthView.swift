@@ -6,10 +6,14 @@ struct AuthView: View {
     var body: some View {
         if viewModel.awaitingEmailVerification {
             EmailVerificationView(viewModel: viewModel)
+        } else if viewModel.showForgotPassword {
+            forgotPasswordForm
         } else {
             authForm
         }
     }
+
+    // MARK: - Auth Form
 
     private var authForm: some View {
         ScrollView {
@@ -116,9 +120,119 @@ struct AuthView: View {
                             .font(AppTypography.caption)
                             .foregroundStyle(AppColors.teal)
                     }
+
+                    if !viewModel.isSignUp {
+                        Button {
+                            viewModel.showForgotPasswordForm()
+                        } label: {
+                            Text("Forgot password?")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
                 }
                 .padding(.horizontal, AppSpacing.lg)
             }
+        }
+        .background(AppColors.background)
+    }
+
+    // MARK: - Forgot Password Form
+
+    private var forgotPasswordForm: some View {
+        VStack(spacing: AppSpacing.lg) {
+            Spacer()
+
+            CoachMascot(state: .idle, size: 88, animated: true)
+
+            if viewModel.passwordResetSent {
+                // Success state
+                VStack(spacing: AppSpacing.xs) {
+                    Text("Check your email")
+                        .font(AppTypography.title)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("We sent a password reset link to")
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Text(viewModel.resetPasswordEmail)
+                        .font(AppTypography.body)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppColors.teal)
+                }
+
+                Text("Tap the link in the email to reset your password, then come back and sign in.")
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, AppSpacing.lg)
+            } else {
+                // Input state
+                VStack(spacing: AppSpacing.xs) {
+                    Text("Reset Password")
+                        .font(AppTypography.title)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Enter your email and we'll send you a reset link.")
+                        .font(AppTypography.callout)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: AppSpacing.sm) {
+                    TextField("Email", text: $viewModel.resetPasswordEmail)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .padding(AppSpacing.xs)
+                        .background(AppColors.cardBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.coral)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Button {
+                        Task { await viewModel.sendPasswordReset() }
+                    } label: {
+                        Group {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text("Send Reset Link")
+                                    .font(AppTypography.headline)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.xs)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppColors.teal)
+                    .disabled(viewModel.isLoading)
+                }
+                .padding(.horizontal, AppSpacing.lg)
+            }
+
+            Button {
+                viewModel.backToSignInFromReset()
+            } label: {
+                Text("Back to Sign In")
+                    .font(AppTypography.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.xs)
+            }
+            .buttonStyle(.bordered)
+            .tint(AppColors.teal)
+            .padding(.horizontal, AppSpacing.lg)
+
+            Spacer()
+            Spacer()
         }
         .background(AppColors.background)
     }

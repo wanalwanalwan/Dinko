@@ -142,6 +142,46 @@ final class AuthService {
         }
     }
 
+    // MARK: - Password Reset
+
+    func resetPassword(email: String) async throws {
+        guard let url = URL(string: "\(baseURL)/recover") else {
+            throw AuthServiceError.invalidURL
+        }
+
+        let body: [String: String] = ["email": email]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+
+        if httpResponse.statusCode != 200 {
+            if let authError = try? JSONDecoder().decode(AuthError.self, from: data) {
+                throw AuthServiceError.server(authError.message)
+            }
+            throw AuthServiceError.server("Failed to send password reset email")
+        }
+    }
+
+    // MARK: - Sign In with Apple
+
+    func signInWithApple(idToken: String, nonce: String) async throws -> AuthResponse {
+        let body: [String: String] = [
+            "provider": "apple",
+            "id_token": idToken,
+            "nonce": nonce,
+        ]
+        return try await post(path: "/token?grant_type=id_token", body: body)
+    }
+
     // MARK: - Sign Out
 
     func signOut(accessToken: String) async {

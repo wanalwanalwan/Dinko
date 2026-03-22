@@ -1,4 +1,6 @@
 import Foundation
+import AuthenticationServices
+import CryptoKit
 
 @MainActor
 @Observable
@@ -17,6 +19,11 @@ final class AuthViewModel {
     private(set) var verificationEmail = ""
     var resendCooldown = 0
     private var resendTimer: Timer?
+
+    // Forgot password state
+    var showForgotPassword = false
+    var resetPasswordEmail = ""
+    private(set) var passwordResetSent = false
 
     private(set) var isAuthenticated = false
     private(set) var isCheckingSession = true
@@ -64,6 +71,12 @@ final class AuthViewModel {
         }
 
         if isSignUp {
+            guard !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                errorMessage = "First and last name are required."
+                return
+            }
+
             let trimmedConfirm = confirmEmail.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             guard trimmedEmail == trimmedConfirm else {
                 errorMessage = "Email addresses don't match."
@@ -166,6 +179,87 @@ final class AuthViewModel {
                 }
             }
         }
+    }
+
+    // MARK: - Forgot Password
+
+    func sendPasswordReset() async {
+        let trimmedEmail = resetPasswordEmail.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Please enter your email address."
+            return
+        }
+
+        guard Self.isValidEmail(trimmedEmail) else {
+            errorMessage = "Please enter a valid email address."
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await authService.resetPassword(email: trimmedEmail)
+            passwordResetSent = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
+    func showForgotPasswordForm() {
+        showForgotPassword = true
+        resetPasswordEmail = email // Pre-fill with current email
+        passwordResetSent = false
+        errorMessage = nil
+    }
+
+    func backToSignInFromReset() {
+        showForgotPassword = false
+        resetPasswordEmail = ""
+        passwordResetSent = false
+        errorMessage = nil
+    }
+
+    // MARK: - Apple Sign-In
+
+    func signInWithApple() async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            let coordinator = AppleSignInCoordinator()
+            let result = try await coordinator.signIn()
+
+            let response = try await authService.signInWithApple(
+                idToken: result.idToken,
+                nonce: result.rawNonce
+            )
+
+            if response.hasSession {
+                authService.saveSession(response)
+                accessToken = response.accessToken ?? ""
+                userId = response.user.id
+
+                // Apple only provides name on first authorization
+                if let givenName = result.fullName?.givenName, !givenName.isEmpty {
+                    UserDefaults.standard.set(givenName, forKey: "pkkl_first_name")
+                }
+                if let familyName = result.fullName?.familyName, !familyName.isEmpty {
+                    UserDefaults.standard.set(familyName, forKey: "pkkl_last_name")
+                }
+
+                isAuthenticated = true
+            }
+        } catch let error as AppleSignInError where error == .canceled {
+            // User dismissed the Apple Sign-In sheet — do nothing
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
     }
 
     // MARK: - Account Deletion
