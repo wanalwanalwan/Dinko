@@ -7,23 +7,7 @@ final class OnboardingViewModel {
     var trainingDaysPerWeek: Int?
     var drillPreferences: Set<String> = []
 
-    func completeOnboarding(
-        skillRepo: SkillRepository,
-        ratingRepo: SkillRatingRepository
-    ) async throws {
-        let starterSkills = generateStarterSkills()
-        let baseRating = ratingForDUPR()
-
-        for skill in starterSkills {
-            try await skillRepo.save(skill)
-
-            let rating = SkillRating(
-                skillId: skill.id,
-                rating: baseRating
-            )
-            try await ratingRepo.save(rating)
-        }
-
+    func completeOnboarding() {
         persistPreferences()
     }
 
@@ -38,25 +22,4 @@ final class OnboardingViewModel {
         }
     }
 
-    private func ratingForDUPR() -> Int {
-        switch duprRange {
-        case "Beginner (2.0-2.5)": return 25
-        case "Intermediate (3.0-3.5)": return 50
-        case "Advanced (4.0-4.5)": return 70
-        case "Pro (5.0+)": return 90
-        default: return 30
-        }
-    }
-
-    private func generateStarterSkills() -> [Skill] {
-        SkillCategory.allCases.enumerated().map { index, category in
-            Skill(
-                name: category.displayName,
-                category: category,
-                description: "Track your \(category.displayName.lowercased()) skills",
-                displayOrder: index,
-                iconName: category.iconName
-            )
-        }
-    }
 }

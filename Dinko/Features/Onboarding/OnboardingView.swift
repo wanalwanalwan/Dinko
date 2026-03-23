@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    @Environment(\.dependencies) private var dependencies
     @State private var viewModel = OnboardingViewModel()
     @State private var currentStep = 0
     @State private var isCompleting = false
@@ -244,17 +243,8 @@ struct OnboardingView: View {
         guard !isCompleting else { return }
         isCompleting = true
 
-        Task {
-            do {
-                try await viewModel.completeOnboarding(
-                    skillRepo: dependencies.skillRepository,
-                    ratingRepo: dependencies.skillRatingRepository
-                )
-            } catch {
-                // Best-effort: still complete onboarding even if data save fails
-            }
-            onComplete()
-        }
+        viewModel.completeOnboarding()
+        onComplete()
     }
 }
 
