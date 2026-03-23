@@ -124,11 +124,11 @@ struct HomeView: View {
             Spacer()
 
             Menu {
-                Link(destination: URL(string: "https://github.com/wanalwanalwan/Dinko/blob/main/docs/privacy-policy.md")!) {
+                Link(destination: URL(string: "https://gist.github.com/wanalwanalwan/224e9fe17626d7b53236dce725563a55")!) {
                     Label("Privacy Policy", systemImage: "hand.raised")
                 }
 
-                Link(destination: URL(string: "https://github.com/wanalwanalwan/Dinko/blob/main/docs/terms-of-service.md")!) {
+                Link(destination: URL(string: "https://gist.github.com/wanalwanalwan/fea0580792b6853f1e6d33d70d0984aa")!) {
                     Label("Terms of Service", systemImage: "doc.text")
                 }
 
