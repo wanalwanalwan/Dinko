@@ -167,7 +167,7 @@ struct AuthView: View {
                         .foregroundStyle(AppColors.textSecondary)
 
                     HStack(spacing: 4) {
-                        Link("Privacy Policy", destination: URL(string: "https://pkklai.com/privacy")!)
+                        Link("Privacy Policy", destination: URL(string: "https://github.com/wanalwanalwan/Dinko/blob/main/docs/privacy-policy.md")!)
                             .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(AppColors.teal)
 
@@ -175,7 +175,7 @@ struct AuthView: View {
                             .font(.system(size: 11, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
 
-                        Link("Terms of Service", destination: URL(string: "https://pkklai.com/terms")!)
+                        Link("Terms of Service", destination: URL(string: "https://github.com/wanalwanalwan/Dinko/blob/main/docs/terms-of-service.md")!)
                             .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(AppColors.teal)
                     }
