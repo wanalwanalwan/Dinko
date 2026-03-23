@@ -22,4 +22,13 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
+
+    /// Adaptive color that switches between light and dark mode variants.
+    init(light: String, dark: String) {
+        self.init(uiColor: UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor(Color(hex: dark))
+                : UIColor(Color(hex: light))
+        })
+    }
 }

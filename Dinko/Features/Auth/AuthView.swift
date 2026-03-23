@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct AuthView: View {
     @Bindable var viewModel: AuthViewModel
@@ -130,8 +131,57 @@ struct AuthView: View {
                                 .foregroundStyle(AppColors.textSecondary)
                         }
                     }
+
+                    // Divider
+                    HStack {
+                        Rectangle()
+                            .fill(AppColors.textSecondary.opacity(0.3))
+                            .frame(height: 1)
+                        Text("or")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Rectangle()
+                            .fill(AppColors.textSecondary.opacity(0.3))
+                            .frame(height: 1)
+                    }
+
+                    // Sign in with Apple
+                    Button {
+                        Task { await viewModel.signInWithApple() }
+                    } label: {
+                        SignInWithAppleButton(
+                            viewModel.isSignUp ? .signUp : .signIn
+                        ) { _ in } onCompletion: { _ in }
+                            .allowsHitTesting(false)
+                            .frame(height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .disabled(viewModel.isLoading)
                 }
                 .padding(.horizontal, AppSpacing.lg)
+
+                // Legal links
+                VStack(spacing: AppSpacing.xxxs) {
+                    Text("By continuing, you agree to our")
+                        .font(.system(size: 11, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    HStack(spacing: 4) {
+                        Link("Privacy Policy", destination: URL(string: "https://pkklai.com/privacy")!)
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+
+                        Text("and")
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+
+                        Link("Terms of Service", destination: URL(string: "https://pkklai.com/terms")!)
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+                    }
+                }
+                .padding(.top, AppSpacing.xs)
+                .padding(.bottom, AppSpacing.lg)
             }
         }
         .background(AppColors.background)

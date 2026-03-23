@@ -124,6 +124,16 @@ struct HomeView: View {
             Spacer()
 
             Menu {
+                Link(destination: URL(string: "https://pkklai.com/privacy")!) {
+                    Label("Privacy Policy", systemImage: "hand.raised")
+                }
+
+                Link(destination: URL(string: "https://pkklai.com/terms")!) {
+                    Label("Terms of Service", systemImage: "doc.text")
+                }
+
+                Divider()
+
                 Button(role: .destructive) {
                     Task { await authViewModel?.signOut() }
                 } label: {
