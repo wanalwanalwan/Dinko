@@ -287,6 +287,8 @@ final class ChatViewModel {
               case .pending = preview.confirmState
         else { return }
 
+        guard skillUpdateIndex < preview.skillUpdates.count else { return }
+
         if preview.selectedSubskillIndices[skillUpdateIndex] == nil {
             let update = preview.skillUpdates[skillUpdateIndex]
             preview.selectedSubskillIndices[skillUpdateIndex] = Set(update.subskillDeltas.indices)

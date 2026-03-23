@@ -51,7 +51,7 @@ final class DrillQueueViewModel {
             "Deep returns give you time to advance."
         ]
         let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
-        return tips[dayOfYear % tips.count]
+        return tips[(dayOfYear - 1) % tips.count]
     }
 
     private let drillRepository: DrillRepository

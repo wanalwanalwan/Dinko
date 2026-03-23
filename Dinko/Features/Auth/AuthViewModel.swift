@@ -270,13 +270,12 @@ final class AuthViewModel {
         do {
             try await agentService.deleteAccount(authToken: accessToken)
         } catch {
-            // Even if the server call fails, clear local data so user isn't stuck
-            #if DEBUG
-            print("[Auth] Server account deletion failed: \(error.localizedDescription)")
-            #endif
+            isDeletingAccount = false
+            errorMessage = "Failed to delete account. Please check your connection and try again."
+            return
         }
 
-        // Clear all local data
+        // Server confirmed deletion — clear all local data
         authService.clearSession()
         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         UserDefaults.standard.removeObject(forKey: "pkkl_weekly_goal")

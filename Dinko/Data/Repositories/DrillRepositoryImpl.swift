@@ -78,7 +78,7 @@ final class DrillRepositoryImpl: DrillRepository {
             if let entity = try context.fetch(request).first {
                 entity.completedReps += 1
                 if entity.completedReps >= entity.targetReps {
-                    entity.status = "completed"
+                    entity.status = DrillStatus.completed.rawValue
                 }
                 entity.updatedAt = Date()
                 try context.save()
