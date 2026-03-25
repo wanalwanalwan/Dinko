@@ -63,6 +63,161 @@ final class ChatViewModel {
         isSending = false
     }
 
+    func selectClarificationOption(messageId: UUID, optionId: String) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .clarification(var preview) = messages[index].content,
+              case .pending = preview.state
+        else { return }
+
+        guard let option = preview.options.first(where: { $0.id == optionId }) else { return }
+
+        // Update card state to selected
+        preview.state = .selected(optionId)
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .clarification(preview),
+            timestamp: messages[index].timestamp
+        )
+
+        // Send follow-up request
+        Task {
+            isSending = true
+
+            let loadingId = UUID()
+            messages.append(ChatMessage(id: loadingId, role: .agent, content: .loading))
+
+            do {
+                let snapshots = try await buildSkillSnapshots()
+                let token = await getAuthToken()
+
+                var actionDict: [String: Any] = [
+                    "action": option.action,
+                    "original_note": preview.originalNote,
+                ]
+                if let payloadData = option.payloadJSON,
+                   let payload = try? JSONSerialization.jsonObject(with: payloadData) as? [String: String] {
+                    actionDict["payload"] = payload
+                }
+
+                let response = try await agentService.logSession(
+                    note: preview.originalNote,
+                    skills: snapshots,
+                    authToken: token,
+                    clarificationAction: actionDict
+                )
+
+                // Update clarification card to resolved
+                preview.state = .resolved
+                messages[index] = ChatMessage(
+                    id: messageId,
+                    role: .agent,
+                    content: .clarification(preview),
+                    timestamp: messages[index].timestamp
+                )
+
+                // Route the follow-up response same as sendMessage
+                if let clarification = response.clarification {
+                    let options = clarification.options.map { opt in
+                        let payloadData = opt.payload.flatMap { dict in
+                            try? JSONSerialization.data(withJSONObject: dict)
+                        }
+                        return ClarificationOption(
+                            id: opt.id,
+                            label: opt.label,
+                            action: opt.action,
+                            payloadJSON: payloadData
+                        )
+                    }
+                    let newPreview = ClarificationPreview(
+                        question: clarification.question,
+                        options: options,
+                        originalNote: clarification.originalNote ?? preview.originalNote,
+                        state: .pending
+                    )
+                    replaceMessage(id: loadingId, with: ChatMessage(
+                        id: loadingId,
+                        role: .agent,
+                        content: .clarification(newPreview)
+                    ))
+                } else if let chatReply = response.chatResponse, !chatReply.isEmpty,
+                          let drills = response.drillRecommendations, !drills.isEmpty {
+                    let drillPreview = DrillSuggestionsPreview(
+                        chatText: chatReply,
+                        drills: drills,
+                        addedDrillIndices: Set<Int>()
+                    )
+                    replaceMessage(id: loadingId, with: ChatMessage(
+                        id: loadingId,
+                        role: .agent,
+                        content: .drillSuggestions(drillPreview)
+                    ))
+                } else if let chatReply = response.chatResponse, !chatReply.isEmpty {
+                    replaceMessage(id: loadingId, with: ChatMessage(
+                        id: loadingId,
+                        role: .agent,
+                        content: .text(chatReply)
+                    ))
+                } else {
+                    let saturated = (response.saturatedSkills ?? []).map {
+                        SaturatedSkillInfo(skillName: $0.skillName, pendingCount: $0.pendingCount)
+                    }
+                    let extraction = response.extraction ?? ExtractionData(
+                        mentions: [], newSkillSuggestions: [],
+                        sessionDurationMinutes: nil, sessionType: nil
+                    )
+                    let sessionPreview = SessionPreview(
+                        sessionId: response.sessionId ?? "",
+                        extraction: extraction,
+                        coachInsight: response.coachInsight,
+                        skillUpdates: response.skillUpdates ?? [],
+                        drillRecommendations: response.drillRecommendations ?? [],
+                        roadmapUpdates: response.roadmapUpdates,
+                        subskillSuggestions: response.subskillSuggestions,
+                        skillSuggestions: response.skillSuggestions,
+                        saturatedSkills: saturated
+                    )
+                    replaceMessage(id: loadingId, with: ChatMessage(
+                        id: loadingId,
+                        role: .agent,
+                        content: .sessionPreview(sessionPreview)
+                    ))
+                }
+            } catch {
+                replaceMessage(id: loadingId, with: ChatMessage(
+                    id: loadingId,
+                    role: .agent,
+                    content: .error(error.localizedDescription)
+                ))
+            }
+
+            isSending = false
+        }
+    }
+
+    func addDrillToQueue(messageId: UUID, drillIndex: Int) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .drillSuggestions(var preview) = messages[index].content,
+              !preview.addedDrillIndices.contains(drillIndex),
+              drillIndex < preview.drills.count
+        else { return }
+
+        let drill = preview.drills[drillIndex]
+
+        // Save to CoreData
+        Task {
+            await saveDrills([drill])
+
+            preview.addedDrillIndices.insert(drillIndex)
+            messages[index] = ChatMessage(
+                id: messageId,
+                role: .agent,
+                content: .drillSuggestions(preview),
+                timestamp: messages[index].timestamp
+            )
+        }
+    }
+
     func sendMessage() async {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !isSending else { return }
@@ -117,8 +272,45 @@ final class ChatViewModel {
                 authToken: token
             )
 
-            // Check if this is a general chat response (no session)
-            if let chatReply = response.chatResponse, !chatReply.isEmpty {
+            // Route response by priority
+            if let clarification = response.clarification {
+                // Clarification needed — show options card
+                let options = clarification.options.map { opt in
+                    let payloadData = opt.payload.flatMap { dict in
+                        try? JSONSerialization.data(withJSONObject: dict)
+                    }
+                    return ClarificationOption(
+                        id: opt.id,
+                        label: opt.label,
+                        action: opt.action,
+                        payloadJSON: payloadData
+                    )
+                }
+                let preview = ClarificationPreview(
+                    question: clarification.question,
+                    options: options,
+                    originalNote: clarification.originalNote ?? text,
+                    state: .pending
+                )
+                replaceMessage(id: loadingId, with: ChatMessage(
+                    id: loadingId,
+                    role: .agent,
+                    content: .clarification(preview)
+                ))
+            } else if let chatReply = response.chatResponse, !chatReply.isEmpty,
+                      let drills = response.drillRecommendations, !drills.isEmpty {
+                // Standalone drill suggestions with chat text
+                let preview = DrillSuggestionsPreview(
+                    chatText: chatReply,
+                    drills: drills,
+                    addedDrillIndices: Set<Int>()
+                )
+                replaceMessage(id: loadingId, with: ChatMessage(
+                    id: loadingId,
+                    role: .agent,
+                    content: .drillSuggestions(preview)
+                ))
+            } else if let chatReply = response.chatResponse, !chatReply.isEmpty {
                 replaceMessage(id: loadingId, with: ChatMessage(
                     id: loadingId,
                     role: .agent,
@@ -130,13 +322,18 @@ final class ChatViewModel {
                     SaturatedSkillInfo(skillName: $0.skillName, pendingCount: $0.pendingCount)
                 }
 
+                let extraction = response.extraction ?? ExtractionData(
+                    mentions: [], newSkillSuggestions: [],
+                    sessionDurationMinutes: nil, sessionType: nil
+                )
+
                 // Replace loading bubble with preview
                 let preview = SessionPreview(
                     sessionId: response.sessionId ?? "",
-                    extraction: response.extraction,
+                    extraction: extraction,
                     coachInsight: response.coachInsight,
-                    skillUpdates: response.skillUpdates,
-                    drillRecommendations: response.drillRecommendations,
+                    skillUpdates: response.skillUpdates ?? [],
+                    drillRecommendations: response.drillRecommendations ?? [],
                     roadmapUpdates: response.roadmapUpdates,
                     subskillSuggestions: response.subskillSuggestions,
                     skillSuggestions: response.skillSuggestions,
@@ -506,6 +703,22 @@ final class ChatViewModel {
                 default:
                     break
                 }
+
+            case (.agent, .clarification(let preview)):
+                switch preview.state {
+                case .resolved:
+                    lines.append("Coach: [Asked clarification and user responded]")
+                case .selected(let optionId):
+                    if let option = preview.options.first(where: { $0.id == optionId }) {
+                        lines.append("Coach: Asked: \(preview.question) — User chose: \(option.label)")
+                    }
+                default:
+                    lines.append("Coach: [Asked for clarification: \(preview.question)]")
+                }
+
+            case (.agent, .drillSuggestions(let preview)):
+                let drillNames = preview.drills.map(\.name).joined(separator: ", ")
+                lines.append("Coach: Suggested drills: \(drillNames)")
 
             case (.agent, .text(let text)):
                 lines.append("Coach: \(text)")

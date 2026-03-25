@@ -6,15 +6,16 @@ final class AgentService {
 
     struct LogSessionResponse: Codable {
         let sessionId: String?
-        let extraction: ExtractionData
+        let extraction: ExtractionData?
         let coachInsight: String?
-        let skillUpdates: [SkillUpdate]
-        let drillRecommendations: [DrillRecommendation]
+        let skillUpdates: [SkillUpdate]?
+        let drillRecommendations: [DrillRecommendation]?
         let roadmapUpdates: RoadmapUpdates?
         let subskillSuggestions: [SubskillSuggestion]?
         let skillSuggestions: [SkillCreationSuggestion]?
         let saturatedSkills: [SaturatedSkillInfo]?
         let chatResponse: String?
+        let clarification: ClarificationResponseData?
 
         enum CodingKeys: String, CodingKey {
             case sessionId = "session_id"
@@ -27,7 +28,26 @@ final class AgentService {
             case skillSuggestions = "skill_suggestions"
             case saturatedSkills = "saturated_skills"
             case chatResponse = "chat_response"
+            case clarification
         }
+    }
+
+    struct ClarificationResponseData: Codable {
+        let question: String
+        let options: [ClarificationOptionData]
+        let originalNote: String?
+
+        enum CodingKeys: String, CodingKey {
+            case question, options
+            case originalNote = "original_note"
+        }
+    }
+
+    struct ClarificationOptionData: Codable {
+        let id: String
+        let label: String
+        let action: String
+        let payload: [String: String]?
     }
 
     struct SaturatedSkillInfo: Codable {
@@ -92,9 +112,10 @@ final class AgentService {
     func logSession(
         note: String,
         skills: [SkillSnapshotPayload],
-        authToken: String
+        authToken: String,
+        clarificationAction: [String: Any]? = nil
     ) async throws -> LogSessionResponse {
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "action": "log_session",
             "note": note,
             "skills": skills.map { skill in
@@ -118,6 +139,10 @@ final class AgentService {
                 return dict
             },
         ]
+
+        if let clarificationAction {
+            body["clarification_action"] = clarificationAction
+        }
 
         return try await post(body: body, authToken: authToken)
     }

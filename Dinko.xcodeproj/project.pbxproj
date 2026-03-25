@@ -71,6 +71,8 @@
 		E10000020000000000000006 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000006 /* ChatView.swift */; };
 		E10000020000000000000007 /* SkillDeletionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000007 /* SkillDeletionCard.swift */; };
 		E10000020000000000000008 /* SkillCreationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000008 /* SkillCreationCard.swift */; };
+		E10000020000000000000009 /* ClarificationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000009 /* ClarificationCard.swift */; };
+		E1000002000000000000000A /* DrillSuggestionsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000002000000000000000A /* DrillSuggestionsCard.swift */; };
 		N10000010000000000000001 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = N20000010000000000000001 /* NetworkMonitor.swift */; };
 		F10000000000000000000001 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* AuthService.swift */; };
 		F10000000000000000000002 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* AuthViewModel.swift */; };
@@ -192,6 +194,8 @@
 		E20000020000000000000006 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		E20000020000000000000007 /* SkillDeletionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillDeletionCard.swift; sourceTree = "<group>"; };
 		E20000020000000000000008 /* SkillCreationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCreationCard.swift; sourceTree = "<group>"; };
+		E20000020000000000000009 /* ClarificationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarificationCard.swift; sourceTree = "<group>"; };
+		E2000002000000000000000A /* DrillSuggestionsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillSuggestionsCard.swift; sourceTree = "<group>"; };
 		N20000010000000000000001 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		F20000000000000000000001 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
@@ -508,6 +512,8 @@
 				E20000020000000000000005 /* SessionPreviewCard.swift */,
 				E20000020000000000000007 /* SkillDeletionCard.swift */,
 				E20000020000000000000008 /* SkillCreationCard.swift */,
+				E20000020000000000000009 /* ClarificationCard.swift */,
+				E2000002000000000000000A /* DrillSuggestionsCard.swift */,
 				E20000020000000000000006 /* ChatView.swift */,
 			);
 			path = Chat;
@@ -764,6 +770,8 @@
 				E10000020000000000000006 /* ChatView.swift in Sources */,
 				E10000020000000000000007 /* SkillDeletionCard.swift in Sources */,
 				E10000020000000000000008 /* SkillCreationCard.swift in Sources */,
+				E10000020000000000000009 /* ClarificationCard.swift in Sources */,
+				E1000002000000000000000A /* DrillSuggestionsCard.swift in Sources */,
 				F10000000000000000000001 /* AuthService.swift in Sources */,
 				N10000010000000000000001 /* NetworkMonitor.swift in Sources */,
 				F10000000000000000000002 /* AuthViewModel.swift in Sources */,

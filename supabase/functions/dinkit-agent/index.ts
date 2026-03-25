@@ -208,11 +208,24 @@ function extractJson(raw: string): string {
 // ---------- Intent Classification ----------
 
 type Intent = "session_log" | "create_subskills" | "create_skill"
-            | "session_log_with_new_skills" | "general_chat";
+            | "session_log_with_new_skills" | "general_chat" | "recommend_drills";
 
 interface ClassificationResult {
   intent: Intent;
   new_skill_names?: string[];
+}
+
+interface ClarificationOption {
+  id: string;
+  label: string;
+  action: string;
+  payload: Record<string, string>;
+}
+
+interface ClarificationResponse {
+  question: string;
+  options: ClarificationOption[];
+  original_note: string;
 }
 
 // LLM-based classifier using Haiku for accurate intent detection
@@ -232,13 +245,15 @@ Intents:
 - "session_log_with_new_skills": User describes practice/playing but mentions skills NOT in their existing list. E.g. "I focused on twoey backhand dink" when that skill doesn't exist. Return the new skill names.
 - "create_skill": User explicitly asks to create/add/track a new skill WITHOUT describing a session. E.g. "add a skill for lobs", "create a new skill called overheads". Also use this when the user corrects a previous suggestion and asks to create something specific instead.
 - "create_subskills": User asks to break down an existing skill into subskills. E.g. "break down my dinking skill", "create subskills for serves".
-- "general_chat": User asks a question, wants advice, or has a conversation not about logging a session or creating skills. E.g. "what should I work on?", "how do I improve my serve?", "thanks!", "what drills should I do?".
+- "recommend_drills": User asks for drill recommendations/suggestions for a specific skill or in general. E.g. "recommend drills for dinking", "suggest some drills", "what drills should I do for drops?", "give me drills to improve my serves".
+- "general_chat": User asks a question, wants advice, or has a conversation not about logging a session, creating skills, or requesting drills. E.g. "what should I work on?", "how do I improve my serve?", "thanks!".
 
 Rules:
 - Look at the FULL conversation context (earlier messages provide important context for follow-ups).
 - If the user corrects or redirects ("no, create a new skill instead", "don't update that"), follow the correction.
 - If user describes playing/practicing with skills that DON'T exist in their list → "session_log_with_new_skills" and include the unrecognized skill names in "new_skill_names".
 - If ALL mentioned skills exist → "session_log".
+- If the user asks for drills/exercises/practice recommendations → "recommend_drills".
 - When in doubt between session_log and general_chat, prefer session_log if the message describes any practice activity.
 
 Respond with JSON only: {"intent": "...", "new_skill_names": ["..."]}
@@ -251,7 +266,7 @@ The new_skill_names array is only needed for session_log_with_new_skills, omit o
     // Validate the intent
     const validIntents: Intent[] = [
       "session_log", "create_subskills", "create_skill",
-      "session_log_with_new_skills", "general_chat",
+      "session_log_with_new_skills", "general_chat", "recommend_drills",
     ];
     if (!validIntents.includes(parsed.intent)) {
       return classifyIntentFallback(note, skills);
@@ -276,6 +291,17 @@ function classifyIntentFallback(note: string, skills: SkillSnapshot[]): Classifi
     }
   }
   const lower = currentMessage.toLowerCase();
+
+  // Check drill recommendation patterns first
+  const drillPatterns = [
+    /(?:recommend|suggest|give\s+me)\s+(?:some\s+)?drills?\b/,
+    /(?:what|which)\s+drills?\s+(?:should|could|can)\b/,
+    /drills?\s+(?:for|to\s+improve|to\s+work\s+on)\b/,
+    /(?:practice|exercises?)\s+(?:for|to\s+improve)\b/,
+  ];
+  for (const pattern of drillPatterns) {
+    if (pattern.test(lower)) return { intent: "recommend_drills" };
+  }
 
   // Check subskill patterns first (more specific)
   const subskillPatterns = [
@@ -428,6 +454,112 @@ Respond ONLY with valid JSON:
       ...s,
       suggested_rating: Math.max(0, Math.min(100, Math.round(s.suggested_rating))),
     }));
+}
+
+// ---------- Target Skill Extraction ----------
+
+function extractTargetSkill(
+  note: string,
+  skills: SkillSnapshot[]
+): SkillSnapshot | null {
+  const lower = note.toLowerCase();
+  // Find the best matching skill (prefer longest name match)
+  let bestMatch: SkillSnapshot | null = null;
+  let bestLen = 0;
+  for (const skill of skills) {
+    const nameL = skill.name.toLowerCase();
+    if (lower.includes(nameL) && nameL.length > bestLen) {
+      bestMatch = skill;
+      bestLen = nameL.length;
+    }
+  }
+  return bestMatch;
+}
+
+// ---------- Standalone Drill Generation ----------
+
+async function generateStandaloneDrills(
+  note: string,
+  targetSkill: SkillSnapshot,
+  skills: SkillSnapshot[],
+  apiKey: string
+): Promise<DrillRecommendation[]> {
+  const allSkillsSummary = skills
+    .map((s) => {
+      const subs =
+        s.subskills.length > 0
+          ? ` (subskills: ${s.subskills.map((sub) => `${sub.name}: ${sub.current_rating}%`).join(", ")})`
+          : "";
+      return `- ${s.name}: ${s.current_rating}%${subs}`;
+    })
+    .join("\n");
+
+  const systemPrompt = `You are an expert pickleball coach generating personalized drills.
+
+Current skill ratings:
+${allSkillsSummary || "(no skills)"}
+
+The player is asking for drills to improve: ${targetSkill.name} (currently at ${targetSkill.current_rating}%).
+${targetSkill.subskills.length > 0 ? `Subskills: ${targetSkill.subskills.map((s) => `${s.name}: ${s.current_rating}%`).join(", ")}` : ""}
+
+COACHING KNOWLEDGE:
+- Overheads: prioritize contact point height and timing over power. Common fix is tossing drills to find the ideal contact window.
+- Dinks: emphasize soft hands, paddle face angle, and reset position. Cross-court dinks build consistency before down-the-line.
+- Drives: focus on weight transfer and follow-through. Low-to-high swing path for topspin control.
+- Drops: wrist stability and arc control. Practice from transition zone before baseline.
+- Serves: consistent toss placement and controlled power. Deep serves reduce third-shot pressure.
+- Defense: ready position, split step timing, and paddle positioning at the kitchen line.
+
+DRILL REQUIREMENTS:
+- Each drill must be pickleball-specific and actionable
+- Include: player count, equipment needed, estimated duration, step-by-step instructions
+- Explain the biomechanical WHY behind the drill
+- Keep drills 5-15 minutes each
+- Focus drills on the target skill and its weakest subskills
+
+Generate 2-3 drills. Respond ONLY with a valid JSON array:
+[{
+  "name": "string",
+  "description": "string (full step-by-step instructions)",
+  "target_skill": "string (must be ${targetSkill.name})",
+  "target_subskill": "string or null",
+  "duration_minutes": number,
+  "player_count": number,
+  "equipment": "string",
+  "reason": "string (why this drill for this player right now)",
+  "priority": "high | medium | low"
+}]`;
+
+  const wrappedNote = `<user_request>\n${note}\n</user_request>`;
+  const cleaned = await callClaude(apiKey, systemPrompt, wrappedNote, 2048);
+  return JSON.parse(cleaned) as DrillRecommendation[];
+}
+
+// ---------- Fuzzy Skill Matching ----------
+
+function findAmbiguousSkillMatches(
+  newSkillNames: string[],
+  skills: SkillSnapshot[]
+): { newName: string; matchedSkill: SkillSnapshot }[] {
+  const matches: { newName: string; matchedSkill: SkillSnapshot }[] = [];
+  for (const newName of newSkillNames) {
+    const newLower = newName.toLowerCase();
+    for (const skill of skills) {
+      const skillLower = skill.name.toLowerCase();
+      // Check if the new skill name contains the existing skill name or vice versa
+      // e.g., "backhand dinks" contains "dink" which matches "Dinking"
+      const newWords = newLower.split(/\s+/);
+      const skillWords = skillLower.split(/\s+/);
+      const hasOverlap = newWords.some((w) =>
+        skillWords.some((sw) => w.includes(sw) || sw.includes(w))
+      );
+      if (hasOverlap && skillLower !== newLower) {
+        matches.push({ newName, matchedSkill: skill });
+        break; // one match per new name is enough
+      }
+    }
+  }
+  return matches;
 }
 
 // ---------- Pass 1: Extraction (Claude API) ----------
@@ -1064,7 +1196,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { action, note, skills, session_id } = body;
+    const { action, note, skills, session_id, clarification_action } = body;
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -1149,6 +1281,167 @@ Deno.serve(async (req: Request) => {
       }
 
       const userSkills: SkillSnapshot[] = skills ?? [];
+
+      // ---- Handle clarification_action follow-up ----
+      if (clarification_action && typeof clarification_action === "object") {
+        const caAction = clarification_action.action as string;
+        const caPayload = clarification_action.payload as Record<string, string> | undefined;
+        const originalNote = clarification_action.original_note as string | undefined;
+
+        if (caAction === "update_existing") {
+          // Run normal session_log pipeline with the original note
+          const noteToProcess = originalNote || note;
+          const [extraction, sessionsThisWeek] = await Promise.all([
+            extractSession(noteToProcess, userSkills, anthropicKey),
+            getSessionsThisWeek(supabase, user.id),
+          ]);
+          extraction.new_skill_suggestions = [];
+          const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
+          const saturatedSkills = getSaturatedSkills(userSkills);
+          const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
+          const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
+            generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
+            planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
+            generateCoachInsight(extraction, skillDeltas, anthropicKey),
+          ]);
+          const { data: session, error: insertError } = await supabase
+            .from("session_logs")
+            .insert({
+              user_id: user.id, raw_note: noteToProcess, extracted_json: extraction,
+              applied_deltas: skillDeltas, drill_recommendations: drillRecommendations,
+              roadmap_json: roadmapPlan, user_confirmed: false,
+            })
+            .select("id").single();
+          if (insertError) throw new Error(`Failed to save session: ${insertError.message}`);
+          const mentionedSkillNames = new Set(extraction.mentions.map((m) => m.skill_name.toLowerCase()));
+          const relevantSaturated = saturatedSkills.filter((s) => mentionedSkillNames.has(s.skill_name.toLowerCase()));
+          return jsonResponse({
+            session_id: session.id, extraction, coach_insight: coachInsight,
+            skill_updates: skillDeltas.map((d) => ({ skill_id: d.skill_id, skill: d.skill, old: d.old, new: d.new, delta: d.delta, subskill_deltas: d.subskill_deltas })),
+            drill_recommendations: drillRecommendations,
+            roadmap_updates: { weekly_focus: roadmapPlan.weekly_focus, milestones: roadmapPlan.milestones } as RoadmapUpdates,
+            skill_suggestions: [],
+            saturated_skills: relevantSaturated.length > 0 ? relevantSaturated : undefined,
+          });
+        }
+
+        if (caAction === "add_subskill") {
+          // Create subskill suggestion + run session pipeline with original note
+          const parentSkillId = caPayload?.parent_skill_id;
+          const noteToProcess = originalNote || note;
+          const [subskillSuggestions, extraction, sessionsThisWeek] = await Promise.all([
+            generateSubskills(noteToProcess, userSkills, anthropicKey),
+            extractSession(noteToProcess, userSkills, anthropicKey),
+            getSessionsThisWeek(supabase, user.id),
+          ]);
+          extraction.new_skill_suggestions = [];
+          const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
+          const saturatedSkills = getSaturatedSkills(userSkills);
+          const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
+          const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
+            skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
+            skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve({ weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] } as RoadmapPlan),
+            skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
+          ]);
+          const { data: session, error: insertError } = await supabase
+            .from("session_logs")
+            .insert({
+              user_id: user.id, raw_note: noteToProcess, extracted_json: extraction,
+              applied_deltas: skillDeltas, drill_recommendations: drillRecommendations,
+              roadmap_json: roadmapPlan, user_confirmed: false,
+            })
+            .select("id").single();
+          if (insertError) throw new Error(`Failed to save session: ${insertError.message}`);
+          const mentionedSkillNames = new Set(extraction.mentions.map((m) => m.skill_name.toLowerCase()));
+          const relevantSaturated = saturatedSkills.filter((s) => mentionedSkillNames.has(s.skill_name.toLowerCase()));
+          return jsonResponse({
+            session_id: session.id, extraction, coach_insight: coachInsight || undefined,
+            skill_updates: skillDeltas.map((d) => ({ skill_id: d.skill_id, skill: d.skill, old: d.old, new: d.new, delta: d.delta, subskill_deltas: d.subskill_deltas })),
+            drill_recommendations: drillRecommendations,
+            roadmap_updates: skillDeltas.length > 0 ? { weekly_focus: roadmapPlan.weekly_focus, milestones: roadmapPlan.milestones } as RoadmapUpdates : null,
+            subskill_suggestions: subskillSuggestions,
+            skill_suggestions: [],
+            saturated_skills: relevantSaturated.length > 0 ? relevantSaturated : undefined,
+          });
+        }
+
+        if (caAction === "create_new_skill") {
+          // Generate skill creation suggestion + run session pipeline
+          const noteToProcess = originalNote || note;
+          const [skillSuggestions, extraction, sessionsThisWeek] = await Promise.all([
+            generateSkill(noteToProcess, userSkills, anthropicKey),
+            extractSession(noteToProcess, userSkills, anthropicKey),
+            getSessionsThisWeek(supabase, user.id),
+          ]);
+          extraction.new_skill_suggestions = [];
+          const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
+          const saturatedSkills = getSaturatedSkills(userSkills);
+          const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
+          const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
+            skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
+            skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve({ weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] } as RoadmapPlan),
+            skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
+          ]);
+          const { data: session, error: insertError } = await supabase
+            .from("session_logs")
+            .insert({
+              user_id: user.id, raw_note: noteToProcess, extracted_json: extraction,
+              applied_deltas: skillDeltas, drill_recommendations: drillRecommendations,
+              roadmap_json: roadmapPlan, user_confirmed: false,
+            })
+            .select("id").single();
+          if (insertError) throw new Error(`Failed to save session: ${insertError.message}`);
+          const mentionedSkillNames = new Set(extraction.mentions.map((m) => m.skill_name.toLowerCase()));
+          const relevantSaturated = saturatedSkills.filter((s) => mentionedSkillNames.has(s.skill_name.toLowerCase()));
+          return jsonResponse({
+            session_id: session.id, extraction, coach_insight: coachInsight || undefined,
+            skill_updates: skillDeltas.map((d) => ({ skill_id: d.skill_id, skill: d.skill, old: d.old, new: d.new, delta: d.delta, subskill_deltas: d.subskill_deltas })),
+            drill_recommendations: drillRecommendations,
+            roadmap_updates: skillDeltas.length > 0 ? { weekly_focus: roadmapPlan.weekly_focus, milestones: roadmapPlan.milestones } as RoadmapUpdates : null,
+            skill_suggestions: skillSuggestions,
+            saturated_skills: relevantSaturated.length > 0 ? relevantSaturated : undefined,
+          });
+        }
+
+        if (caAction === "create_skill_then_drills") {
+          // Generate a skill suggestion for the user to create first
+          const skillSuggestions = await generateSkill(note, userSkills, anthropicKey);
+          return jsonResponse({
+            session_id: null,
+            extraction: { mentions: [], new_skill_suggestions: [], session_duration_minutes: null, session_type: null },
+            skill_updates: [],
+            drill_recommendations: [],
+            roadmap_updates: null,
+            subskill_suggestions: [],
+            skill_suggestions: skillSuggestions,
+            chat_response: "I'll need to create that skill first before recommending drills. Here's what I suggest:",
+          });
+        }
+
+        if (caAction === "general_drills") {
+          // Generate standalone drills for a target skill
+          const targetSkillName = caPayload?.target_skill;
+          const targetSkill = userSkills.find(
+            (s) => s.name.toLowerCase() === targetSkillName?.toLowerCase()
+          );
+          if (!targetSkill) {
+            return jsonResponse({
+              session_id: null,
+              extraction: { mentions: [], new_skill_suggestions: [], session_duration_minutes: null, session_type: null },
+              skill_updates: [],
+              drill_recommendations: [],
+              roadmap_updates: null,
+              chat_response: "I couldn't find that skill. Please try again.",
+            });
+          }
+          const drills = await generateStandaloneDrills(note, targetSkill, userSkills, anthropicKey);
+          return jsonResponse({
+            session_id: null,
+            drill_recommendations: drills,
+            chat_response: `Here are some drills to improve your ${targetSkill.name}:`,
+          });
+        }
+      }
 
       // Classify intent (LLM-based with heuristic fallback)
       const classification = await classifyIntentLLM(note, userSkills, anthropicKey);
@@ -1254,7 +1547,90 @@ Deno.serve(async (req: Request) => {
         });
       }
 
+      if (intent === "recommend_drills") {
+        // Standalone drill recommendations
+        const targetSkill = extractTargetSkill(note, userSkills);
+
+        if (!targetSkill) {
+          // No matching skill found — ask user to create it or get general drills
+          // Try to identify what skill they mentioned
+          const skillSummary = userSkills.length > 0
+            ? userSkills.map((s) => s.name).join(", ")
+            : "none";
+
+          return jsonResponse({
+            session_id: null,
+            clarification: {
+              question: "I don't have a matching skill in your list. Would you like to create it first, or get general drills?",
+              options: [
+                {
+                  id: "create_first",
+                  label: "Create the skill first",
+                  action: "create_skill_then_drills",
+                  payload: {},
+                },
+                {
+                  id: "general",
+                  label: "Get general pickleball drills",
+                  action: "general_drills",
+                  payload: userSkills.length > 0
+                    ? { target_skill: userSkills[0].name }
+                    : {},
+                },
+              ],
+              original_note: note,
+            } as ClarificationResponse,
+          });
+        }
+
+        // Skill found — generate standalone drills
+        const drills = await generateStandaloneDrills(note, targetSkill, userSkills, anthropicKey);
+
+        return jsonResponse({
+          session_id: null,
+          drill_recommendations: drills,
+          chat_response: `Here are some drills to improve your ${targetSkill.name}:`,
+        });
+      }
+
       if (intent === "session_log_with_new_skills") {
+        const newSkillNames = classification.new_skill_names ?? [];
+
+        // Check for ambiguous matches (new skill name fuzzy-matches existing skill)
+        if (newSkillNames.length > 0) {
+          const ambiguous = findAmbiguousSkillMatches(newSkillNames, userSkills);
+          if (ambiguous.length > 0) {
+            const match = ambiguous[0];
+            return jsonResponse({
+              session_id: null,
+              clarification: {
+                question: `You mentioned "${match.newName}" — did you mean your existing "${match.matchedSkill.name}" skill, or is this something new?`,
+                options: [
+                  {
+                    id: "update_existing",
+                    label: `Update ${match.matchedSkill.name}`,
+                    action: "update_existing",
+                    payload: { skill_id: match.matchedSkill.id },
+                  },
+                  {
+                    id: "add_subskill",
+                    label: `Add as subskill of ${match.matchedSkill.name}`,
+                    action: "add_subskill",
+                    payload: { parent_skill_id: match.matchedSkill.id },
+                  },
+                  {
+                    id: "create_new",
+                    label: `Create "${match.newName}" as new skill`,
+                    action: "create_new_skill",
+                    payload: { skill_name: match.newName },
+                  },
+                ],
+                original_note: note,
+              } as ClarificationResponse,
+            });
+          }
+        }
+
         // Combined flow: suggest new skills AND log session for existing skills
         const [skillSuggestions, extraction, sessionsThisWeek] = await Promise.all([
           generateSkill(note, userSkills, anthropicKey),

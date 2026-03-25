@@ -17,6 +17,8 @@ struct ChatMessage: Identifiable {
         case sessionPreview(SessionPreview)
         case skillDeletion(SkillDeletionPreview)
         case skillCreation(SkillCreationPreview)
+        case clarification(ClarificationPreview)
+        case drillSuggestions(DrillSuggestionsPreview)
         case error(String)
     }
 
@@ -84,7 +86,7 @@ struct SessionPreview {
         self.skillSuggestions = skillSuggestions
         self.saturatedSkills = saturatedSkills
         self.confirmState = confirmState
-        self.selectedDrillIndices = Set(drillRecommendations.indices)
+        self.selectedDrillIndices = Set<Int>()
         self.selectedSkillUpdateIndices = Set(skillUpdates.indices)
 
         var subIndices: [Int: Set<Int>] = [:]
@@ -274,4 +276,34 @@ struct RoadmapEntry: Codable {
         case startsAt = "starts_at"
         case endsAt = "ends_at"
     }
+}
+
+// MARK: - Clarification
+
+struct ClarificationPreview {
+    let question: String
+    let options: [ClarificationOption]
+    let originalNote: String
+    var state: ClarificationState
+
+    enum ClarificationState: Equatable {
+        case pending
+        case selected(String) // selected option id
+        case resolved
+    }
+}
+
+struct ClarificationOption: Identifiable {
+    let id: String
+    let label: String
+    let action: String
+    let payloadJSON: Data?
+}
+
+// MARK: - Standalone Drill Suggestions
+
+struct DrillSuggestionsPreview {
+    let chatText: String
+    let drills: [DrillRecommendation]
+    var addedDrillIndices: Set<Int>
 }

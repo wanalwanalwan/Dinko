@@ -183,8 +183,6 @@ struct ChatView: View {
                     .lineSpacing(4)
                     .foregroundStyle(.white)
                     .padding(14)
-                    .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: .trailing)
-                    .fixedSize(horizontal: false, vertical: true)
                     .background(AppColors.teal)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
             }
@@ -261,6 +259,22 @@ struct ChatView: View {
                 }
             )
 
+        case .clarification(let preview):
+            ClarificationCard(
+                preview: preview,
+                onSelectOption: { optionId in
+                    viewModel.selectClarificationOption(messageId: message.id, optionId: optionId)
+                }
+            )
+
+        case .drillSuggestions(let preview):
+            DrillSuggestionsCard(
+                preview: preview,
+                onAddDrill: { drillIndex in
+                    viewModel.addDrillToQueue(messageId: message.id, drillIndex: drillIndex)
+                }
+            )
+
         case .error(let errorText):
             let isOffline = errorText.contains("offline") || errorText.contains("connection")
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
@@ -326,7 +340,7 @@ struct ChatView: View {
             return .thinking
         case .sessionPreview(let preview):
             return preview.confirmState == .confirmed ? .celebrating : .talking
-        case .skillDeletion, .skillCreation:
+        case .skillDeletion, .skillCreation, .clarification, .drillSuggestions:
             return .talking
         case .error:
             return .idle
