@@ -264,6 +264,9 @@ struct ChatView: View {
                 preview: preview,
                 onSelectOption: { optionId in
                     viewModel.selectClarificationOption(messageId: message.id, optionId: optionId)
+                },
+                onDismiss: {
+                    viewModel.dismissClarification(messageId: message.id)
                 }
             )
 

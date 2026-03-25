@@ -195,6 +195,21 @@ final class ChatViewModel {
         }
     }
 
+    func dismissClarification(messageId: UUID) {
+        guard let index = messages.firstIndex(where: { $0.id == messageId }),
+              case .clarification(var preview) = messages[index].content,
+              case .pending = preview.state
+        else { return }
+
+        preview.state = .dismissed
+        messages[index] = ChatMessage(
+            id: messageId,
+            role: .agent,
+            content: .clarification(preview),
+            timestamp: messages[index].timestamp
+        )
+    }
+
     func addDrillToQueue(messageId: UUID, drillIndex: Int) {
         guard let index = messages.firstIndex(where: { $0.id == messageId }),
               case .drillSuggestions(var preview) = messages[index].content,

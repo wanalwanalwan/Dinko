@@ -292,18 +292,7 @@ function classifyIntentFallback(note: string, skills: SkillSnapshot[]): Classifi
   }
   const lower = currentMessage.toLowerCase();
 
-  // Check drill recommendation patterns first
-  const drillPatterns = [
-    /(?:recommend|suggest|give\s+me)\s+(?:some\s+)?drills?\b/,
-    /(?:what|which)\s+drills?\s+(?:should|could|can)\b/,
-    /drills?\s+(?:for|to\s+improve|to\s+work\s+on)\b/,
-    /(?:practice|exercises?)\s+(?:for|to\s+improve)\b/,
-  ];
-  for (const pattern of drillPatterns) {
-    if (pattern.test(lower)) return { intent: "recommend_drills" };
-  }
-
-  // Check subskill patterns first (more specific)
+  // Check subskill patterns first (most specific)
   const subskillPatterns = [
     /create\s+(sub\s*skills?|breakdowns?)/,
     /suggest\s+(sub\s*skills?|breakdowns?)/,
@@ -317,10 +306,22 @@ function classifyIntentFallback(note: string, skills: SkillSnapshot[]): Classifi
     if (pattern.test(lower)) return { intent: "create_subskills" };
   }
 
-  // Session-like language
+  // Session-like language BEFORE drill patterns —
+  // "I practiced drills for dinking today" should be session_log, not recommend_drills
   const sessionIndicators =
     /\b(worked on|working on|practiced|played|drilled|trained|focused on|improved|improving|struggled with|got better|session|today|yesterday)\b/;
   if (sessionIndicators.test(lower)) return { intent: "session_log" };
+
+  // Drill recommendation patterns (only if no session language detected)
+  const drillPatterns = [
+    /(?:recommend|suggest|give\s+me)\s+(?:some\s+)?drills?\b/,
+    /(?:what|which)\s+drills?\s+(?:should|could|can)\b/,
+    /drills?\s+(?:for|to\s+improve|to\s+work\s+on)\b/,
+    /(?:practice|exercises?)\s+(?:for|to\s+improve)\b/,
+  ];
+  for (const pattern of drillPatterns) {
+    if (pattern.test(lower)) return { intent: "recommend_drills" };
+  }
 
   // Skill creation patterns
   const skillPatterns = [
@@ -462,7 +463,19 @@ function extractTargetSkill(
   note: string,
   skills: SkillSnapshot[]
 ): SkillSnapshot | null {
-  const lower = note.toLowerCase();
+  // Parse only the current user message from contextual note
+  // (contextual notes have "User: ..." lines from conversation history)
+  let currentMessage = note;
+  const lines = note.split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line.startsWith("User: ")) {
+      currentMessage = line.substring(6).trim();
+      break;
+    }
+  }
+
+  const lower = currentMessage.toLowerCase();
   // Find the best matching skill (prefer longest name match)
   let bestMatch: SkillSnapshot | null = null;
   let bestLen = 0;
@@ -532,10 +545,37 @@ Generate 2-3 drills. Respond ONLY with a valid JSON array:
 
   const wrappedNote = `<user_request>\n${note}\n</user_request>`;
   const cleaned = await callClaude(apiKey, systemPrompt, wrappedNote, 2048);
-  return JSON.parse(cleaned) as DrillRecommendation[];
+  let drills = JSON.parse(cleaned) as DrillRecommendation[];
+
+  // Output validation: fix target_skill, validate priority, cap count
+  const validPriorities = new Set(["high", "medium", "low"]);
+  drills = drills.slice(0, 3).map((d) => ({
+    ...d,
+    target_skill: targetSkill.name, // Force correct target skill
+    priority: validPriorities.has(d.priority) ? d.priority : "medium",
+    duration_minutes: Math.max(1, Math.min(30, d.duration_minutes || 10)),
+    player_count: Math.max(1, d.player_count || 1),
+  }));
+
+  return drills;
 }
 
 // ---------- Fuzzy Skill Matching ----------
+
+/** Check if two words share a meaningful root (prefix-based stem matching). */
+function wordsShareRoot(a: string, b: string): boolean {
+  // One must start with the other's first 4+ characters, or be an exact match.
+  // This avoids "driving" matching "drives" via substring coincidence,
+  // while still matching "dinks" → "dinking" (shared root "dink").
+  if (a === b) return true;
+  const minLen = Math.min(a.length, b.length);
+  if (minLen < 3) return a === b; // Very short words (1-2 chars) require exact match
+  // Check if the shorter word is a prefix of the longer (stem match)
+  // "dinks" → "dinking" ✓, "lob" → "lobs" ✓, "drop" → "dropping" ✓
+  const shorter = a.length <= b.length ? a : b;
+  const longer = a.length <= b.length ? b : a;
+  return longer.startsWith(shorter);
+}
 
 function findAmbiguousSkillMatches(
   newSkillNames: string[],
@@ -546,14 +586,14 @@ function findAmbiguousSkillMatches(
     const newLower = newName.toLowerCase();
     for (const skill of skills) {
       const skillLower = skill.name.toLowerCase();
-      // Check if the new skill name contains the existing skill name or vice versa
-      // e.g., "backhand dinks" contains "dink" which matches "Dinking"
+      if (skillLower === newLower) continue; // exact match = not ambiguous
+      // Check if any word in the new name shares a root with any word in the skill name
       const newWords = newLower.split(/\s+/);
       const skillWords = skillLower.split(/\s+/);
-      const hasOverlap = newWords.some((w) =>
-        skillWords.some((sw) => w.includes(sw) || sw.includes(w))
+      const hasRootOverlap = newWords.some((nw) =>
+        skillWords.some((sw) => wordsShareRoot(nw, sw))
       );
-      if (hasOverlap && skillLower !== newLower) {
+      if (hasRootOverlap) {
         matches.push({ newName, matchedSkill: skill });
         break; // one match per new name is enough
       }
@@ -1551,32 +1591,35 @@ Deno.serve(async (req: Request) => {
         const targetSkill = extractTargetSkill(note, userSkills);
 
         if (!targetSkill) {
-          // No matching skill found — ask user to create it or get general drills
-          // Try to identify what skill they mentioned
-          const skillSummary = userSkills.length > 0
-            ? userSkills.map((s) => s.name).join(", ")
-            : "none";
+          // No matching skill found — build options depending on whether user has skills
+          const options: ClarificationOption[] = [
+            {
+              id: "create_first",
+              label: "Create the skill first",
+              action: "create_skill_then_drills",
+              payload: {},
+            },
+          ];
+
+          // Only offer "general drills" if there's at least one skill to target
+          if (userSkills.length > 0) {
+            options.push({
+              id: "general",
+              label: `Get drills for ${userSkills[0].name}`,
+              action: "general_drills",
+              payload: { target_skill: userSkills[0].name },
+            });
+          }
+
+          const question = userSkills.length === 0
+            ? "You don't have any skills tracked yet. Let's create one first so I can recommend targeted drills."
+            : "I couldn't find that skill in your list. Would you like to create it, or get drills for an existing skill?";
 
           return jsonResponse({
             session_id: null,
             clarification: {
-              question: "I don't have a matching skill in your list. Would you like to create it first, or get general drills?",
-              options: [
-                {
-                  id: "create_first",
-                  label: "Create the skill first",
-                  action: "create_skill_then_drills",
-                  payload: {},
-                },
-                {
-                  id: "general",
-                  label: "Get general pickleball drills",
-                  action: "general_drills",
-                  payload: userSkills.length > 0
-                    ? { target_skill: userSkills[0].name }
-                    : {},
-                },
-              ],
+              question,
+              options,
               original_note: note,
             } as ClarificationResponse,
           });
@@ -1600,10 +1643,14 @@ Deno.serve(async (req: Request) => {
           const ambiguous = findAmbiguousSkillMatches(newSkillNames, userSkills);
           if (ambiguous.length > 0) {
             const match = ambiguous[0];
+            // If multiple ambiguous, mention them so the user knows
+            const othersNote = ambiguous.length > 1
+              ? ` (I'll also handle ${ambiguous.slice(1).map((a) => `"${a.newName}"`).join(", ")} after this.)`
+              : "";
             return jsonResponse({
               session_id: null,
               clarification: {
-                question: `You mentioned "${match.newName}" — did you mean your existing "${match.matchedSkill.name}" skill, or is this something new?`,
+                question: `You mentioned "${match.newName}" — did you mean your existing "${match.matchedSkill.name}" skill, or is this something new?${othersNote}`,
                 options: [
                   {
                     id: "update_existing",

@@ -290,6 +290,7 @@ struct ClarificationPreview {
         case pending
         case selected(String) // selected option id
         case resolved
+        case dismissed
     }
 }
 

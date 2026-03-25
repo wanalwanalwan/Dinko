@@ -3,26 +3,54 @@ import SwiftUI
 struct ClarificationCard: View {
     let preview: ClarificationPreview
     let onSelectOption: (String) -> Void
+    let onDismiss: () -> Void
+
+    private var isPending: Bool {
+        if case .pending = preview.state { return true }
+        return false
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             // Header
-            Label("Quick Question", systemImage: "questionmark.circle.fill")
-                .font(AppTypography.headline)
-                .foregroundStyle(AppColors.teal)
+            HStack {
+                Label("Quick Question", systemImage: "questionmark.circle.fill")
+                    .font(AppTypography.headline)
+                    .foregroundStyle(AppColors.teal)
+                Spacer()
+                if isPending {
+                    Button {
+                        onDismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+                            .padding(6)
+                            .background(Color(hex: "F4F6F8"))
+                            .clipShape(Circle())
+                    }
+                    .accessibilityLabel("Dismiss question")
+                }
+            }
 
             Divider()
 
-            // Question
-            Text(preview.question)
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
+            if case .dismissed = preview.state {
+                Text("Skipped")
+                    .font(AppTypography.callout)
+                    .foregroundStyle(AppColors.textSecondary)
+            } else {
+                // Question
+                Text(preview.question)
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
 
-            // Options
-            VStack(spacing: AppSpacing.xxs) {
-                ForEach(preview.options) { option in
-                    optionRow(option)
+                // Options
+                VStack(spacing: AppSpacing.xxs) {
+                    ForEach(preview.options) { option in
+                        optionRow(option)
+                    }
                 }
             }
         }
