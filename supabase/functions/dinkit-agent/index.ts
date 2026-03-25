@@ -1414,7 +1414,6 @@ Deno.serve(async (req: Request) => {
             roadmap_updates: null,
             subskill_suggestions: [],
             skill_suggestions: skillSuggestions,
-            chat_response: "I'll need to create that skill first before recommending drills. Here's what I suggest:",
           });
         }
 
