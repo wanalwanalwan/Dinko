@@ -1243,6 +1243,8 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Missing authorization" }, 401);
     }
 
+    const token = authHeader.replace("Bearer ", "");
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -1252,7 +1254,7 @@ Deno.serve(async (req: Request) => {
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
