@@ -797,8 +797,8 @@ final class ChatViewModel {
         if let token = await authService.validAccessToken() {
             return token
         }
-        guard let saved = authService.loadSavedSession() else { return "" }
-        return saved.accessToken
+        // Refresh failed — don't fall back to a stale token that will be rejected
+        return ""
     }
 
     private func replaceMessage(id: UUID, with message: ChatMessage) {

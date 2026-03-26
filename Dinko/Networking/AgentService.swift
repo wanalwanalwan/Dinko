@@ -198,6 +198,12 @@ final class AgentService {
         if result.1.statusCode == 401 {
             if let freshToken = await refreshToken(), !freshToken.isEmpty {
                 let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: freshToken)
+                // If retry also returns 401, the session is dead
+                if retry.1.statusCode == 401 {
+                    AuthService.shared.clearSession()
+                    NotificationCenter.default.post(name: .authSessionExpired, object: nil)
+                    throw AgentError.server("Your session has expired. Please sign in again.")
+                }
                 return try decodeResponse(data: retry.0, statusCode: retry.1.statusCode)
             }
 
