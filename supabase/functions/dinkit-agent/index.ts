@@ -1243,22 +1243,29 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Missing authorization" }, 401);
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    // Validate JWT directly via GoTrue REST API (bypasses supabase-js auth quirks)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        Authorization: authHeader,
+        apikey: supabaseAnonKey,
+      },
+    });
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      console.error("[auth] getUser failed:", authError?.message, "| token length:", token?.length);
-      return jsonResponse({ error: authError?.message ?? "Unauthorized" }, 401);
+    if (!userRes.ok) {
+      const errBody = await userRes.json().catch(() => ({}));
+      console.error("[auth] GoTrue rejected token:", userRes.status, JSON.stringify(errBody));
+      return jsonResponse({ error: errBody.msg ?? errBody.message ?? "Unauthorized" }, 401);
     }
+
+    const user = await userRes.json();
+
+    // Create Supabase client for DB operations (RLS uses the user's JWT)
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     // ---- action: delete_account (no AI or rate limit needed) ----
     if (action === "delete_account") {
