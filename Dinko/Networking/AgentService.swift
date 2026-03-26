@@ -182,10 +182,7 @@ final class AgentService {
             if let freshToken = await refreshToken(), !freshToken.isEmpty {
                 tokenToUse = freshToken
             } else {
-                // Refresh failed — session is dead, clear it and force re-auth
-                AuthService.shared.clearSession()
-                NotificationCenter.default.post(name: .authSessionExpired, object: nil)
-                throw AgentError.server("Your session has expired. Please sign in again.")
+                throw AgentError.sessionExpired
             }
         } else {
             tokenToUse = authToken
@@ -198,19 +195,13 @@ final class AgentService {
         if result.1.statusCode == 401 {
             if let freshToken = await refreshToken(), !freshToken.isEmpty {
                 let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: freshToken)
-                // If retry also returns 401, the session is dead
                 if retry.1.statusCode == 401 {
-                    AuthService.shared.clearSession()
-                    NotificationCenter.default.post(name: .authSessionExpired, object: nil)
-                    throw AgentError.server("Your session has expired. Please sign in again.")
+                    throw AgentError.sessionExpired
                 }
                 return try decodeResponse(data: retry.0, statusCode: retry.1.statusCode)
             }
 
-            // Refresh failed — session is dead, clear it and force re-auth
-            AuthService.shared.clearSession()
-            NotificationCenter.default.post(name: .authSessionExpired, object: nil)
-            throw AgentError.server("Your session has expired. Please sign in again.")
+            throw AgentError.sessionExpired
         }
 
         return try decodeResponse(data: result.0, statusCode: result.1.statusCode)
@@ -301,6 +292,7 @@ enum AgentError: LocalizedError {
     case invalidResponse
     case server(String)
     case offline
+    case sessionExpired
 
     var errorDescription: String? {
         switch self {
@@ -308,6 +300,7 @@ enum AgentError: LocalizedError {
         case .invalidResponse: "Invalid response from server"
         case .server(let message): message
         case .offline: "You're offline. Please check your connection and try again."
+        case .sessionExpired: "Your session has expired. Please sign out and sign back in."
         }
     }
 }
