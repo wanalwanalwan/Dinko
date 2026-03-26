@@ -196,12 +196,16 @@ final class AgentService {
             if let freshToken = await refreshToken(), !freshToken.isEmpty {
                 let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: freshToken)
                 if retry.1.statusCode == 401 {
-                    throw AgentError.sessionExpired
+                    // Surface the actual server error for debugging
+                    let serverMsg = extractErrorMessage(from: retry.0)
+                    throw AgentError.server(serverMsg ?? "Your session has expired. Please sign out and sign back in.")
                 }
                 return try decodeResponse(data: retry.0, statusCode: retry.1.statusCode)
             }
 
-            throw AgentError.sessionExpired
+            // Surface the original 401 error
+            let serverMsg = extractErrorMessage(from: result.0)
+            throw AgentError.server(serverMsg ?? "Your session has expired. Please sign out and sign back in.")
         }
 
         return try decodeResponse(data: result.0, statusCode: result.1.statusCode)
@@ -280,6 +284,12 @@ final class AgentService {
             return String(trimmed[..<idx]) + "…"
         }
         return trimmed
+    }
+
+    private func extractErrorMessage(from data: Data) -> String? {
+        // Try {"error": "..."} or {"msg": "..."} or {"message": "..."}
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return (json["error"] as? String) ?? (json["msg"] as? String) ?? (json["message"] as? String)
     }
 
     private func refreshToken() async -> String? {

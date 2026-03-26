@@ -1256,7 +1256,8 @@ Deno.serve(async (req: Request) => {
       error: authError,
     } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      console.error("[auth] getUser failed:", authError?.message, "| token length:", token?.length);
+      return jsonResponse({ error: authError?.message ?? "Unauthorized" }, 401);
     }
 
     // ---- action: delete_account (no AI or rate limit needed) ----
