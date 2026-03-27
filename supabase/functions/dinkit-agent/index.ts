@@ -152,6 +152,8 @@ async function callClaude(
   const model = fast
     ? "claude-haiku-4-5-20251001"
     : "claude-sonnet-4-5-20250929";
+  // Timeout: 15s for Haiku, 25s for Sonnet — prevents any single call from hanging
+  const timeoutMs = fast ? 15_000 : 25_000;
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -165,6 +167,7 @@ async function callClaude(
       system,
       messages: [{ role: "user", content: userMessage }],
     }),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 
   if (!response.ok) {
@@ -1014,17 +1017,42 @@ async function planRoadmap(
 
   let weeklyFocus: RoadmapEntry | null = null;
 
-  if (focusSkillName) {
-    // Check if there's already an active weekly focus
-    const { data: existing } = await supabase
-      .from("user_roadmap")
-      .select("id, starts_at")
-      .eq("user_id", userId)
-      .eq("type", "weekly_focus")
-      .eq("status", "active")
-      .limit(1)
-      .single();
+  // --- Parallel DB lookups: weekly focus + existing milestones ---
+  const nonCrossedSkills = skillDeltas
+    .filter((d) => !crossedTierBoundary(d.old, d.new) && d.new < 100)
+    .map((d) => d.skill);
 
+  const [existingFocusResult, existingMilestonesResult] = await Promise.all([
+    focusSkillName
+      ? supabase
+          .from("user_roadmap")
+          .select("id, starts_at")
+          .eq("user_id", userId)
+          .eq("type", "weekly_focus")
+          .eq("status", "active")
+          .limit(1)
+          .single()
+      : Promise.resolve({ data: null }),
+    nonCrossedSkills.length > 0
+      ? supabase
+          .from("user_roadmap")
+          .select("target_skill")
+          .eq("user_id", userId)
+          .eq("type", "milestone")
+          .eq("status", "active")
+          .in("target_skill", nonCrossedSkills)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const existing = existingFocusResult.data as { id: string; starts_at: string } | null;
+  const existingMilestoneSkills = new Set<string>();
+  if (existingMilestonesResult.data) {
+    for (const m of existingMilestonesResult.data as { target_skill: string }[]) {
+      existingMilestoneSkills.add(m.target_skill);
+    }
+  }
+
+  if (focusSkillName) {
     // Replace if older than 7 days or different skill
     const shouldReplace =
       !existing ||
@@ -1081,18 +1109,7 @@ async function planRoadmap(
       });
       completeFilters.push({ target_skill: delta.skill });
     } else if (delta.new < 100) {
-      // Check if a milestone already exists for this skill
-      const { data: existingMilestone } = await supabase
-        .from("user_roadmap")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("type", "milestone")
-        .eq("target_skill", delta.skill)
-        .eq("status", "active")
-        .limit(1)
-        .single();
-
-      if (!existingMilestone) {
+      if (!existingMilestoneSkills.has(delta.skill)) {
         milestonesForNarrative.push({
           skill: delta.skill,
           crossed: null,

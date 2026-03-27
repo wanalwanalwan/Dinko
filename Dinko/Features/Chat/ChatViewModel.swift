@@ -684,7 +684,11 @@ final class ChatViewModel {
             lines.append("User's drill type preferences: \(prefs.joined(separator: ", ")).")
         }
 
-        for message in messages {
+        // Exclude the last 2 entries: the current user message + loading bubble
+        // (the current message is appended explicitly at the end to avoid duplication)
+        let historyMessages = messages.dropLast(2)
+
+        for message in historyMessages {
             switch (message.role, message.content) {
             case (.user, .text(let text)):
                 lines.append("User: \(text)")

@@ -229,7 +229,7 @@ final class AgentService {
         request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        request.timeoutInterval = 60
+        request.timeoutInterval = 90
 
         let data: Data
         let response: URLResponse
