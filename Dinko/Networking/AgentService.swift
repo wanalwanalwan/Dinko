@@ -229,7 +229,7 @@ final class AgentService {
         request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        request.timeoutInterval = 90
+        request.timeoutInterval = 120
 
         let data: Data
         let response: URLResponse
@@ -255,14 +255,15 @@ final class AgentService {
 
     private func decodeResponse<T: Codable>(data: Data, statusCode: Int) throws -> T {
         if statusCode != 200 {
-            // 502/503/504 are gateway errors — edge function timed out or crashed
-            if (502...504).contains(statusCode) {
-                throw AgentError.server("The AI coach is temporarily unavailable. Please try again in a moment.")
-            }
-
+            // Try to decode a structured error from the edge function first (covers 500, 504, etc.)
             if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data),
                (errorResponse.error != nil || errorResponse.msg != nil) {
                 throw AgentError.server(errorResponse.message)
+            }
+
+            // 502/503 are gateway errors where the edge function didn't respond at all
+            if (502...503).contains(statusCode) {
+                throw AgentError.server("The AI coach is temporarily unavailable. Please try again in a moment.")
             }
 
             // Don't show raw HTML to the user

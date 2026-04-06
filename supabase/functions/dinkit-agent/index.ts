@@ -152,34 +152,50 @@ async function callClaude(
   const model = fast
     ? "claude-haiku-4-5-20251001"
     : "claude-sonnet-4-5-20250929";
-  // Timeout: 15s for Haiku, 25s for Sonnet — prevents any single call from hanging
-  const timeoutMs = fast ? 15_000 : 25_000;
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: "user", content: userMessage }],
-    }),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
+  // Timeout: 25s for Haiku, 45s for Sonnet — generous enough to avoid spurious timeouts
+  const timeoutMs = fast ? 25_000 : 45_000;
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Claude API error: ${response.status} — ${err}`);
+  const attempt = async (): Promise<string> => {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: "user", content: userMessage }],
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Claude API error: ${response.status} — ${err}`);
+    }
+
+    const data = await response.json();
+    const text = data.content[0].text;
+    const stripped = text.replace(/```(?:json|JSON)?\n?/g, "").trim();
+    return extractJson(stripped);
+  };
+
+  // Single retry on transient failures (timeout or overloaded)
+  try {
+    return await attempt();
+  } catch (err) {
+    const e = err as Error;
+    const isRetryable = e.name === "AbortError" || e.name === "TimeoutError"
+      || e.message?.includes("529") || e.message?.includes("overloaded");
+    if (isRetryable) {
+      console.log(`[dinkit-agent] Retrying ${model} call after: ${e.name || e.message}`);
+      return await attempt();
+    }
+    throw err;
   }
-
-  const data = await response.json();
-  const text = data.content[0].text;
-  // Strip markdown code fences (case-insensitive) then extract the JSON
-  const stripped = text.replace(/```(?:json|JSON)?\n?/g, "").trim();
-  return extractJson(stripped);
 }
 
 /** Pull the first complete JSON object or array from a string. */
@@ -1052,39 +1068,19 @@ async function planRoadmap(
     }
   }
 
+  // --- Determine if we need a focus replacement (deterministic) ---
+  let needsFocusNarrative = false;
   if (focusSkillName) {
-    // Replace if older than 7 days or different skill
     const shouldReplace =
       !existing ||
       new Date(existing.starts_at).getTime() <
         Date.now() - 7 * 24 * 60 * 60 * 1000;
 
     if (shouldReplace) {
-      // Collect ID to replace (don't execute yet)
+      needsFocusNarrative = true;
       if (existing) {
         replaceIds.push(existing.id);
       }
-
-      // LLM generates the narrative (fast model — simple text generation)
-      const focusNarrative = await callClaude(
-        apiKey,
-        `You are a pickleball coach writing a brief weekly focus theme. Be encouraging and specific. Respond with JSON only: {"title": "string (catchy 3-5 word title)", "description": "string (2-3 sentence coaching narrative)"}`,
-        `The player needs to focus on "${focusSkillName}" this week.${biggestDrop ? ` It dropped ${Math.abs(biggestDrop.delta)}% in their last session.` : ` It's their lowest-rated mentioned skill.`}`,
-        256,
-        true
-      );
-      const parsed = JSON.parse(focusNarrative);
-
-      weeklyFocus = {
-        type: "weekly_focus",
-        title: parsed.title,
-        description: parsed.description,
-        target_skill: focusSkillName,
-        target_value: null,
-        status: "active",
-        starts_at: today,
-        ends_at: nextWeek,
-      };
     }
   }
 
@@ -1100,7 +1096,6 @@ async function planRoadmap(
   for (const delta of skillDeltas) {
     const crossed = crossedTierBoundary(delta.old, delta.new);
     if (crossed) {
-      // Skill crossed a tier — collect filter to mark complete (don't execute yet)
       milestonesForNarrative.push({
         skill: delta.skill,
         crossed,
@@ -1120,26 +1115,58 @@ async function planRoadmap(
     }
   }
 
-  // Generate narratives for milestones in one LLM call if needed
-  if (milestonesForNarrative.length > 0) {
-    const milestonePrompt = milestonesForNarrative
-      .map((m) => {
-        if (m.crossed) {
-          return `- ${m.skill}: just crossed ${m.crossed}%! Now at ${m.current}%. Next target: ${m.ceiling}%.`;
-        }
-        return `- ${m.skill}: currently at ${m.current}%. Target: ${m.ceiling}%.`;
-      })
-      .join("\n");
+  // --- Run both narrative LLM calls in parallel ---
+  const milestonePrompt = milestonesForNarrative.length > 0
+    ? milestonesForNarrative
+        .map((m) => {
+          if (m.crossed) {
+            return `- ${m.skill}: just crossed ${m.crossed}%! Now at ${m.current}%. Next target: ${m.ceiling}%.`;
+          }
+          return `- ${m.skill}: currently at ${m.current}%. Target: ${m.ceiling}%.`;
+        })
+        .join("\n")
+    : null;
 
-    const narrativeResult = await callClaude(
-      apiKey,
-      `You are a pickleball coach writing milestone descriptions. Be encouraging. Respond with JSON only — an array matching the input order:
+  const [focusNarrativeRaw, milestoneNarrativeRaw] = await Promise.all([
+    needsFocusNarrative
+      ? callClaude(
+          apiKey,
+          `You are a pickleball coach writing a brief weekly focus theme. Be encouraging and specific. Respond with JSON only: {"title": "string (catchy 3-5 word title)", "description": "string (2-3 sentence coaching narrative)"}`,
+          `The player needs to focus on "${focusSkillName}" this week.${biggestDrop ? ` It dropped ${Math.abs(biggestDrop.delta)}% in their last session.` : ` It's their lowest-rated mentioned skill.`}`,
+          256,
+          true
+        )
+      : Promise.resolve(null),
+    milestonePrompt
+      ? callClaude(
+          apiKey,
+          `You are a pickleball coach writing milestone descriptions. Be encouraging. Respond with JSON only — an array matching the input order:
 [{"title": "string (catchy milestone title)", "description": "string (1-2 sentence motivational description)"}]`,
-      `Generate milestone titles and descriptions for:\n${milestonePrompt}`,
-      512,
-      true
-    );
-    const narratives = JSON.parse(narrativeResult) as {
+          `Generate milestone titles and descriptions for:\n${milestonePrompt}`,
+          512,
+          true
+        )
+      : Promise.resolve(null),
+  ]);
+
+  // Build weekly focus from narrative
+  if (focusNarrativeRaw && focusSkillName) {
+    const parsed = JSON.parse(focusNarrativeRaw);
+    weeklyFocus = {
+      type: "weekly_focus",
+      title: parsed.title,
+      description: parsed.description,
+      target_skill: focusSkillName,
+      target_value: null,
+      status: "active",
+      starts_at: today,
+      ends_at: nextWeek,
+    };
+  }
+
+  // Build milestones from narrative
+  if (milestoneNarrativeRaw && milestonesForNarrative.length > 0) {
+    const narratives = JSON.parse(milestoneNarrativeRaw) as {
       title: string;
       description: string;
     }[];
@@ -1172,24 +1199,31 @@ async function executeRoadmap(
   supabase: ReturnType<typeof createClient>,
   userId: string
 ): Promise<void> {
+  // Run all DB mutations in parallel — they are independent
+  const ops: Promise<unknown>[] = [];
+
   // Mark entries as "replaced" by ID
   for (const id of plan.replace_ids) {
-    await supabase
-      .from("user_roadmap")
-      .update({ status: "replaced" })
-      .eq("id", id)
-      .eq("user_id", userId);
+    ops.push(
+      supabase
+        .from("user_roadmap")
+        .update({ status: "replaced" })
+        .eq("id", id)
+        .eq("user_id", userId)
+    );
   }
 
   // Mark milestones as "completed" by filter
   for (const filter of plan.complete_filters) {
-    await supabase
-      .from("user_roadmap")
-      .update({ status: "completed" })
-      .eq("user_id", userId)
-      .eq("type", "milestone")
-      .eq("target_skill", filter.target_skill)
-      .eq("status", "active");
+    ops.push(
+      supabase
+        .from("user_roadmap")
+        .update({ status: "completed" })
+        .eq("user_id", userId)
+        .eq("type", "milestone")
+        .eq("target_skill", filter.target_skill)
+        .eq("status", "active")
+    );
   }
 
   // Insert new entries
@@ -1204,11 +1238,14 @@ async function executeRoadmap(
   }
 
   if (rows.length > 0) {
-    const { error } = await supabase.from("user_roadmap").insert(rows);
-    if (error) {
-      throw new Error(`Failed to save roadmap: ${error.message}`);
-    }
+    ops.push(
+      supabase.from("user_roadmap").insert(rows).then(({ error }) => {
+        if (error) throw new Error(`Failed to save roadmap: ${error.message}`);
+      })
+    );
   }
+
+  await Promise.all(ops);
 }
 
 // ---------- Session count helper ----------
@@ -1510,8 +1547,10 @@ Deno.serve(async (req: Request) => {
       }
 
       // Classify intent (LLM-based with heuristic fallback)
+      const tClassify = Date.now();
       const classification = await classifyIntentLLM(note, userSkills, anthropicKey);
       const intent = classification.intent;
+      console.log(`[dinkit-agent] Intent classification: ${intent} (${Date.now() - tClassify}ms)`);
 
       if (intent === "create_subskills") {
         // Generate subskill suggestions instead of running the session pipeline
@@ -1808,10 +1847,12 @@ Deno.serve(async (req: Request) => {
       }
 
       // Pass 1: Extraction + session count (parallel — independent)
+      const t1 = Date.now();
       const [extraction, sessionsThisWeek] = await Promise.all([
         extractSession(note, userSkills, anthropicKey),
         getSessionsThisWeek(supabase, user.id),
       ]);
+      console.log(`[dinkit-agent] Pass 1 (extraction): ${Date.now() - t1}ms`);
 
       // Filter out new_skill_suggestions that fuzzy-match existing skills/subskills
       extraction.new_skill_suggestions =
@@ -1836,11 +1877,13 @@ Deno.serve(async (req: Request) => {
       const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
 
       // Pass 3 + 4 + Insight: Drill generation + Roadmap planning + Coach insight (parallel)
+      const t3 = Date.now();
       const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
         generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
         planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
         generateCoachInsight(extraction, skillDeltas, anthropicKey),
       ]);
+      console.log(`[dinkit-agent] Pass 3-4 (drills+roadmap+insight): ${Date.now() - t3}ms, total: ${Date.now() - t1}ms`);
 
       // Save session log (unconfirmed) with all pipeline outputs including roadmap plan
       const { data: session, error: insertError } = await supabase
@@ -1959,7 +2002,13 @@ Deno.serve(async (req: Request) => {
 
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);
   } catch (err) {
-    console.error("[dinkit-agent] Unhandled error:", (err as Error).message);
+    const error = err as Error;
+    const isTimeout = error.name === "AbortError" || error.name === "TimeoutError"
+      || error.message?.includes("timed out") || error.message?.includes("aborted");
+    console.error(`[dinkit-agent] ${isTimeout ? "TIMEOUT" : "ERROR"}:`, error.name, error.message);
+    if (isTimeout) {
+      return jsonResponse({ error: "The AI coach is taking too long. Please try again — shorter messages help!" }, 504);
+    }
     return jsonResponse({ error: "Something went wrong. Please try again." }, 500);
   }
 });
