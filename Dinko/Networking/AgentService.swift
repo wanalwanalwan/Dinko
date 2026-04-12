@@ -189,23 +189,43 @@ final class AgentService {
         }
 
         // First attempt with a valid (or freshly refreshed) token
-        let result: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: tokenToUse)
+        let result: (Data, HTTPURLResponse)
+        do {
+            result = try await executeRequest(body: body, authToken: tokenToUse)
+        } catch AgentError.timedOut {
+            // Retry once on timeout after a brief pause
+            print("[AgentService] Request timed out, retrying after 2s...")
+            try await Task.sleep(nanoseconds: 2_000_000_000)
+            if Task.isCancelled { throw CancellationError() }
+            do {
+                result = try await executeRequest(body: body, authToken: tokenToUse)
+            } catch AgentError.timedOut {
+                throw AgentError.timedOut // Second timeout = give up
+            }
+        }
 
-        // If still 401, try refreshing once more as a fallback
+        // If 401, try refreshing token once
         if result.1.statusCode == 401 {
             if let freshToken = await refreshToken(), !freshToken.isEmpty {
                 let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: freshToken)
                 if retry.1.statusCode == 401 {
-                    // Surface the actual server error for debugging
                     let serverMsg = extractErrorMessage(from: retry.0)
                     throw AgentError.server(serverMsg ?? "Your session has expired. Please sign out and sign back in.")
                 }
                 return try decodeResponse(data: retry.0, statusCode: retry.1.statusCode)
             }
 
-            // Surface the original 401 error
             let serverMsg = extractErrorMessage(from: result.0)
             throw AgentError.server(serverMsg ?? "Your session has expired. Please sign out and sign back in.")
+        }
+
+        // If 5xx server error, wait briefly and retry once
+        if (500...504).contains(result.1.statusCode) {
+            print("[AgentService] Got \(result.1.statusCode), retrying after 2s...")
+            try await Task.sleep(nanoseconds: 2_000_000_000)
+            if Task.isCancelled { throw CancellationError() }
+            let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: tokenToUse)
+            return try decodeResponse(data: retry.0, statusCode: retry.1.statusCode)
         }
 
         return try decodeResponse(data: result.0, statusCode: result.1.statusCode)
@@ -240,7 +260,7 @@ final class AgentService {
             case .notConnectedToInternet, .networkConnectionLost:
                 throw AgentError.offline
             case .timedOut:
-                throw AgentError.server("Request timed out. The AI coach may be busy — please try again.")
+                throw AgentError.timedOut
             default:
                 throw AgentError.server("Network error: \(urlError.localizedDescription)")
             }
@@ -304,6 +324,7 @@ enum AgentError: LocalizedError {
     case server(String)
     case offline
     case sessionExpired
+    case timedOut
 
     var errorDescription: String? {
         switch self {
@@ -312,6 +333,7 @@ enum AgentError: LocalizedError {
         case .server(let message): message
         case .offline: "You're offline. Please check your connection and try again."
         case .sessionExpired: "Your session has expired. Please sign out and sign back in."
+        case .timedOut: "Request timed out. The AI coach may be busy — please try again."
         }
     }
 }

@@ -152,8 +152,8 @@ async function callClaude(
   const model = fast
     ? "claude-haiku-4-5-20251001"
     : "claude-sonnet-4-5-20250929";
-  // Timeout: 25s for Haiku, 45s for Sonnet — generous enough to avoid spurious timeouts
-  const timeoutMs = fast ? 25_000 : 45_000;
+  // Timeout: 30s for Haiku, 55s for Sonnet — generous enough to avoid spurious timeouts
+  const timeoutMs = fast ? 30_000 : 55_000;
 
   const attempt = async (): Promise<string> => {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -183,7 +183,7 @@ async function callClaude(
     return extractJson(stripped);
   };
 
-  // Single retry on transient failures (timeout or overloaded)
+  // Single retry on transient failures (timeout or overloaded) with backoff
   try {
     return await attempt();
   } catch (err) {
@@ -191,7 +191,8 @@ async function callClaude(
     const isRetryable = e.name === "AbortError" || e.name === "TimeoutError"
       || e.message?.includes("529") || e.message?.includes("overloaded");
     if (isRetryable) {
-      console.log(`[dinkit-agent] Retrying ${model} call after: ${e.name || e.message}`);
+      console.log(`[dinkit-agent] Retrying ${model} call after ${e.name || e.message}, waiting 1.5s...`);
+      await new Promise((r) => setTimeout(r, 1500));
       return await attempt();
     }
     throw err;
@@ -222,6 +223,22 @@ function extractJson(raw: string): string {
   }
 
   return raw.slice(start);
+}
+
+// ---------- Graceful parallel helper ----------
+
+/** Run promises in parallel, returning defaults for any that fail instead of failing all. */
+async function settledAll<T extends readonly unknown[]>(
+  promises: { [K in keyof T]: Promise<T[K]> },
+  defaults: { [K in keyof T]: T[K] },
+  labels: string[]
+): Promise<{ [K in keyof T]: T[K] }> {
+  const results = await Promise.allSettled(promises);
+  return results.map((r, i) => {
+    if (r.status === "fulfilled") return r.value;
+    console.error(`[dinkit-agent] ${labels[i] ?? `task ${i}`} failed (using default):`, (r.reason as Error)?.message ?? r.reason);
+    return defaults[i];
+  }) as { [K in keyof T]: T[K] };
 }
 
 // ---------- Intent Classification ----------
@@ -1403,11 +1420,16 @@ Deno.serve(async (req: Request) => {
           const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
           const saturatedSkills = getSaturatedSkills(userSkills);
           const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
-          const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
-            generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
-            planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
-            generateCoachInsight(extraction, skillDeltas, anthropicKey),
-          ]);
+          const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
+          const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
+            [
+              generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
+              planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
+              generateCoachInsight(extraction, skillDeltas, anthropicKey),
+            ] as const,
+            [[] as DrillRecommendation[], emptyRoadmap, ""],
+            ["drills", "roadmap", "coach insight"]
+          );
           const { data: session, error: insertError } = await supabase
             .from("session_logs")
             .insert({
@@ -1442,11 +1464,16 @@ Deno.serve(async (req: Request) => {
           const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
           const saturatedSkills = getSaturatedSkills(userSkills);
           const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
-          const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
-            skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
-            skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve({ weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] } as RoadmapPlan),
-            skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
-          ]);
+          const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
+          const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
+            [
+              skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
+              skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve(emptyRoadmap),
+              skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
+            ] as const,
+            [[] as DrillRecommendation[], emptyRoadmap, ""],
+            ["drills", "roadmap", "coach insight"]
+          );
           const { data: session, error: insertError } = await supabase
             .from("session_logs")
             .insert({
@@ -1481,11 +1508,16 @@ Deno.serve(async (req: Request) => {
           const skillDeltas = computeDeltas(extraction, userSkills, sessionsThisWeek);
           const saturatedSkills = getSaturatedSkills(userSkills);
           const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
-          const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
-            skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
-            skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve({ weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] } as RoadmapPlan),
-            skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
-          ]);
+          const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
+          const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
+            [
+              skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
+              skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve(emptyRoadmap),
+              skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
+            ] as const,
+            [[] as DrillRecommendation[], emptyRoadmap, ""],
+            ["drills", "roadmap", "coach insight"]
+          );
           const { data: session, error: insertError } = await supabase
             .from("session_logs")
             .insert({
@@ -1786,18 +1818,23 @@ Deno.serve(async (req: Request) => {
         const saturatedSkills = getSaturatedSkills(userSkills);
         const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
 
-        // Generate drills + insight + roadmap in parallel (only if there are existing skill mentions)
-        const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
-          skillDeltas.length > 0
-            ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey)
-            : Promise.resolve([]),
-          skillDeltas.length > 0
-            ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey)
-            : Promise.resolve({ weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] } as RoadmapPlan),
-          skillDeltas.length > 0
-            ? generateCoachInsight(extraction, skillDeltas, anthropicKey)
-            : Promise.resolve(""),
-        ]);
+        // Generate drills + insight + roadmap in parallel (graceful — partial failure OK)
+        const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
+        const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
+          [
+            skillDeltas.length > 0
+              ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey)
+              : Promise.resolve([]),
+            skillDeltas.length > 0
+              ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey)
+              : Promise.resolve(emptyRoadmap),
+            skillDeltas.length > 0
+              ? generateCoachInsight(extraction, skillDeltas, anthropicKey)
+              : Promise.resolve(""),
+          ] as const,
+          [[] as DrillRecommendation[], emptyRoadmap, ""],
+          ["drills", "roadmap", "coach insight"]
+        );
 
         // Save session log
         const { data: session, error: insertError } = await supabase
@@ -1876,13 +1913,18 @@ Deno.serve(async (req: Request) => {
       const saturatedSkills = getSaturatedSkills(userSkills);
       const saturatedSkillNames = new Set(saturatedSkills.map((s) => s.skill_name));
 
-      // Pass 3 + 4 + Insight: Drill generation + Roadmap planning + Coach insight (parallel)
+      // Pass 3 + 4 + Insight: Drill generation + Roadmap planning + Coach insight (parallel, graceful)
       const t3 = Date.now();
-      const [drillRecommendations, roadmapPlan, coachInsight] = await Promise.all([
-        generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
-        planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
-        generateCoachInsight(extraction, skillDeltas, anthropicKey),
-      ]);
+      const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
+      const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
+        [
+          generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
+          planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
+          generateCoachInsight(extraction, skillDeltas, anthropicKey),
+        ] as const,
+        [[] as DrillRecommendation[], emptyRoadmap, ""],
+        ["drills", "roadmap", "coach insight"]
+      );
       console.log(`[dinkit-agent] Pass 3-4 (drills+roadmap+insight): ${Date.now() - t3}ms, total: ${Date.now() - t1}ms`);
 
       // Save session log (unconfirmed) with all pipeline outputs including roadmap plan
@@ -2003,11 +2045,26 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);
   } catch (err) {
     const error = err as Error;
+    const msg = error.message ?? "";
     const isTimeout = error.name === "AbortError" || error.name === "TimeoutError"
-      || error.message?.includes("timed out") || error.message?.includes("aborted");
-    console.error(`[dinkit-agent] ${isTimeout ? "TIMEOUT" : "ERROR"}:`, error.name, error.message);
+      || msg.includes("timed out") || msg.includes("aborted");
+    const isOverloaded = msg.includes("529") || msg.includes("overloaded");
+    const isClaudeError = msg.includes("Claude API error");
+    const isDbError = msg.includes("Failed to save");
+
+    console.error(`[dinkit-agent] ${isTimeout ? "TIMEOUT" : isOverloaded ? "OVERLOADED" : "ERROR"}:`, error.name, msg);
+
     if (isTimeout) {
       return jsonResponse({ error: "The AI coach is taking too long. Please try again — shorter messages help!" }, 504);
+    }
+    if (isOverloaded) {
+      return jsonResponse({ error: "The AI coach is busy right now. Please try again in a few seconds." }, 503);
+    }
+    if (isDbError) {
+      return jsonResponse({ error: "Failed to save your session. Please try again." }, 500);
+    }
+    if (isClaudeError) {
+      return jsonResponse({ error: "The AI coach hit an issue. Please try again." }, 502);
     }
     return jsonResponse({ error: "Something went wrong. Please try again." }, 500);
   }
