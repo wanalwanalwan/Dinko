@@ -375,11 +375,7 @@ struct SessionPreviewCard: View {
             .padding(.vertical, AppSpacing.xxs)
 
         case .confirmed:
-            Label("Changes applied", systemImage: "checkmark.circle.fill")
-                .font(AppTypography.callout)
-                .foregroundStyle(AppColors.successGreen)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.xxs)
+            confirmedBanner
 
         case .failed(let message):
             VStack(spacing: AppSpacing.xxs) {
@@ -395,6 +391,37 @@ struct SessionPreviewCard: View {
                 .tint(AppColors.coral)
             }
         }
+    }
+
+    // MARK: - Confirmed Banner
+
+    private var confirmedBanner: some View {
+        VStack(spacing: AppSpacing.xxs) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 28))
+                .foregroundStyle(AppColors.successGreen)
+
+            Text("Session Logged")
+                .font(AppTypography.headline)
+                .foregroundStyle(AppColors.textPrimary)
+
+            let skillCount = preview.selectedSkillUpdateIndices.count
+            let drillCount = preview.selectedDrillIndices.count
+            let parts = [
+                skillCount > 0 ? "\(skillCount) skill\(skillCount == 1 ? "" : "s") updated" : nil,
+                drillCount > 0 ? "\(drillCount) drill\(drillCount == 1 ? "" : "s") added" : nil
+            ].compactMap { $0 }
+
+            if !parts.isEmpty {
+                Text(parts.joined(separator: " \u{00B7} "))
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.xs)
+        .background(AppColors.successGreen.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Helpers

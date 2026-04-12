@@ -331,6 +331,35 @@ final class ChatViewModel {
                     role: .agent,
                     content: .text(chatReply)
                 ))
+            } else if let skillSuggestions = response.skillSuggestions, !skillSuggestions.isEmpty,
+                      (response.skillUpdates ?? []).isEmpty {
+                // Edge function classified as create_skill — show skill creation cards
+                let firstSuggestion = skillSuggestions[0]
+                let category = SkillCategory.allCases.first { $0.rawValue == firstSuggestion.category } ?? .strategy
+                let preview = SkillCreationPreview(
+                    skillName: firstSuggestion.name,
+                    category: category,
+                    confirmState: .pending
+                )
+                replaceMessage(id: loadingId, with: ChatMessage(
+                    id: loadingId,
+                    role: .agent,
+                    content: .skillCreation(preview)
+                ))
+
+                // If there are additional suggestions, add them as separate messages
+                for suggestion in skillSuggestions.dropFirst() {
+                    let cat = SkillCategory.allCases.first { $0.rawValue == suggestion.category } ?? .strategy
+                    let additionalPreview = SkillCreationPreview(
+                        skillName: suggestion.name,
+                        category: cat,
+                        confirmState: .pending
+                    )
+                    messages.append(ChatMessage(
+                        role: .agent,
+                        content: .skillCreation(additionalPreview)
+                    ))
+                }
             } else {
                 // Map saturated skills from response
                 let saturated = (response.saturatedSkills ?? []).map {
@@ -387,11 +416,14 @@ final class ChatViewModel {
         )
 
         do {
-            let token = await getAuthToken()
-            _ = try await agentService.confirmSession(
-                sessionId: preview.sessionId,
-                authToken: token
-            )
+            // Only call edge function to mark session as confirmed if we have a valid session ID
+            if !preview.sessionId.isEmpty {
+                let token = await getAuthToken()
+                _ = try await agentService.confirmSession(
+                    sessionId: preview.sessionId,
+                    authToken: token
+                )
+            }
 
             for updateIndex in preview.selectedSkillUpdateIndices.sorted() {
                 guard updateIndex < preview.skillUpdates.count else { continue }
@@ -434,12 +466,6 @@ final class ChatViewModel {
             // Save journal entry — find the user message that triggered this session
             let userNote = findUserNote(before: index)
             await saveJournalEntry(from: preview, userNote: userNote)
-
-            // Add a confirmation text bubble
-            messages.append(ChatMessage(
-                role: .agent,
-                content: .text("Session confirmed! Your skills have been updated.")
-            ))
 
             await loadStats()
         } catch {
@@ -571,11 +597,6 @@ final class ChatViewModel {
                 timestamp: messages[index].timestamp
             )
 
-            messages.append(ChatMessage(
-                role: .agent,
-                content: .text("Done! \(preview.skillName) has been deleted.")
-            ))
-
             await loadStats()
         } catch {
             preview.confirmState = .failed(error.localizedDescription)
@@ -629,11 +650,6 @@ final class ChatViewModel {
                 content: .skillCreation(preview),
                 timestamp: messages[index].timestamp
             )
-
-            messages.append(ChatMessage(
-                role: .agent,
-                content: .text("\(preview.skillName) has been added to your skills!")
-            ))
 
             await loadStats()
         } catch {

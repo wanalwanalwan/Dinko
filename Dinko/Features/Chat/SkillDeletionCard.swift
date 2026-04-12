@@ -90,11 +90,25 @@ struct SkillDeletionCard: View {
             .padding(.vertical, AppSpacing.xxs)
 
         case .confirmed:
-            Label("Skill deleted", systemImage: "checkmark.circle.fill")
-                .font(AppTypography.callout)
-                .foregroundStyle(AppColors.successGreen)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.xxs)
+            VStack(spacing: AppSpacing.xxs) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(AppColors.successGreen)
+
+                Text("\(preview.skillName) Deleted")
+                    .font(AppTypography.headline)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                if !preview.subskillNames.isEmpty {
+                    Text("and \(preview.subskillNames.count) subskill\(preview.subskillNames.count == 1 ? "" : "s")")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppSpacing.xs)
+            .background(AppColors.successGreen.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
 
         case .failed(let message):
             VStack(spacing: AppSpacing.xxs) {
