@@ -194,7 +194,9 @@ final class AgentService {
             result = try await executeRequest(body: body, authToken: tokenToUse)
         } catch AgentError.timedOut {
             // Retry once on timeout after a brief pause
+            #if DEBUG
             print("[AgentService] Request timed out, retrying after 2s...")
+            #endif
             try await Task.sleep(nanoseconds: 2_000_000_000)
             if Task.isCancelled { throw CancellationError() }
             do {
@@ -221,7 +223,9 @@ final class AgentService {
 
         // If 5xx server error, wait briefly and retry once
         if (500...504).contains(result.1.statusCode) {
+            #if DEBUG
             print("[AgentService] Got \(result.1.statusCode), retrying after 2s...")
+            #endif
             try await Task.sleep(nanoseconds: 2_000_000_000)
             if Task.isCancelled { throw CancellationError() }
             let retry: (Data, HTTPURLResponse) = try await executeRequest(body: body, authToken: tokenToUse)

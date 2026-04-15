@@ -62,6 +62,7 @@
 		I10000010000000000000001 /* SkillTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000001 /* SkillTier.swift */; };
 
 		K10000010000000000000001 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = K20000010000000000000001 /* SplashScreenView.swift */; };
+		M10000010000000000000001 /* AppURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = M20000010000000000000001 /* AppURLs.swift */; };
 		L10000010000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = L20000010000000000000001 /* PrivacyInfo.xcprivacy */; };
 		E10000020000000000000001 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000001 /* ChatMessage.swift */; };
 		E10000020000000000000002 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000002 /* SupabaseConfig.swift */; };
@@ -186,6 +187,7 @@
 
 		K20000010000000000000001 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		L20000010000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		M20000010000000000000001 /* AppURLs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppURLs.swift; sourceTree = "<group>"; };
 		E20000020000000000000001 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		E20000020000000000000002 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		E20000020000000000000003 /* AgentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentService.swift; sourceTree = "<group>"; };
@@ -393,6 +395,7 @@
 		A70000010000000000000033 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				M20000010000000000000001 /* AppURLs.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -717,6 +720,7 @@
 				A10000010000000000000001 /* DinkoApp.swift in Sources */,
 				A10000010000000000000002 /* ContentView.swift in Sources */,
 				K10000010000000000000001 /* SplashScreenView.swift in Sources */,
+				M10000010000000000000001 /* AppURLs.swift in Sources */,
 				B10000010000000000000001 /* Color+Hex.swift in Sources */,
 				B10000010000000000000002 /* Colors.swift in Sources */,
 				B10000010000000000000003 /* Typography.swift in Sources */,
@@ -973,6 +977,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Dinko/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "pkkl AI";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1003,6 +1009,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Dinko/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "pkkl AI";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
