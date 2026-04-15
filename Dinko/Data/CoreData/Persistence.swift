@@ -86,4 +86,38 @@ final class PersistenceController {
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return context
     }
+
+    /// Delete all data from every CoreData entity (used on sign-out to clear user data).
+    func deleteAllData() async {
+        let context = newBackgroundContext()
+        let entityNames = [
+            "SkillEntity",
+            "ProgressCheckerEntity",
+            "SkillRatingEntity",
+            "DrillEntity",
+            "JournalEntryEntity",
+            "SessionEntity"
+        ]
+        await context.perform {
+            for name in entityNames {
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                let batchDelete = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                batchDelete.resultType = .resultTypeObjectIDs
+                do {
+                    let result = try context.execute(batchDelete) as? NSBatchDeleteResult
+                    if let objectIDs = result?.result as? [NSManagedObjectID] {
+                        NSManagedObjectContext.mergeChanges(
+                            fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
+                            into: [self.container.viewContext]
+                        )
+                    }
+                } catch {
+                    // Best-effort cleanup; log in debug builds
+                    #if DEBUG
+                    print("Failed to batch-delete \(name): \(error)")
+                    #endif
+                }
+            }
+        }
+    }
 }

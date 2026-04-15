@@ -277,6 +277,7 @@ final class AuthViewModel {
 
         // Server confirmed deletion — clear all local data
         authService.clearSession()
+        await PersistenceController.shared.deleteAllData()
         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         UserDefaults.standard.removeObject(forKey: "pkkl_weekly_goal")
         UserDefaults.standard.removeObject(forKey: "pkkl_drill_preferences")
@@ -294,6 +295,7 @@ final class AuthViewModel {
     func signOut() async {
         await authService.signOut(accessToken: accessToken)
         authService.clearSession()
+        await PersistenceController.shared.deleteAllData()
         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         accessToken = ""
         userId = ""

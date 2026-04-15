@@ -5,7 +5,6 @@ struct AddEditSkillView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: AddEditSkillViewModel?
     @State private var showingAddSubskill = false
-    @State private var showAdvancedOptions = false
     let skill: Skill?
     let parentSkillId: UUID?
 
@@ -152,43 +151,18 @@ struct AddEditSkillView: View {
         }
     }
 
-    // MARK: - Create: Advanced Section (Collapsed)
+    // MARK: - Create: Additional Options
 
     private func createAdvancedSection(_ viewModel: AddEditSkillViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showAdvancedOptions.toggle()
-                }
-            } label: {
-                HStack(spacing: AppSpacing.xxs) {
-                    Image(systemName: showAdvancedOptions ? "chevron.down" : "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    Text("More Options")
-                        .font(AppTypography.callout)
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    Spacer()
-                }
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            if viewModel.showInitialRating {
+                createStartingLevel(viewModel)
             }
-            .padding(.vertical, AppSpacing.xxxs)
 
-            if showAdvancedOptions {
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    if viewModel.showInitialRating {
-                        createStartingLevel(viewModel)
-                    }
+            createNotes(viewModel)
 
-                    createNotes(viewModel)
-
-                    if viewModel.showInlineSubskills {
-                        createSubskills(viewModel)
-                    }
-                }
-                .padding(.top, AppSpacing.xs)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+            if viewModel.showInlineSubskills {
+                createSubskills(viewModel)
             }
         }
     }
