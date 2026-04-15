@@ -67,20 +67,20 @@ struct AddEditSkillView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    // Skill name
                     createNameField(viewModel)
 
-                    // Category pills
-                    createCategoryPills(viewModel)
+                    createStartingLevel(viewModel)
 
-                    // Advanced options (collapsed)
-                    createAdvancedSection(viewModel)
+                    createNotes(viewModel)
 
                     if let error = viewModel.errorMessage {
                         Text(error)
                             .foregroundStyle(AppColors.coral)
                             .font(AppTypography.caption)
                     }
+
+                    createButton(viewModel)
+                        .padding(.top, AppSpacing.xxs)
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.bottom, AppSpacing.lg)
@@ -89,9 +89,6 @@ struct AddEditSkillView: View {
             .onTapGesture {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             }
-
-            // Pinned create button
-            createButton(viewModel)
         }
         .background(AppColors.cardBackground)
         .presentationDetents([.medium, .large])
@@ -110,61 +107,6 @@ struct AddEditSkillView: View {
         .padding(AppSpacing.xs)
         .background(AppColors.background)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-    }
-
-    // MARK: - Create: Category Pills
-
-    private func createCategoryPills(_ viewModel: AddEditSkillViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-            Text("Category")
-                .font(AppTypography.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(AppColors.textSecondary)
-
-            FlowLayout(spacing: AppSpacing.xxs) {
-                ForEach(SkillCategory.allCases) { category in
-                    let isSelected = viewModel.category == category
-                    Button {
-                        viewModel.category = category
-                    } label: {
-                        HStack(spacing: AppSpacing.xxxs) {
-                            Text(category.iconName)
-                                .font(.system(size: 13))
-                            Text(category.displayName)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(isSelected ? AppColors.teal.opacity(0.12) : AppColors.background)
-                        .foregroundStyle(isSelected ? AppColors.teal : AppColors.textSecondary)
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(
-                                    isSelected ? AppColors.teal.opacity(0.4) : AppColors.separator,
-                                    lineWidth: 1
-                                )
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Create: Additional Options
-
-    private func createAdvancedSection(_ viewModel: AddEditSkillViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            if viewModel.showInitialRating {
-                createStartingLevel(viewModel)
-            }
-
-            createNotes(viewModel)
-
-            if viewModel.showInlineSubskills {
-                createSubskills(viewModel)
-            }
-        }
     }
 
     // MARK: - Create: Starting Level (Compact)
@@ -224,78 +166,6 @@ struct AddEditSkillView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
     }
 
-    // MARK: - Create: Subskills
-
-    private func createSubskills(_ viewModel: AddEditSkillViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-            Text("Break it down")
-                .font(AppTypography.callout)
-                .fontWeight(.medium)
-                .foregroundStyle(AppColors.textPrimary)
-
-            HStack(spacing: AppSpacing.xxs) {
-                TextField("Add a subskill...", text: Binding(
-                    get: { viewModel.newSubskillName },
-                    set: { viewModel.newSubskillName = $0 }
-                ))
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.textPrimary)
-                .onSubmit { viewModel.addPendingSubskill() }
-
-                Button {
-                    viewModel.addPendingSubskill()
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(AppColors.teal)
-                }
-                .disabled(viewModel.newSubskillName.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-            .padding(AppSpacing.xs)
-            .background(AppColors.background)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-
-            ForEach(Binding(
-                get: { viewModel.pendingSubskills },
-                set: { viewModel.pendingSubskills = $0 }
-            )) { $subskill in
-                VStack(spacing: AppSpacing.xxxs) {
-                    HStack(spacing: 0) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(AppColors.teal)
-                            .frame(width: 3)
-
-                        Text(subskill.name)
-                            .font(AppTypography.body)
-                            .foregroundStyle(AppColors.textPrimary)
-                            .padding(.leading, AppSpacing.xxs)
-
-                        Spacer()
-
-                        Text("\(Int(subskill.rating))%")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.teal)
-                            .frame(width: 32, alignment: .trailing)
-
-                        Button { viewModel.removePendingSubskill(subskill) } label: {
-                            Image(systemName: "xmark")
-                                .font(.caption2)
-                                .foregroundStyle(AppColors.textSecondary)
-                                .padding(AppSpacing.xxxs)
-                        }
-                    }
-
-                    Slider(value: $subskill.rating, in: 0...100, step: 1)
-                        .tint(AppColors.teal)
-                        .padding(.leading, AppSpacing.xxs)
-                }
-                .padding(.vertical, AppSpacing.xxs)
-                .padding(.horizontal, AppSpacing.xxs)
-                .background(AppColors.background)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-            }
-        }
-    }
-
     // MARK: - Create: Action Button
 
     private func createButton(_ viewModel: AddEditSkillViewModel) -> some View {
@@ -324,9 +194,6 @@ struct AddEditSkillView: View {
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
         }
         .disabled(!viewModel.isValid || viewModel.isSaving)
-        .padding(.horizontal, AppSpacing.sm)
-        .padding(.bottom, AppSpacing.sm)
-        .padding(.top, AppSpacing.xxs)
     }
 
     // MARK: - Edit Flow (Existing Full Form)
