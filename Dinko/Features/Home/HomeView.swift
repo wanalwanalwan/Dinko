@@ -1,13 +1,14 @@
 import SwiftUI
-import Charts
 
 struct HomeView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.authViewModel) private var authViewModel
     @Binding var selectedTab: Int
     @State private var viewModel: HomeViewModel?
-    @State private var rawSelectedDate: Date?
     @State private var contentReady = false
+    @State private var ratingSkill: Skill?
+    @State private var ratingSkillCurrentRating: Int = 0
+    @State private var showAddSkill = false
 
     var body: some View {
         Group {
@@ -82,7 +83,7 @@ struct HomeView: View {
             VStack(spacing: AppSpacing.lg) {
                 greetingHeader(viewModel)
                     .staggeredAppearance(index: 0)
-                progressChart(viewModel)
+                skillsSection(viewModel)
                     .staggeredAppearance(index: 1)
                 recommendedDrillsSection(viewModel)
                     .staggeredAppearance(index: 2)
@@ -159,273 +160,131 @@ struct HomeView: View {
         .padding(.top, AppSpacing.xs)
     }
 
-    // MARK: - Progress Chart
+    // MARK: - Skills Section
 
-    private func progressChart(_ viewModel: HomeViewModel) -> some View {
+    private func skillsSection(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack {
-                Text("SKILL PROGRESS")
+                Text("MY SKILLS")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
 
                 Spacer()
 
-                Picker("Time Range", selection: Binding(
-                    get: { viewModel.selectedTimeRange },
-                    set: { viewModel.updateTimeRange($0) }
-                )) {
-                    ForEach(HomeTimeRange.allCases, id: \.self) { range in
-                        Text(range.rawValue).tag(range)
-                    }
+                Button {
+                    showAddSkill = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(AppColors.teal)
+                        .frame(width: 28, height: 28)
+                        .background(AppColors.teal.opacity(0.12))
+                        .clipShape(Circle())
                 }
-                .pickerStyle(.segmented)
-                .frame(width: 140)
             }
 
-            let points = displayedChartPoints(viewModel)
+            if viewModel.skillsWithRatings.isEmpty {
+                VStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "target")
+                        .font(.system(size: 32))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.5))
 
-            if viewModel.chartData.isEmpty || points.isEmpty {
-                chartEmptyState
-            } else if points.count == 1 {
-                VStack(spacing: AppSpacing.sm) {
-                    singlePointDisplay(points[0])
-                    if viewModel.chartData.count > 1 {
-                        skillFilterPills(viewModel)
+                    Text("Add your first skill")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Track your pickleball skills and rate your progress.")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+
+                    Button {
+                        showAddSkill = true
+                    } label: {
+                        Text("Add Skill")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, AppSpacing.md)
+                            .padding(.vertical, AppSpacing.xxs)
+                            .background(AppColors.teal)
+                            .clipShape(Capsule())
                     }
+                    .padding(.top, AppSpacing.xxs)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.lg)
             } else {
-                VStack(spacing: AppSpacing.sm) {
-                    chartTrendHeader(points, viewModel: viewModel)
-                    progressAreaChart(points, viewModel: viewModel)
-                    if viewModel.chartData.count > 1 {
-                        skillFilterPills(viewModel)
+                ScrollView {
+                    VStack(spacing: AppSpacing.xxs) {
+                        ForEach(viewModel.skillsWithRatings, id: \.skill.id) { item in
+                            skillRow(skill: item.skill, rating: item.rating)
+                        }
                     }
                 }
+                .frame(maxHeight: 220)
             }
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-    }
-
-    private var chartEmptyState: some View {
-        VStack(spacing: AppSpacing.xxs) {
-            Image(systemName: "chart.xyaxis.line")
-                .font(.system(size: 32))
-                .foregroundStyle(AppColors.textSecondary.opacity(0.5))
-
-            Text("Rate your skills to see progress")
-                .font(AppTypography.callout)
-                .foregroundStyle(AppColors.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.xl)
-    }
-
-    private func displayedChartPoints(_ viewModel: HomeViewModel) -> [HomeChartDataPoint] {
-        if let selectedId = viewModel.selectedChartSkillId,
-           let series = viewModel.chartData.first(where: { $0.id == selectedId }) {
-            return series.dataPoints
-        }
-        return viewModel.overallAveragePoints
-    }
-
-    private func chartTrendHeader(_ points: [HomeChartDataPoint], viewModel: HomeViewModel) -> some View {
-        let latest = points.last?.rating ?? 0
-        let first = points.first?.rating ?? 0
-        let change = latest - first
-        let selectedName: String = {
-            if let id = viewModel.selectedChartSkillId {
-                return viewModel.chartData.first(where: { $0.id == id })?.skillName ?? "Skill"
+        .sheet(item: $ratingSkill) { skill in
+            RateSkillView(
+                skillName: skill.name,
+                currentRating: ratingSkillCurrentRating
+            ) { newRating, notes in
+                await viewModel.saveRating(for: skill.id, rating: newRating, notes: notes)
             }
-            return "Overall Average"
-        }()
-
-        return HStack(alignment: .firstTextBaseline, spacing: AppSpacing.xxs) {
-            Text("\(latest)%")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
-
-            if change != 0 {
-                HStack(spacing: 2) {
-                    Image(systemName: change > 0 ? "arrow.up.right" : "arrow.down.right")
-                        .font(.system(size: 11, weight: .semibold))
-                    Text(change > 0 ? "+\(change)%" : "\(change)%")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+            .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showAddSkill) {
+            AddEditSkillView()
+                .presentationDetents([.medium])
+                .onDisappear {
+                    Task { await viewModel.loadDashboard() }
                 }
-                .foregroundStyle(change > 0 ? AppColors.successGreen : AppColors.coral)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background((change > 0 ? AppColors.successGreen : AppColors.coral).opacity(0.12))
-                .clipShape(Capsule())
-            }
-
-            Spacer()
-
-            Text(selectedName)
-                .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
         }
     }
 
-    private func singlePointDisplay(_ point: HomeChartDataPoint) -> some View {
-        VStack(spacing: AppSpacing.xs) {
-            Text("\(point.rating)%")
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.teal)
+    private func skillRow(skill: Skill, rating: Int) -> some View {
+        let tier = SkillTier(rating: rating)
 
-            Text("Recorded on \(point.date.formatted(.dateTime.month(.wide).day()))")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
+        return Button {
+            ratingSkillCurrentRating = rating
+            ratingSkill = skill
+        } label: {
+            HStack(spacing: AppSpacing.xs) {
+                Circle()
+                    .fill(tier.color)
+                    .frame(width: 10, height: 10)
 
-            Text("Rate again to start tracking your trend")
-                .font(.system(size: 12, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary.opacity(0.7))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.lg)
-    }
+                Text(skill.name)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(1)
 
-    private func progressAreaChart(_ points: [HomeChartDataPoint], viewModel: HomeViewModel) -> some View {
-        let calendar = Calendar.current
-        let allDates = points.map { $0.date }
-        let cutoff = calendar.date(
-            byAdding: .day,
-            value: -viewModel.selectedTimeRange.daysBack,
-            to: calendar.startOfDay(for: Date())
-        ) ?? Date()
-        let rangeStart = min(allDates.min() ?? cutoff, cutoff)
-        let rangeEnd = max(allDates.max() ?? Date(), calendar.startOfDay(for: Date()))
+                Spacer()
 
-        let snappedPoint: HomeChartDataPoint? = rawSelectedDate.flatMap { raw in
-            points.min(by: {
-                abs($0.date.timeIntervalSince(raw)) < abs($1.date.timeIntervalSince(raw))
-            })
-        }
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(AppColors.background)
+                            .frame(height: 6)
 
-        return Chart {
-            ForEach(points) { point in
-                AreaMark(
-                    x: .value("Date", point.date),
-                    y: .value("Rating", point.rating)
-                )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [AppColors.teal.opacity(0.25), AppColors.teal.opacity(0.02)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .interpolationMethod(.linear)
-
-                LineMark(
-                    x: .value("Date", point.date),
-                    y: .value("Rating", point.rating)
-                )
-                .foregroundStyle(AppColors.teal)
-                .lineStyle(StrokeStyle(lineWidth: 2.5))
-                .interpolationMethod(.linear)
-            }
-
-            if let latest = points.last {
-                PointMark(
-                    x: .value("Date", latest.date),
-                    y: .value("Rating", latest.rating)
-                )
-                .foregroundStyle(AppColors.teal)
-                .symbolSize(60)
-            }
-
-            if let snapped = snappedPoint {
-                RuleMark(x: .value("Selected", snapped.date))
-                    .foregroundStyle(AppColors.textSecondary.opacity(0.25))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
-                    .annotation(
-                        position: .top,
-                        spacing: 4,
-                        overflowResolution: .init(
-                            x: .fit(to: .chart),
-                            y: .disabled
-                        )
-                    ) {
-                        VStack(spacing: 2) {
-                            Text("\(snapped.rating)%")
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
-                                .foregroundStyle(AppColors.teal)
-                            Text(snapped.date, format: .dateTime.month(.abbreviated).day())
-                                .font(.system(size: 10, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(AppColors.cardBackground)
-                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        )
-                    }
-            }
-        }
-        .chartYScale(domain: 0...100)
-        .chartXScale(domain: rangeStart...rangeEnd)
-        .chartYAxis {
-            AxisMarks(values: [0, 25, 50, 75, 100]) { value in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(AppColors.separator.opacity(0.5))
-                AxisValueLabel {
-                    if let intVal = value.as(Int.self) {
-                        Text("\(intVal)%")
-                            .font(.system(size: 10, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
+                        Capsule()
+                            .fill(tier.color)
+                            .frame(width: geo.size.width * CGFloat(rating) / 100.0, height: 6)
                     }
                 }
-            }
-        }
-        .chartXAxis {
-            AxisMarks(
-                values: .stride(by: .day, count: viewModel.selectedTimeRange == .weekly ? 2 : 7)
-            ) { _ in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(AppColors.separator.opacity(0.3))
-                AxisValueLabel(format: .dateTime.month(.abbreviated).day())
-            }
-        }
-        .chartLegend(.hidden)
-        .chartXSelection(value: $rawSelectedDate)
-        .frame(height: 180)
-    }
+                .frame(width: 80, height: 6)
 
-    private func skillFilterPills(_ viewModel: HomeViewModel) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: AppSpacing.xxs) {
-                chartFilterPill(
-                    name: "All",
-                    isSelected: viewModel.selectedChartSkillId == nil
-                ) {
-                    viewModel.selectChartSkill(nil)
-                }
-
-                ForEach(viewModel.chartData) { series in
-                    chartFilterPill(
-                        name: series.skillName,
-                        isSelected: viewModel.selectedChartSkillId == series.id
-                    ) {
-                        viewModel.selectChartSkill(series.id)
-                    }
-                }
+                Text("\(rating)%")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .frame(width: 38, alignment: .trailing)
             }
-        }
-    }
-
-    private func chartFilterPill(name: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(name)
-                .font(.system(size: 12, weight: isSelected ? .semibold : .medium, design: .rounded))
-                .foregroundStyle(isSelected ? .white : AppColors.textSecondary)
-                .padding(.horizontal, AppSpacing.xs)
-                .padding(.vertical, 6)
-                .background(isSelected ? AppColors.teal : AppColors.background)
-                .clipShape(Capsule())
+            .padding(.vertical, AppSpacing.xs)
+            .padding(.horizontal, AppSpacing.xxs)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

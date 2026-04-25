@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 
 // MARK: - Supporting Types
 
@@ -71,10 +70,12 @@ final class HomeViewModel {
     private(set) var mostImprovedDelta = 0
 
     private(set) var chartData: [HomeSkillChartSeries] = []
-    private(set) var selectedChartSkillId: UUID?
     private(set) var overallAveragePoints: [HomeChartDataPoint] = []
     private(set) var selectedTimeRange: HomeTimeRange = .weekly
     private(set) var recommendedDrills: [HomeRecommendedDrill] = []
+
+    /// Skills with their latest ratings for the home quick-update list
+    private(set) var skillsWithRatings: [(skill: Skill, rating: Int)] = []
     private(set) var completedSkills: [CompletedSkillItem] = []
 
     private(set) var streakDays = 0
@@ -151,8 +152,31 @@ final class HomeViewModel {
         computeDerivedData()
     }
 
-    func selectChartSkill(_ skillId: UUID?) {
-        selectedChartSkillId = skillId
+    func saveRating(for skillId: UUID, rating: Int, notes: String?) async -> Bool {
+        do {
+            let newRating = SkillRating(
+                id: UUID(),
+                skillId: skillId,
+                rating: rating,
+                date: Date(),
+                notes: notes,
+                updatedAt: Date()
+            )
+            try await skillRatingRepository.save(newRating)
+
+            // Update cached ratings
+            var existing = cachedRatings[skillId] ?? []
+            existing.append(newRating)
+            cachedRatings[skillId] = existing
+
+            // Recompute skills with ratings
+            computeSkillsWithRatings()
+            computeDerivedData()
+            return true
+        } catch {
+            errorMessage = "Failed to save rating."
+            return false
+        }
     }
 
     // MARK: - Private Helpers
@@ -197,7 +221,34 @@ final class HomeViewModel {
         ) ?? Date()
 
         computeLatestRatingsAndAverage()
+        computeSkillsWithRatings()
         computeChartData(since: cutoff)
+    }
+
+    private func computeSkillsWithRatings() {
+        var pairs: [(skill: Skill, rating: Int)] = []
+        for skill in cachedSkills {
+            let childSkills = cachedAllSkills.filter { $0.parentSkillId == skill.id }
+            if childSkills.isEmpty {
+                let latest = cachedRatings[skill.id]?.last?.rating ?? 0
+                pairs.append((skill, latest))
+            } else {
+                var total = 0, count = 0
+                for child in childSkills {
+                    if let r = cachedRatings[child.id]?.last?.rating {
+                        total += r; count += 1
+                    }
+                }
+                // Also consider direct parent ratings
+                if let parentRating = cachedRatings[skill.id]?.last?.rating, count == 0 {
+                    pairs.append((skill, parentRating))
+                } else {
+                    let avg = count > 0 ? total / count : 0
+                    pairs.append((skill, avg))
+                }
+            }
+        }
+        skillsWithRatings = pairs
     }
 
     private func computeLatestRatingsAndAverage() {
