@@ -418,162 +418,87 @@ struct HomeView: View {
     // MARK: - Overall Skill Level
 
     private func overallSkillLevelSection(_ viewModel: HomeViewModel) -> some View {
-        let overallTier = SkillTier(rating: viewModel.averageRating)
+        ZStack(alignment: .trailing) {
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text("Overall Skill Level")
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.85))
 
-        return VStack(spacing: AppSpacing.sm) {
-            // Top row: label + tier badge
-            HStack {
-                Text("OVERALL LEVEL")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .tracking(0.3)
+                Text("\(viewModel.averageRating)%")
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
 
-                Spacer()
+                // Progress bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(.white.opacity(0.2))
+                            .frame(height: 8)
 
-                HStack(spacing: 4) {
-                    Image(systemName: overallTier.sfSymbol)
-                        .font(.system(size: 10))
-                    Text(overallTier.displayName)
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                }
-                .foregroundStyle(overallTier.color)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(overallTier.color.opacity(0.1))
-                .clipShape(Capsule())
-            }
-
-            // Center: large percentage + ring
-            HStack(spacing: AppSpacing.md) {
-                // Circular progress ring
-                ZStack {
-                    Circle()
-                        .stroke(AppColors.separator, lineWidth: 6)
-                        .frame(width: 72, height: 72)
-
-                    Circle()
-                        .trim(from: 0, to: CGFloat(viewModel.averageRating) / 100.0)
-                        .stroke(overallTier.color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                        .frame(width: 72, height: 72)
-                        .rotationEffect(.degrees(-90))
-
-                    Text("\(viewModel.averageRating)")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                }
-
-                // Stats column
-                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "target")
-                            .font(.system(size: 12))
-                            .foregroundStyle(AppColors.teal)
-                        Text("\(viewModel.totalActiveSkills) skills tracked")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
+                        Capsule()
+                            .fill(.white)
+                            .frame(width: geo.size.width * CGFloat(viewModel.averageRating) / 100.0, height: 8)
                     }
+                }
+                .frame(height: 8)
 
-                    HStack(spacing: 6) {
+                HStack {
+                    Text("\(viewModel.totalActiveSkills) skills tracked")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.85))
+
+                    Spacer()
+
+                    HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 12))
-                            .foregroundStyle(AppColors.coral)
                         Text("\(viewModel.streakDays)-day streak")
                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
                     }
-
-                    if let improved = viewModel.mostImprovedSkillName, viewModel.mostImprovedDelta > 0 {
-                        HStack(spacing: 6) {
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(AppColors.successGreen)
-                            Text("\(improved) +\(viewModel.mostImprovedDelta)%")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.successGreen)
-                        }
-                    }
+                    .foregroundStyle(.white.opacity(0.85))
                 }
-
-                Spacer()
             }
+
+            Image(systemName: "trophy.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(.white.opacity(0.15))
+                .offset(x: -4, y: -4)
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
+        .background(
+            LinearGradient(
+                colors: [AppColors.teal, AppColors.teal.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
     // MARK: - Completed Skills Summary
 
     private func completedSkillsSummary(_ viewModel: HomeViewModel) -> some View {
-        let completed = viewModel.completedSkills.count
-        let total = viewModel.totalSkillsIncludingCompleted
-        let progress: CGFloat = total > 0 ? CGFloat(completed) / CGFloat(total) : 0
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 24))
+                .foregroundStyle(AppColors.teal)
 
-        return VStack(spacing: AppSpacing.sm) {
-            HStack {
-                Text("COMPLETED")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Completed Skills")
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
-                    .tracking(0.3)
 
-                Spacer()
-
-                Text("\(completed)/\(total)")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
-            }
-
-            HStack(spacing: AppSpacing.sm) {
-                // Mini ring
-                ZStack {
-                    Circle()
-                        .stroke(AppColors.separator, lineWidth: 4)
-                        .frame(width: 44, height: 44)
-
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(AppColors.successGreen, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                        .frame(width: 44, height: 44)
-                        .rotationEffect(.degrees(-90))
-
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(AppColors.successGreen)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(completed) skill\(completed == 1 ? "" : "s") mastered")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                HStack(spacing: 4) {
+                    Text("\(viewModel.completedSkills.count)")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                    Text("of \(viewModel.totalSkillsIncludingCompleted) mastered")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
-
-                    if total > completed {
-                        Text("\(total - completed) more to go")
-                            .font(.system(size: 13, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    } else if total > 0 {
-                        Text("All skills mastered!")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.successGreen)
-                    }
-                }
-
-                Spacer()
-            }
-
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(AppColors.separator)
-                        .frame(height: 6)
-
-                    Capsule()
-                        .fill(AppColors.successGreen)
-                        .frame(width: geo.size.width * progress, height: 6)
                 }
             }
-            .frame(height: 6)
+
+            Spacer()
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
