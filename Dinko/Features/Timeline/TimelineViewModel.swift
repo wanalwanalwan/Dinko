@@ -6,6 +6,63 @@ struct TimelineDayGroup: Identifiable {
     var entries: [JournalEntry]
 }
 
+// MARK: - Skill Update Row Model
+
+struct SkillUpdateRow: Hashable {
+    let skill: String
+    let oldValue: Int
+    let newValue: Int
+    let delta: Int
+}
+
+// MARK: - Skill Update Helpers
+
+extension SkillUpdateRow {
+    /// Parse skill updates from the pipe-delimited or legacy summary string
+    static func parseSkillUpdates(from summary: String) -> [SkillUpdateRow] {
+        guard !summary.isEmpty else { return [] }
+        return summary.components(separatedBy: "\n").compactMap { line in
+            let pipeParts = line.components(separatedBy: "|")
+            if pipeParts.count == 4 {
+                let deltaVal = Int(pipeParts[3].replacingOccurrences(of: "+", with: "")) ?? 0
+                return SkillUpdateRow(
+                    skill: pipeParts[0],
+                    oldValue: Int(pipeParts[1]) ?? 0,
+                    newValue: Int(pipeParts[2]) ?? 0,
+                    delta: deltaVal
+                )
+            }
+            // Legacy format: "Dinking: 45% → 52% (+7)"
+            let colonParts = line.components(separatedBy: ": ")
+            guard colonParts.count == 2 else { return nil }
+            let skill = colonParts[0]
+            let rest = colonParts[1]
+                .replacingOccurrences(of: "%", with: "")
+                .replacingOccurrences(of: "(", with: "")
+                .replacingOccurrences(of: ")", with: "")
+            let arrowParts = rest.components(separatedBy: " \u{2192} ")
+            guard arrowParts.count == 2 else { return nil }
+            let old = Int(arrowParts[0].trimmingCharacters(in: .whitespaces)) ?? 0
+            let newAndDelta = arrowParts[1].components(separatedBy: " ")
+            let newVal = Int(newAndDelta[0].trimmingCharacters(in: .whitespaces)) ?? 0
+            let delta = newAndDelta.count >= 2 ? (Int(newAndDelta[1].trimmingCharacters(in: .whitespaces)) ?? 0) : 0
+            return SkillUpdateRow(skill: skill, oldValue: old, newValue: newVal, delta: delta)
+        }
+    }
+
+    /// Returns the skill update with the largest absolute delta (the "hero" highlight)
+    static func heroSkill(from updates: [SkillUpdateRow]) -> SkillUpdateRow? {
+        updates.max(by: { abs($0.delta) < abs($1.delta) })
+    }
+
+    /// Returns the average delta across all skill updates (net change percentage)
+    static func netChange(from updates: [SkillUpdateRow]) -> Int {
+        guard !updates.isEmpty else { return 0 }
+        let total = updates.reduce(0) { $0 + $1.delta }
+        return total / updates.count
+    }
+}
+
 @MainActor
 @Observable
 final class TimelineViewModel {
