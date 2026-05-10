@@ -226,132 +226,88 @@ struct TimelineSessionRow: View {
     // MARK: - TLDR Section
 
     private var tldrSection: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            // Duration + type
-            if entry.durationMinutes > 0 || entry.sessionType != nil {
-                HStack(spacing: AppSpacing.sm) {
-                    if entry.durationMinutes > 0 {
-                        Label("\(entry.durationMinutes) min", systemImage: "clock")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                    if let sessionType = entry.sessionType, !sessionType.isEmpty {
-                        Label(sessionType.capitalized, systemImage: "figure.pickleball")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(sessionTypeColor)
-                    }
+        Text(buildSummary())
+            .font(.system(size: 14, design: .rounded))
+            .foregroundStyle(AppColors.textPrimary)
+            .lineSpacing(3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(AppSpacing.xs)
+            .background(AppColors.background)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    // MARK: - Summary Builder
+
+    private func buildSummary() -> String {
+        var parts: [String] = []
+        let updates = skillUpdates
+
+        // Opening: duration + type
+        var opener = ""
+        if entry.durationMinutes > 0 {
+            let typeLabel = entry.sessionType?.lowercased() ?? "session"
+            opener = "\(entry.durationMinutes)-minute \(typeLabel)"
+        } else if let sessionType = entry.sessionType, !sessionType.isEmpty {
+            opener = "\(sessionType.capitalized) session"
+        } else {
+            opener = "Session"
+        }
+
+        // Skill updates
+        if !updates.isEmpty {
+            let improved = updates.filter { $0.delta > 0 }
+            let declined = updates.filter { $0.delta < 0 }
+            let unchanged = updates.filter { $0.delta == 0 }
+
+            if !improved.isEmpty {
+                let skillDescriptions = improved.map { "\($0.skill) (\($0.oldValue)% → \($0.newValue)%)" }
+                if improved.count == 1 {
+                    parts.append("\(opener) where you improved \(skillDescriptions[0]).")
+                } else {
+                    let allButLast = skillDescriptions.dropLast().joined(separator: ", ")
+                    parts.append("\(opener) where you improved \(allButLast) and \(skillDescriptions.last!).")
                 }
+            } else {
+                parts.append("\(opener).")
             }
 
-            // Skill changes — compact list
-            let updates = skillUpdates
-            if !updates.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(updates, id: \.skill) { update in
-                        HStack(spacing: AppSpacing.xxs) {
-                            Text(iconForSkill(update.skill))
-                                .font(.system(size: 12))
-                            Text(update.skill)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.textPrimary)
-                            Spacer()
-                            Text("\(update.oldValue)%")
-                                .font(.system(size: 12, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 8, weight: .semibold))
-                                .foregroundStyle(AppColors.textSecondary)
-                            Text("\(update.newValue)%")
-                                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                                .foregroundStyle(colorForDelta(update.delta))
-                            deltaIndicator(update.delta)
-                        }
-                    }
-                }
-                .padding(AppSpacing.xs)
-                .background(AppColors.background)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+            if !declined.isEmpty {
+                let names = declined.map { "\($0.skill) (\($0.delta)%)" }
+                parts.append("\(names.joined(separator: " and ")) dipped slightly.")
             }
 
-            // Coach insight
-            if !entry.coachInsight.isEmpty {
-                HStack(alignment: .top, spacing: AppSpacing.xxs) {
-                    Image(systemName: "lightbulb.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(AppColors.teal)
-                        .padding(.top, 2)
-
-                    Text(entry.coachInsight)
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                        .multilineTextAlignment(.leading)
-                }
-                .padding(AppSpacing.xs)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.teal.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+            if !unchanged.isEmpty && improved.isEmpty && declined.isEmpty {
+                let names = unchanged.map { $0.skill }
+                parts.append("\(opener) covering \(names.joined(separator: ", ")) with no rating changes.")
             }
+        } else if entry.drillsCount > 0 {
+            parts.append("\(opener) focused on drills.")
+        } else {
+            parts.append("\(opener).")
+        }
 
-            // Drills
-            if !entry.drillNamesSummary.isEmpty {
-                let drillNames = entry.drillNamesSummary.components(separatedBy: ", ")
-                HStack(alignment: .top, spacing: AppSpacing.xxs) {
-                    Image("coach-idle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 14, height: 14)
-                        .padding(.top, 2)
-
-                    Text(drillNames.joined(separator: " \u{00B7} "))
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                }
-            }
-
-            // User note
-            if !entry.userNote.isEmpty {
-                Text(entry.userNote)
-                    .font(.system(size: 13, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .italic()
+        // Drills
+        if !entry.drillNamesSummary.isEmpty {
+            let drillNames = entry.drillNamesSummary.components(separatedBy: ", ")
+            if drillNames.count == 1 {
+                parts.append("Worked on the \(drillNames[0]) drill.")
+            } else {
+                let allButLast = drillNames.dropLast().joined(separator: ", ")
+                parts.append("Drills included \(allButLast) and \(drillNames.last!).")
             }
         }
-    }
 
-    // MARK: - Helpers
-
-    private func deltaIndicator(_ delta: Int) -> some View {
-        Group {
-            if delta != 0 {
-                HStack(spacing: 2) {
-                    Image(systemName: delta > 0 ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
-                        .font(.system(size: 7))
-                    Text(delta > 0 ? "+\(delta)" : "\(delta)")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                }
-                .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
-            }
+        // Coach insight
+        if !entry.coachInsight.isEmpty {
+            parts.append(entry.coachInsight)
         }
-    }
 
-    private func iconForSkill(_ skillName: String) -> String {
-        let lower = skillName.lowercased()
-        if lower.contains("dink") { return "🥒" }
-        if lower.contains("drop") { return "⬇️" }
-        if lower.contains("drive") { return "🚀" }
-        if lower.contains("defense") || lower.contains("block") { return "🛡️" }
-        if lower.contains("offense") || lower.contains("attack") { return "🔥" }
-        if lower.contains("strategy") || lower.contains("position") { return "♟️" }
-        if lower.contains("serve") || lower.contains("return") { return "🎯" }
-        if lower.contains("volley") { return "💥" }
-        if lower.contains("lob") { return "🌈" }
-        return "🏓"
-    }
+        // User note
+        if !entry.userNote.isEmpty {
+            parts.append("\"\(entry.userNote)\"")
+        }
 
-    private func colorForDelta(_ delta: Int) -> Color {
-        if delta > 0 { return AppColors.successGreen }
-        if delta < 0 { return AppColors.coral }
-        return AppColors.textSecondary
+        return parts.joined(separator: " ")
     }
 }
 
