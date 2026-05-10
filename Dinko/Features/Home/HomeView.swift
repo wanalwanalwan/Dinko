@@ -418,61 +418,117 @@ struct HomeView: View {
     // MARK: - Overall Skill Level
 
     private func overallSkillLevelSection(_ viewModel: HomeViewModel) -> some View {
-        ZStack(alignment: .trailing) {
-            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                Text("Overall Skill Level")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.85))
+        let tier = SkillTier(rating: viewModel.averageRating)
+        let strongest = viewModel.skillsWithRatings.max(by: { $0.rating < $1.rating })
 
-                Text("\(viewModel.averageRating)%")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+        return VStack(spacing: 0) {
+            // Top section: ring + stats
+            HStack(spacing: AppSpacing.md) {
+                // Circular progress ring
+                ZStack {
+                    // Track
+                    Circle()
+                        .stroke(AppColors.teal.opacity(0.1), lineWidth: 8)
+                        .frame(width: 88, height: 88)
 
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(.white.opacity(0.2))
-                            .frame(height: 8)
+                    // Progress arc
+                    Circle()
+                        .trim(from: 0, to: CGFloat(viewModel.averageRating) / 100.0)
+                        .stroke(
+                            AngularGradient(
+                                colors: [AppColors.teal.opacity(0.6), AppColors.teal],
+                                center: .center,
+                                startAngle: .degrees(-90),
+                                endAngle: .degrees(270)
+                            ),
+                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                        )
+                        .frame(width: 88, height: 88)
+                        .rotationEffect(.degrees(-90))
 
-                        Capsule()
-                            .fill(.white)
-                            .frame(width: geo.size.width * CGFloat(viewModel.averageRating) / 100.0, height: 8)
+                    // Center value
+                    VStack(spacing: -2) {
+                        Text("\(viewModel.averageRating)")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Text("%")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
                     }
                 }
-                .frame(height: 8)
 
-                HStack {
-                    Text("\(viewModel.totalActiveSkills) skills tracked")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.85))
-
-                    Spacer()
-
+                // Right: tier + context stats
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    // Tier badge
                     HStack(spacing: 4) {
-                        Image(systemName: "flame.fill")
-                            .font(.system(size: 12))
-                        Text("\(viewModel.streakDays)-day streak")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                        Image(systemName: tier.sfSymbol)
+                            .font(.system(size: 10))
+                        Text(tier.displayName)
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
                     }
-                    .foregroundStyle(.white.opacity(0.85))
-                }
-            }
+                    .foregroundStyle(tier.color)
 
-            Image(systemName: "trophy.fill")
-                .font(.system(size: 44))
-                .foregroundStyle(.white.opacity(0.15))
-                .offset(x: -4, y: -4)
+                    // Tier progress to next
+                    if let next = tier.nextTier {
+                        let pointsToNext = SkillTier.pointsToNext(for: viewModel.averageRating)
+                        Text("\(pointsToNext) pts to \(next.displayName)")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    // Streak
+                    if viewModel.streakDays > 0 {
+                        HStack(spacing: 3) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(AppColors.coral)
+                            Text("\(viewModel.streakDays)-day streak")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(AppColors.textPrimary)
+                        }
+                    }
+
+                    // Most improved
+                    if let improved = viewModel.mostImprovedSkillName, viewModel.mostImprovedDelta > 0 {
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(AppColors.successGreen)
+                            Text("\(improved) +\(viewModel.mostImprovedDelta)%")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(AppColors.successGreen)
+                        }
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(AppSpacing.sm)
+
+            // Bottom divider bar with meta stats
+            HStack {
+                Text("\(viewModel.totalActiveSkills) skills")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+
+                if let best = strongest, best.rating > 0 {
+                    Text("\u{00B7}")
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text("Best: \(best.skill.name) \(best.rating)%")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, AppSpacing.xs)
+            .background(AppColors.background)
         }
-        .padding(AppSpacing.sm)
-        .background(
-            LinearGradient(
-                colors: [AppColors.teal, AppColors.teal.opacity(0.8)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.05), radius: 12, x: 0, y: 4)
     }
 
     // MARK: - Completed Skills Summary
