@@ -239,75 +239,31 @@ struct TimelineSessionRow: View {
     // MARK: - Summary Builder
 
     private func buildSummary() -> String {
-        var parts: [String] = []
         let updates = skillUpdates
+        let improved = updates.filter { $0.delta > 0 }
+        let declined = updates.filter { $0.delta < 0 }
 
-        // Opening: duration + type
-        var opener = ""
-        if entry.durationMinutes > 0 {
-            let typeLabel = entry.sessionType?.lowercased() ?? "session"
-            opener = "\(entry.durationMinutes)-minute \(typeLabel)"
-        } else if let sessionType = entry.sessionType, !sessionType.isEmpty {
-            opener = "\(sessionType.capitalized) session"
-        } else {
-            opener = "Session"
+        // Skill changes only
+        if !improved.isEmpty {
+            let descriptions = improved.map { "\($0.skill) +\($0.delta)%" }
+            return "Improved \(descriptions.joined(separator: ", "))."
         }
 
-        // Skill updates
+        if !declined.isEmpty {
+            let descriptions = declined.map { "\($0.skill) \($0.delta)%" }
+            return "\(descriptions.joined(separator: ", "))."
+        }
+
         if !updates.isEmpty {
-            let improved = updates.filter { $0.delta > 0 }
-            let declined = updates.filter { $0.delta < 0 }
-            let unchanged = updates.filter { $0.delta == 0 }
-
-            if !improved.isEmpty {
-                let skillDescriptions = improved.map { "\($0.skill) (\($0.oldValue)% → \($0.newValue)%)" }
-                if improved.count == 1 {
-                    parts.append("\(opener) where you improved \(skillDescriptions[0]).")
-                } else {
-                    let allButLast = skillDescriptions.dropLast().joined(separator: ", ")
-                    parts.append("\(opener) where you improved \(allButLast) and \(skillDescriptions.last!).")
-                }
-            } else {
-                parts.append("\(opener).")
-            }
-
-            if !declined.isEmpty {
-                let names = declined.map { "\($0.skill) (\($0.delta)%)" }
-                parts.append("\(names.joined(separator: " and ")) dipped slightly.")
-            }
-
-            if !unchanged.isEmpty && improved.isEmpty && declined.isEmpty {
-                let names = unchanged.map { $0.skill }
-                parts.append("\(opener) covering \(names.joined(separator: ", ")) with no rating changes.")
-            }
-        } else if entry.drillsCount > 0 {
-            parts.append("\(opener) focused on drills.")
-        } else {
-            parts.append("\(opener).")
+            let names = updates.map { $0.skill }
+            return "Tracked \(names.joined(separator: ", ")), no changes."
         }
 
-        // Drills
-        if !entry.drillNamesSummary.isEmpty {
-            let drillNames = entry.drillNamesSummary.components(separatedBy: ", ")
-            if drillNames.count == 1 {
-                parts.append("Worked on the \(drillNames[0]) drill.")
-            } else {
-                let allButLast = drillNames.dropLast().joined(separator: ", ")
-                parts.append("Drills included \(allButLast) and \(drillNames.last!).")
-            }
+        if entry.drillsCount > 0 {
+            return "Added \(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s")."
         }
 
-        // Coach insight
-        if !entry.coachInsight.isEmpty {
-            parts.append(entry.coachInsight)
-        }
-
-        // User note
-        if !entry.userNote.isEmpty {
-            parts.append("\"\(entry.userNote)\"")
-        }
-
-        return parts.joined(separator: " ")
+        return "No skill updates."
     }
 }
 
