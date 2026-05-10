@@ -173,9 +173,23 @@ final class HomeViewModel {
             existing.append(newRating)
             cachedRatings[skillId] = existing
 
-            // Recompute skills with ratings
-            computeSkillsWithRatings()
-            computeDerivedData()
+            // Auto-complete skill at 100%
+            if rating >= 100 {
+                try await skillRepository.archive(skillId)
+
+                // Also archive child skills
+                let children = cachedAllSkills.filter { $0.parentSkillId == skillId }
+                for child in children {
+                    try await skillRepository.archive(child.id)
+                }
+
+                // Refresh everything so the skill moves from active to completed
+                await loadDashboard()
+            } else {
+                computeSkillsWithRatings()
+                computeDerivedData()
+            }
+
             return true
         } catch {
             errorMessage = "Failed to save rating."
