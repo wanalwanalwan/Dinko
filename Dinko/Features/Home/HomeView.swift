@@ -6,8 +6,9 @@ struct HomeView: View {
     @Binding var selectedTab: Int
     @State private var viewModel: HomeViewModel?
     @State private var contentReady = false
-    @State private var ratingSkill: Skill?
-    @State private var ratingSkillCurrentRating: Int = 0
+    @State private var expandedSkillId: UUID?
+    @State private var sliderValue: Double = 0
+    @State private var isSavingRating = false
     @State private var showAddSkill = false
 
     var body: some View {
@@ -83,14 +84,16 @@ struct HomeView: View {
             VStack(spacing: AppSpacing.lg) {
                 greetingHeader(viewModel)
                     .staggeredAppearance(index: 0)
-                skillsSection(viewModel)
+                overallSkillLevelSection(viewModel)
                     .staggeredAppearance(index: 1)
-                recommendedDrillsSection(viewModel)
+                completedSkillsSummary(viewModel)
                     .staggeredAppearance(index: 2)
-                completedSkillsSection(viewModel)
+                skillsSection(viewModel)
                     .staggeredAppearance(index: 3)
-                streakBanner(viewModel)
+                recommendedDrillsSection(viewModel)
                     .staggeredAppearance(index: 4)
+                streakBanner(viewModel)
+                    .staggeredAppearance(index: 5)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
@@ -214,28 +217,21 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.lg)
             } else {
-                ScrollView {
-                    VStack(spacing: AppSpacing.xxs) {
-                        ForEach(viewModel.skillsWithRatings, id: \.skill.id) { item in
-                            skillRow(skill: item.skill, rating: item.rating)
+                VStack(spacing: 0) {
+                    ForEach(viewModel.skillsWithRatings, id: \.skill.id) { item in
+                        skillRow(skill: item.skill, rating: item.rating, viewModel: viewModel)
+
+                        if item.skill.id != viewModel.skillsWithRatings.last?.skill.id {
+                            Divider()
+                                .padding(.leading, AppSpacing.lg)
                         }
                     }
                 }
-                .frame(maxHeight: 220)
             }
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .sheet(item: $ratingSkill) { skill in
-            RateSkillView(
-                skillName: skill.name,
-                currentRating: ratingSkillCurrentRating
-            ) { newRating, notes in
-                await viewModel.saveRating(for: skill.id, rating: newRating, notes: notes)
-            }
-            .presentationDetents([.medium])
-        }
         .sheet(isPresented: $showAddSkill) {
             AddEditSkillView()
                 .presentationDetents([.medium])
@@ -245,48 +241,123 @@ struct HomeView: View {
         }
     }
 
-    private func skillRow(skill: Skill, rating: Int) -> some View {
+    private func skillRow(skill: Skill, rating: Int, viewModel: HomeViewModel) -> some View {
         let tier = SkillTier(rating: rating)
+        let isOpen = expandedSkillId == skill.id
 
-        return Button {
-            ratingSkillCurrentRating = rating
-            ratingSkill = skill
-        } label: {
-            HStack(spacing: AppSpacing.xs) {
-                Circle()
-                    .fill(tier.color)
-                    .frame(width: 10, height: 10)
-
-                Text(skill.name)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-                    .lineLimit(1)
-
-                Spacer()
-
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(AppColors.background)
-                            .frame(height: 6)
-
-                        Capsule()
-                            .fill(tier.color)
-                            .frame(width: geo.size.width * CGFloat(rating) / 100.0, height: 6)
+        return VStack(spacing: 0) {
+            // Collapsed row — tap to expand/collapse
+            Button {
+                withAnimation(AppAnimations.springSmooth) {
+                    if isOpen {
+                        expandedSkillId = nil
+                    } else {
+                        sliderValue = Double(rating)
+                        expandedSkillId = skill.id
                     }
                 }
-                .frame(width: 80, height: 6)
+            } label: {
+                HStack(spacing: AppSpacing.xs) {
+                    Circle()
+                        .fill(tier.color)
+                        .frame(width: 10, height: 10)
 
-                Text("\(rating)%")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .frame(width: 38, alignment: .trailing)
+                    Text(skill.name)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .lineLimit(1)
+
+                    Spacer()
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(AppColors.background)
+                                .frame(height: 6)
+
+                            Capsule()
+                                .fill(tier.color)
+                                .frame(width: geo.size.width * CGFloat(rating) / 100.0, height: 6)
+                        }
+                    }
+                    .frame(width: 80, height: 6)
+
+                    Text("\(rating)%")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .frame(width: 38, alignment: .trailing)
+
+                    Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .padding(.vertical, AppSpacing.xs)
+                .padding(.horizontal, AppSpacing.xxs)
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, AppSpacing.xs)
-            .padding(.horizontal, AppSpacing.xxs)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+
+            // Inline rating slider
+            if isOpen {
+                VStack(spacing: AppSpacing.xxs) {
+                    HStack {
+                        Text("\(Int(sliderValue))%")
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundStyle(SkillTier(rating: Int(sliderValue)).color)
+
+                        Spacer()
+
+                        Text(SkillTier(rating: Int(sliderValue)).displayName)
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(SkillTier(rating: Int(sliderValue)).color)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(SkillTier(rating: Int(sliderValue)).color.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+
+                    Slider(value: $sliderValue, in: 0...100, step: 1)
+                        .tint(SkillTier(rating: Int(sliderValue)).color)
+
+                    HStack {
+                        Text("0")
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                        Spacer()
+                        Text("100")
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    // Save button
+                    if Int(sliderValue) != rating {
+                        Button {
+                            isSavingRating = true
+                            Task {
+                                let _ = await viewModel.saveRating(for: skill.id, rating: Int(sliderValue), notes: nil)
+                                isSavingRating = false
+                                withAnimation(AppAnimations.springSmooth) {
+                                    expandedSkillId = nil
+                                }
+                            }
+                        } label: {
+                            Text("Save")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppSpacing.xxs)
+                                .background(AppColors.teal)
+                                .clipShape(Capsule())
+                        }
+                        .disabled(isSavingRating)
+                        .padding(.top, AppSpacing.xxxs)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.xxs)
+                .padding(.bottom, AppSpacing.xs)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Recommended Drills
@@ -325,55 +396,85 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Completed Skills
+    // MARK: - Overall Skill Level
 
-    private func completedSkillsSection(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            SectionHeaderView(title: "Completed Skills")
+    private func overallSkillLevelSection(_ viewModel: HomeViewModel) -> some View {
+        ZStack(alignment: .trailing) {
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text("OVERALL SKILL LEVEL")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.8))
 
-            if viewModel.completedSkills.isEmpty {
-                VStack(spacing: AppSpacing.xs) {
-                    Image(systemName: "trophy")
-                        .font(.system(size: 40))
-                        .foregroundStyle(AppColors.successGreen.opacity(0.4))
+                Text("\(viewModel.averageRating)%")
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
 
-                    Text("Your Journey Starts Here")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
+                // Progress bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(.white.opacity(0.2))
+                            .frame(height: 8)
 
-                    Text("Rate a skill to 100% to see it here.")
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    Button {
-                        selectedTab = 2
-                    } label: {
-                        Text("View all skills")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                        Capsule()
+                            .fill(.white)
+                            .frame(width: geo.size.width * CGFloat(viewModel.averageRating) / 100.0, height: 8)
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.lg)
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppSpacing.sm) {
-                        ForEach(viewModel.completedSkills) { item in
-                            CompletedSkillCardView(skill: item)
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        Task { await viewModel.deleteCompletedSkill(item.id) }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                }
-                        }
-                    }
+                .frame(height: 8)
+
+                HStack {
+                    Text("\(viewModel.totalActiveSkills) skills tracked")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.85))
+
+                    Spacer()
+
+                    Text("\u{1F525} \(viewModel.streakDays)-day streak")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.85))
                 }
             }
+
+            Image(systemName: "trophy.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(.white.opacity(0.2))
+                .offset(x: -4, y: -4)
         }
+        .padding(AppSpacing.sm)
+        .background(
+            LinearGradient(
+                colors: [AppColors.teal, AppColors.teal.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+    }
+
+    // MARK: - Completed Skills Summary
+
+    private func completedSkillsSummary(_ viewModel: HomeViewModel) -> some View {
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 24))
+                .foregroundStyle(AppColors.teal)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Completed Skills")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Text("\(viewModel.completedSkills.count) of \(viewModel.totalSkillsIncludingCompleted) mastered")
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            Spacer()
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
     // MARK: - Streak Banner

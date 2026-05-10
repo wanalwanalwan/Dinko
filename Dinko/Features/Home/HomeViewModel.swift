@@ -81,6 +81,10 @@ final class HomeViewModel {
     private(set) var streakDays = 0
     private(set) var daysToWeeklyGoal = 0
 
+    var totalSkillsIncludingCompleted: Int {
+        totalActiveSkills + completedSkills.count
+    }
+
     private(set) var isLoaded = false
     var errorMessage: String?
 
