@@ -299,38 +299,55 @@ struct HomeView: View {
 
             // Inline rating slider
             if isOpen {
-                VStack(spacing: AppSpacing.xxs) {
-                    HStack {
-                        Text("\(Int(sliderValue))%")
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundStyle(SkillTier(rating: Int(sliderValue)).color)
+                let currentTier = SkillTier(rating: Int(sliderValue))
+
+                VStack(spacing: AppSpacing.xs) {
+                    // Tier label + large value
+                    HStack(alignment: .firstTextBaseline, spacing: AppSpacing.xxs) {
+                        Text("\(Int(sliderValue))")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundStyle(currentTier.color)
+                            .contentTransition(.numericText())
+
+                        Text("%")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundStyle(currentTier.color.opacity(0.6))
 
                         Spacer()
 
-                        Text(SkillTier(rating: Int(sliderValue)).displayName)
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundStyle(SkillTier(rating: Int(sliderValue)).color)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(SkillTier(rating: Int(sliderValue)).color.opacity(0.12))
-                            .clipShape(Capsule())
+                        HStack(spacing: 4) {
+                            Image(systemName: currentTier.sfSymbol)
+                                .font(.system(size: 11))
+                            Text(currentTier.displayName)
+                                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundStyle(currentTier.color)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(currentTier.color.opacity(0.1))
+                        .clipShape(Capsule())
                     }
 
+                    // Slider
                     Slider(value: $sliderValue, in: 0...100, step: 1)
-                        .tint(SkillTier(rating: Int(sliderValue)).color)
+                        .tint(currentTier.color)
 
-                    HStack {
-                        Text("0")
-                            .font(.system(size: 11, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                        Spacer()
-                        Text("100")
-                            .font(.system(size: 11, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
+                    // Save / Cancel row
+                    HStack(spacing: AppSpacing.xs) {
+                        Button {
+                            withAnimation(AppAnimations.springSmooth) {
+                                expandedSkillId = nil
+                            }
+                        } label: {
+                            Text("Cancel")
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(AppColors.background)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
 
-                    // Save button
-                    if Int(sliderValue) != rating {
                         Button {
                             isSavingRating = true
                             Task {
@@ -341,21 +358,23 @@ struct HomeView: View {
                                 }
                             }
                         } label: {
-                            Text("Save")
+                            Text(Int(sliderValue) != rating ? "Save" : "Done")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppSpacing.xxs)
-                                .background(AppColors.teal)
-                                .clipShape(Capsule())
+                                .padding(.vertical, 10)
+                                .background(Int(sliderValue) != rating ? AppColors.teal : AppColors.textSecondary)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .disabled(isSavingRating)
-                        .padding(.top, AppSpacing.xxxs)
                     }
                 }
+                .padding(AppSpacing.xs)
+                .background(AppColors.background)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, AppSpacing.xxs)
                 .padding(.bottom, AppSpacing.xs)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .transition(.scale(scale: 0.95, anchor: .top).combined(with: .opacity))
             }
         }
     }
