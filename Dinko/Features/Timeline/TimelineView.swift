@@ -214,63 +214,65 @@ struct TimelineSessionRow: View {
         let updates = skillUpdates
         let improved = updates.filter { $0.delta > 0 }
         let declined = updates.filter { $0.delta < 0 }
+        let skillNames = Set(updates.map { $0.skill.lowercased() })
 
-        // Build a short synthesized summary from all available data
-        var what: [String] = []
-        var takeaway = ""
+        var parts: [String] = []
 
-        // What happened — synthesize skills + user note into one thought
+        // Part 1: What changed
         if !improved.isEmpty {
             let names = improved.prefix(3).map { $0.skill }
-            let joined = names.joined(separator: ", ")
             let avgGain = improved.reduce(0) { $0 + $1.delta } / improved.count
-            what.append("Worked on \(joined) (+\(avgGain)% avg)")
+            parts.append("Improved \(names.joined(separator: ", ")) (+\(avgGain)% avg)")
         }
-
         if !declined.isEmpty {
             let names = declined.map { $0.skill }
-            what.append("\(names.joined(separator: ", ")) needs work")
+            parts.append("\(names.joined(separator: ", ")) dipped")
         }
 
-        if what.isEmpty {
-            // Fall back to user note or drills for context
+        // Part 2: Actionable tip from coach — skip if it just restates skill names
+        if !entry.coachInsight.isEmpty {
+            let sentences = entry.coachInsight
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .components(separatedBy: CharacterSet(charactersIn: ".!?\n"))
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+
+            // Find a sentence that doesn't just repeat the skill names
+            let actionWords = ["try", "focus", "practice", "work on", "keep", "use",
+                               "improve", "start", "avoid", "remember", "make sure",
+                               "drill", "aim", "slow", "stay", "add", "increase"]
+            let tip = sentences.first { sentence in
+                let lower = sentence.lowercased()
+                let repeatsSkill = skillNames.contains { lower.hasPrefix($0) || lower == $0 }
+                let hasAction = actionWords.contains { lower.contains($0) }
+                return !repeatsSkill && (hasAction || sentences.count == 1)
+            } ?? sentences.last(where: { sentence in
+                let lower = sentence.lowercased()
+                return !skillNames.contains { lower.hasPrefix($0) }
+            })
+
+            if let tip, !tip.isEmpty {
+                let short = tip.count > 80 ? String(tip.prefix(80)) + "..." : tip
+                parts.append(short)
+            }
+        }
+
+        // Part 3: Fall back to user note if nothing else
+        if parts.isEmpty {
             if !entry.userNote.isEmpty {
                 let note = entry.userNote.trimmingCharacters(in: .whitespacesAndNewlines)
-                // Extract first sentence or first 80 chars as the "what"
-                let firstSentence = note.components(separatedBy: CharacterSet(charactersIn: ".!?\n")).first ?? note
-                let short = firstSentence.count > 80 ? String(firstSentence.prefix(80)) + "..." : firstSentence
-                what.append(short)
+                let short = note.count > 80 ? String(note.prefix(80)) + "..." : note
+                parts.append(short)
             } else if entry.drillsCount > 0 {
-                what.append("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") assigned")
+                parts.append("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") assigned")
             }
         }
 
-        // Takeaway — synthesize coach insight + user note into one action item
-        if !entry.coachInsight.isEmpty {
-            let insight = entry.coachInsight.trimmingCharacters(in: .whitespacesAndNewlines)
-            // Grab just the first sentence as the key takeaway
-            let firstSentence = insight.components(separatedBy: CharacterSet(charactersIn: ".!?\n")).first ?? insight
-            takeaway = firstSentence.trimmingCharacters(in: .whitespaces)
-            if !takeaway.isEmpty && !takeaway.hasSuffix(".") {
-                takeaway += "."
-            }
-        } else if !entry.userNote.isEmpty && !what.isEmpty {
-            // If we already used skills for "what", pull a short note as takeaway
-            let note = entry.userNote.trimmingCharacters(in: .whitespacesAndNewlines)
-            if note.count <= 60 {
-                takeaway = note
-                if !takeaway.hasSuffix(".") { takeaway += "." }
-            }
-        }
+        if parts.isEmpty { return "Logged a session." }
 
-        // Combine into one short summary
-        var summary = what.joined(separator: "; ")
-        if !summary.isEmpty && !summary.hasSuffix(".") { summary += "." }
-        if !takeaway.isEmpty {
-            summary += summary.isEmpty ? takeaway : " \(takeaway)"
-        }
-
-        return summary.isEmpty ? "Logged a session." : summary
+        var summary = parts.joined(separator: ". ")
+        if !summary.hasSuffix(".") { summary += "." }
+        return summary
     }
 }
 
