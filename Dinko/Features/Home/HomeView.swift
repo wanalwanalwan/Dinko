@@ -86,12 +86,14 @@ struct HomeView: View {
                     .staggeredAppearance(index: 0)
                 overallSkillLevelSection(viewModel)
                     .staggeredAppearance(index: 1)
-                skillsSection(viewModel)
+                completedSkillsSummary(viewModel)
                     .staggeredAppearance(index: 2)
-                recommendedDrillsSection(viewModel)
+                skillsSection(viewModel)
                     .staggeredAppearance(index: 3)
-                streakBanner(viewModel)
+                recommendedDrillsSection(viewModel)
                     .staggeredAppearance(index: 4)
+                streakBanner(viewModel)
+                    .staggeredAppearance(index: 5)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
@@ -484,35 +486,6 @@ struct HomeView: View {
                 Spacer()
             }
             .padding(AppSpacing.sm)
-
-            // Bottom divider bar with meta stats
-            HStack {
-                Text("\(viewModel.totalActiveSkills) active")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-
-                if viewModel.completedSkills.count > 0 {
-                    Text("\u{00B7}")
-                        .foregroundStyle(AppColors.textSecondary)
-                    Text("\(viewModel.completedSkills.count) completed")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.successGreen)
-                }
-
-                if let best = strongest, best.rating > 0 {
-                    Text("\u{00B7}")
-                        .foregroundStyle(AppColors.textSecondary)
-                    Text("\(best.skill.name) \(best.rating)%")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
-                        .lineLimit(1)
-                }
-
-                Spacer()
-            }
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.vertical, AppSpacing.xs)
-            .background(AppColors.background)
         }
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
