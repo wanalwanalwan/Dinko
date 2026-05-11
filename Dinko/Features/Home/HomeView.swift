@@ -299,55 +299,17 @@ struct HomeView: View {
 
             // Inline rating slider
             if isOpen {
-                let currentTier = SkillTier(rating: Int(sliderValue))
-
-                VStack(spacing: AppSpacing.xs) {
-                    // Tier label + large value
-                    HStack(alignment: .firstTextBaseline, spacing: AppSpacing.xxs) {
-                        Text("\(Int(sliderValue))")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(currentTier.color)
-                            .contentTransition(.numericText())
-
-                        Text("%")
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
-                            .foregroundStyle(currentTier.color.opacity(0.6))
-
-                        Spacer()
-
-                        HStack(spacing: 4) {
-                            Image(systemName: currentTier.sfSymbol)
-                                .font(.system(size: 11))
-                            Text(currentTier.displayName)
-                                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        }
-                        .foregroundStyle(currentTier.color)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(currentTier.color.opacity(0.1))
-                        .clipShape(Capsule())
-                    }
-
-                    // Slider
+                HStack(spacing: AppSpacing.xs) {
                     Slider(value: $sliderValue, in: 0...100, step: 1)
-                        .tint(currentTier.color)
+                        .tint(AppColors.teal)
 
-                    // Save / Cancel row
-                    HStack(spacing: AppSpacing.xs) {
-                        Button {
-                            withAnimation(AppAnimations.springSmooth) {
-                                expandedSkillId = nil
-                            }
-                        } label: {
-                            Text("Cancel")
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(AppColors.background)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
+                    Text("\(Int(sliderValue))%")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                        .frame(width: 38, alignment: .trailing)
+                        .contentTransition(.numericText())
 
+                    if Int(sliderValue) != rating {
                         Button {
                             isSavingRating = true
                             Task {
@@ -358,20 +320,30 @@ struct HomeView: View {
                                 }
                             }
                         } label: {
-                            Text(Int(sliderValue) != rating ? "Save" : "Done")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            Text("Save")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(Int(sliderValue) != rating ? AppColors.teal : AppColors.textSecondary)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(AppColors.teal)
+                                .clipShape(Capsule())
                         }
                         .disabled(isSavingRating)
+                    } else {
+                        Button {
+                            withAnimation(AppAnimations.springSmooth) {
+                                expandedSkillId = nil
+                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(AppColors.textSecondary)
+                                .frame(width: 28, height: 28)
+                                .background(AppColors.background)
+                                .clipShape(Circle())
+                        }
                     }
                 }
-                .padding(AppSpacing.xs)
-                .background(AppColors.background)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, AppSpacing.xxs)
                 .padding(.bottom, AppSpacing.xs)
                 .transition(.scale(scale: 0.95, anchor: .top).combined(with: .opacity))
