@@ -86,14 +86,12 @@ struct HomeView: View {
                     .staggeredAppearance(index: 0)
                 overallSkillLevelSection(viewModel)
                     .staggeredAppearance(index: 1)
-                completedSkillsSummary(viewModel)
-                    .staggeredAppearance(index: 2)
                 skillsSection(viewModel)
-                    .staggeredAppearance(index: 3)
+                    .staggeredAppearance(index: 2)
                 recommendedDrillsSection(viewModel)
-                    .staggeredAppearance(index: 4)
+                    .staggeredAppearance(index: 3)
                 streakBanner(viewModel)
-                    .staggeredAppearance(index: 5)
+                    .staggeredAppearance(index: 4)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
@@ -394,6 +392,16 @@ struct HomeView: View {
         let strongest = viewModel.skillsWithRatings.max(by: { $0.rating < $1.rating })
 
         return VStack(spacing: 0) {
+            // Heading
+            Text("OVERALL SKILL LEVEL")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .tracking(0.5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xxxs)
+
             // Top section: ring + stats
             HStack(spacing: AppSpacing.md) {
                 // Circular progress ring
@@ -479,14 +487,22 @@ struct HomeView: View {
 
             // Bottom divider bar with meta stats
             HStack {
-                Text("\(viewModel.totalActiveSkills) skills")
+                Text("\(viewModel.totalActiveSkills) active")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
+
+                if viewModel.completedSkills.count > 0 {
+                    Text("\u{00B7}")
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text("\(viewModel.completedSkills.count) completed")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.successGreen)
+                }
 
                 if let best = strongest, best.rating > 0 {
                     Text("\u{00B7}")
                         .foregroundStyle(AppColors.textSecondary)
-                    Text("Best: \(best.skill.name) \(best.rating)%")
+                    Text("\(best.skill.name) \(best.rating)%")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(AppColors.teal)
                         .lineLimit(1)
