@@ -124,19 +124,6 @@ struct TimelineSessionRow: View {
         return formatter.string(from: entry.date)
     }
 
-    private var sessionTypeLabel: String {
-        entry.sessionType?.capitalized ?? "Session"
-    }
-
-    private var sessionTypeColor: Color {
-        guard let type = entry.sessionType?.lowercased() else { return AppColors.teal }
-        switch type {
-        case "drill", "drills": return AppColors.drillPurple
-        case "match", "game": return AppColors.coral
-        default: return AppColors.teal
-        }
-    }
-
     private var skillUpdates: [SkillUpdateRow] {
         SkillUpdateRow.parseSkillUpdates(from: entry.skillUpdatesSummary)
     }
@@ -178,40 +165,30 @@ struct TimelineSessionRow: View {
     // MARK: - Collapsed Row
 
     private var collapsedRow: some View {
-        HStack(spacing: AppSpacing.xxs) {
-            // Type dot
-            Circle()
-                .fill(sessionTypeColor)
-                .frame(width: 8, height: 8)
+        let updates = skillUpdates
+        let net = SkillUpdateRow.netChange(from: updates)
 
-            // Time
+        return HStack(spacing: AppSpacing.xxs) {
             Text(timeString)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
-
-            Spacer()
-
-            // Quick stat pills
-            let updates = skillUpdates
-            let net = SkillUpdateRow.netChange(from: updates)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
 
             if !updates.isEmpty {
+                Text("\u{00B7}")
+                    .foregroundStyle(AppColors.textSecondary)
                 Text("\(updates.count) skill\(updates.count == 1 ? "" : "s")")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(AppColors.teal.opacity(0.1))
-                    .clipShape(Capsule())
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
             }
 
             if net != 0 {
                 Text(net > 0 ? "+\(net)%" : "\(net)%")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundStyle(net > 0 ? AppColors.successGreen : AppColors.coral)
             }
 
-            // Chevron
+            Spacer()
+
             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(AppColors.textSecondary)
