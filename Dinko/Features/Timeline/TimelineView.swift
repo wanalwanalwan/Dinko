@@ -189,11 +189,6 @@ struct TimelineSessionRow: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
-            // Type label
-            Text(sessionTypeLabel)
-                .font(.system(size: 13, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-
             Spacer()
 
             // Quick stat pills
@@ -239,31 +234,48 @@ struct TimelineSessionRow: View {
     // MARK: - Summary Builder
 
     private func buildSummary() -> String {
+        var parts: [String] = []
         let updates = skillUpdates
         let improved = updates.filter { $0.delta > 0 }
         let declined = updates.filter { $0.delta < 0 }
 
-        // Skill changes only
+        // Duration
+        if entry.durationMinutes > 0 {
+            parts.append("\(entry.durationMinutes) min session.")
+        }
+
+        // Skill changes
         if !improved.isEmpty {
             let descriptions = improved.map { "\($0.skill) +\($0.delta)%" }
-            return "Improved \(descriptions.joined(separator: ", "))."
+            parts.append("Improved \(descriptions.joined(separator: ", ")).")
         }
-
         if !declined.isEmpty {
             let descriptions = declined.map { "\($0.skill) \($0.delta)%" }
-            return "\(descriptions.joined(separator: ", "))."
+            parts.append("\(descriptions.joined(separator: ", ")) dipped.")
+        }
+        if updates.isEmpty && entry.drillsCount > 0 {
+            parts.append("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") assigned.")
         }
 
-        if !updates.isEmpty {
-            let names = updates.map { $0.skill }
-            return "Tracked \(names.joined(separator: ", ")), no changes."
+        // User's note (what they typed)
+        if !entry.userNote.isEmpty {
+            let trimmed = entry.userNote.trimmingCharacters(in: .whitespacesAndNewlines)
+            let short = trimmed.count > 120 ? String(trimmed.prefix(120)) + "..." : trimmed
+            parts.append("\"\(short)\"")
         }
 
-        if entry.drillsCount > 0 {
-            return "Added \(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s")."
+        // Coach tip (one-liner)
+        if !entry.coachInsight.isEmpty {
+            let tip = entry.coachInsight.trimmingCharacters(in: .whitespacesAndNewlines)
+            let short = tip.count > 100 ? String(tip.prefix(100)) + "..." : tip
+            parts.append("Coach: \(short)")
         }
 
-        return "No skill updates."
+        if parts.isEmpty {
+            return "No updates."
+        }
+
+        return parts.joined(separator: " ")
     }
 }
 
