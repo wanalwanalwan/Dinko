@@ -92,6 +92,7 @@ final class HomeViewModel {
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
     private let sessionRepository: SessionRepository
+    private let journalEntryRepository: JournalEntryRepository
 
     // Cached data for time range switching
     private var cachedSkills: [Skill] = []
@@ -102,12 +103,14 @@ final class HomeViewModel {
         skillRepository: SkillRepository,
         skillRatingRepository: SkillRatingRepository,
         drillRepository: DrillRepository,
-        sessionRepository: SessionRepository
+        sessionRepository: SessionRepository,
+        journalEntryRepository: JournalEntryRepository
     ) {
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
         self.drillRepository = drillRepository
         self.sessionRepository = sessionRepository
+        self.journalEntryRepository = journalEntryRepository
     }
 
     func loadDashboard() async {
@@ -158,6 +161,10 @@ final class HomeViewModel {
 
     func saveRating(for skillId: UUID, rating: Int, notes: String?) async -> Bool {
         do {
+            // Get old rating before saving
+            let oldRating = cachedRatings[skillId]?.last?.rating ?? 0
+            let skillName = cachedAllSkills.first(where: { $0.id == skillId })?.name ?? "Skill"
+
             let newRating = SkillRating(
                 id: UUID(),
                 skillId: skillId,
@@ -172,6 +179,19 @@ final class HomeViewModel {
             var existing = cachedRatings[skillId] ?? []
             existing.append(newRating)
             cachedRatings[skillId] = existing
+
+            // Log to timeline
+            let delta = rating - oldRating
+            let deltaStr = delta >= 0 ? "+\(delta)" : "\(delta)"
+            let entry = JournalEntry(
+                sessionId: "manual-\(UUID().uuidString)",
+                sessionType: nil,
+                userNote: "",
+                coachInsight: "",
+                skillUpdatesSummary: "\(skillName)|\(oldRating)|\(rating)|\(deltaStr)",
+                skillUpdatesCount: 1
+            )
+            try await journalEntryRepository.save(entry)
 
             // Auto-complete skill at 100%
             if rating >= 100 {

@@ -26,7 +26,8 @@ struct HomeView: View {
                     skillRepository: dependencies.skillRepository,
                     skillRatingRepository: dependencies.skillRatingRepository,
                     drillRepository: dependencies.drillRepository,
-                    sessionRepository: dependencies.sessionRepository
+                    sessionRepository: dependencies.sessionRepository,
+                    journalEntryRepository: dependencies.journalEntryRepository
                 )
                 viewModel = vm
                 withAnimation { contentReady = true }
