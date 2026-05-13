@@ -252,17 +252,14 @@ struct TimelineSessionRow: View {
             })
 
             if let tip, !tip.isEmpty {
-                let short = tip.count > 80 ? String(tip.prefix(80)) + "..." : tip
-                parts.append(short)
+                parts.append(tip)
             }
         }
 
         // Part 3: Fall back to user note if nothing else
         if parts.isEmpty {
             if !entry.userNote.isEmpty {
-                let note = entry.userNote.trimmingCharacters(in: .whitespacesAndNewlines)
-                let short = note.count > 80 ? String(note.prefix(80)) + "..." : note
-                parts.append(short)
+                parts.append(entry.userNote.trimmingCharacters(in: .whitespacesAndNewlines))
             } else if entry.drillsCount > 0 {
                 parts.append("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") assigned")
             }
@@ -270,7 +267,9 @@ struct TimelineSessionRow: View {
 
         if parts.isEmpty { return "Logged a session." }
 
-        var summary = parts.joined(separator: ". ")
+        // Cap at 3 parts max
+        let capped = Array(parts.prefix(3))
+        var summary = capped.joined(separator: ". ")
         if !summary.hasSuffix(".") { summary += "." }
         return summary
     }
