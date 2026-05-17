@@ -343,8 +343,10 @@ struct ChatView: View {
             return .thinking
         case .sessionPreview(let preview):
             return preview.confirmState == .confirmed ? .celebrating : .talking
-        case .skillDeletion, .skillCreation, .clarification, .drillSuggestions:
+        case .skillDeletion, .skillCreation, .drillSuggestions:
             return .talking
+        case .clarification:
+            return .idle
         case .error:
             return .idle
         }
