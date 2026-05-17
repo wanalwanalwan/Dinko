@@ -34,7 +34,6 @@ struct CoachMascot: View {
 
     var body: some View {
         Image(state.imageName)
-            .interpolation(.none)
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: size, height: size)
