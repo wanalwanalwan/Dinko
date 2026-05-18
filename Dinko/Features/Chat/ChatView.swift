@@ -143,9 +143,9 @@ struct ChatView: View {
                 ForEach(Array(chunks.enumerated()), id: \.offset) { index, chunk in
                     HStack(alignment: .top, spacing: 8) {
                         if index == 0 {
-                            CoachMascot(state: .talking, size: 28)
+                            CoachMascot(state: .talking, size: 40)
                         } else {
-                            Spacer().frame(width: 28)
+                            Spacer().frame(width: 40)
                         }
 
                         Text(chunk)
@@ -165,7 +165,7 @@ struct ChatView: View {
         } else {
             // Non-text content (loading, session preview, cards, errors)
             HStack(alignment: .top, spacing: 8) {
-                CoachMascot(state: mascotState(for: message), size: 28)
+                CoachMascot(state: mascotState(for: message), size: 40)
                     .padding(.top, 12) // align with content inside padded bubble
                 agentBubbleContent(message, viewModel: viewModel)
                 Spacer(minLength: 0)
