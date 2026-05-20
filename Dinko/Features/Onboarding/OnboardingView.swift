@@ -46,16 +46,16 @@ struct OnboardingView: View {
             subtitle: "We'll personalize your experience based on your DUPR range."
         ) {
             VStack(spacing: AppSpacing.xs) {
-                selectionCard("Beginner (2.0-2.5)", icon: "figure.walk", isSelected: viewModel.duprRange == "Beginner (2.0-2.5)") {
-                    viewModel.duprRange = "Beginner (2.0-2.5)"
+                selectionCard("Beginner (2.0-3.0)", icon: "figure.walk", isSelected: viewModel.duprRange == "Beginner (2.0-3.0)") {
+                    viewModel.duprRange = "Beginner (2.0-3.0)"
                     advanceAfterDelay()
                 }
-                selectionCard("Intermediate (3.0-3.5)", icon: "figure.run", isSelected: viewModel.duprRange == "Intermediate (3.0-3.5)") {
-                    viewModel.duprRange = "Intermediate (3.0-3.5)"
+                selectionCard("Intermediate (3.0-4.0)", icon: "figure.run", isSelected: viewModel.duprRange == "Intermediate (3.0-4.0)") {
+                    viewModel.duprRange = "Intermediate (3.0-4.0)"
                     advanceAfterDelay()
                 }
-                selectionCard("Advanced (4.0-4.5)", icon: "figure.highintensity.intervaltraining", isSelected: viewModel.duprRange == "Advanced (4.0-4.5)") {
-                    viewModel.duprRange = "Advanced (4.0-4.5)"
+                selectionCard("Advanced (4.0-5.0)", icon: "figure.highintensity.intervaltraining", isSelected: viewModel.duprRange == "Advanced (4.0-5.0)") {
+                    viewModel.duprRange = "Advanced (4.0-5.0)"
                     advanceAfterDelay()
                 }
                 selectionCard("Pro (5.0+)", icon: "trophy.fill", isSelected: viewModel.duprRange == "Pro (5.0+)") {
