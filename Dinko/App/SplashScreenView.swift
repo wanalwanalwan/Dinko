@@ -23,11 +23,10 @@ struct SplashScreenView: View {
             )
             .ignoresSafeArea()
 
-            Image("AppIconImage")
+            Image("coach-idle")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 160, height: 160)
-                .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+                .frame(width: 180, height: 180)
                 .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
                 .scaleEffect(iconScale)
                 .opacity(iconOpacity)
