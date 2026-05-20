@@ -155,7 +155,7 @@ struct ChatView: View {
                             .padding(14)
                             .frame(maxWidth: 270, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
-                            .background(Color(hex: "F4F6F8"))
+                            .background(AppColors.agentBubble)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
 
                         Spacer()
@@ -211,7 +211,7 @@ struct ChatView: View {
                 .accessibilityLabel("Cancel analysis")
             }
             .padding(14)
-            .background(Color(hex: "F4F6F8"))
+            .background(AppColors.agentBubble)
             .clipShape(RoundedRectangle(cornerRadius: 16))
 
         case .sessionPreview(let preview):

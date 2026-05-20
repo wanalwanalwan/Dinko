@@ -19,6 +19,7 @@ enum AppColors {
     static let textSecondary = Color(light: "6B7280", dark: "9CA3AF")
 
     // MARK: - Surfaces & Borders
+    static let agentBubble = Color(light: "F4F6F8", dark: "2A2A2A")
     static let surfaceDark = Color(hex: "1C1C2E")
     static let separator = Color(light: "E5E7EB", dark: "2E2E2E")
     static let lockedGray = Color(light: "C7C7CC", dark: "4A4A4A")
