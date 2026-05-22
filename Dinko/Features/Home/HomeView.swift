@@ -87,14 +87,16 @@ struct HomeView: View {
                     .staggeredAppearance(index: 0)
                 overallSkillLevelSection(viewModel)
                     .staggeredAppearance(index: 1)
-                completedSkillsSummary(viewModel)
+                activityCalendar(viewModel)
                     .staggeredAppearance(index: 2)
-                skillsSection(viewModel)
+                completedSkillsSummary(viewModel)
                     .staggeredAppearance(index: 3)
-                recommendedDrillsSection(viewModel)
+                skillsSection(viewModel)
                     .staggeredAppearance(index: 4)
-                streakBanner(viewModel)
+                recommendedDrillsSection(viewModel)
                     .staggeredAppearance(index: 5)
+                streakBanner(viewModel)
+                    .staggeredAppearance(index: 6)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
@@ -517,6 +519,64 @@ struct HomeView: View {
             }
 
             Spacer()
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    // MARK: - Activity Calendar (Week Strip)
+
+    private func activityCalendar(_ viewModel: HomeViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack {
+                Text("THIS WEEK")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+
+                Spacer()
+
+                if viewModel.thisWeekSessionCount > 0 {
+                    Text("\(viewModel.thisWeekSessionCount) session\(viewModel.thisWeekSessionCount == 1 ? "" : "s")")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.teal)
+                }
+            }
+
+            HStack(spacing: 0) {
+                ForEach(viewModel.weekDays) { day in
+                    Button {
+                        if day.hasSession {
+                            selectedTab = 4
+                        }
+                    } label: {
+                        VStack(spacing: AppSpacing.xxxs) {
+                            Text(day.dayLabel)
+                                .font(.system(size: 11, weight: .medium, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+
+                            ZStack {
+                                if day.hasSession {
+                                    Circle()
+                                        .fill(AppColors.teal)
+                                        .frame(width: 32, height: 32)
+                                } else if day.isToday {
+                                    Circle()
+                                        .strokeBorder(AppColors.teal, lineWidth: 1.5)
+                                        .frame(width: 32, height: 32)
+                                }
+
+                                Text("\(day.dayNumber)")
+                                    .font(.system(size: 14, weight: day.hasSession || day.isToday ? .bold : .medium, design: .rounded))
+                                    .foregroundStyle(day.hasSession ? .white : (day.isToday ? AppColors.teal : AppColors.textPrimary))
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)

@@ -1,125 +1,132 @@
 import Foundation
 
-struct TimelineDayGroup: Identifiable {
-    let id: Date
-    let displayDate: String
-    var entries: [JournalEntry]
-}
-
-// MARK: - Skill Update Row Model
-
-struct SkillUpdateRow: Hashable {
-    let skill: String
-    let oldValue: Int
-    let newValue: Int
-    let delta: Int
-}
-
-// MARK: - Skill Update Helpers
-
-extension SkillUpdateRow {
-    /// Parse skill updates from the pipe-delimited or legacy summary string
-    static func parseSkillUpdates(from summary: String) -> [SkillUpdateRow] {
-        guard !summary.isEmpty else { return [] }
-        return summary.components(separatedBy: "\n").compactMap { line in
-            let pipeParts = line.components(separatedBy: "|")
-            if pipeParts.count == 4 {
-                let deltaVal = Int(pipeParts[3].replacingOccurrences(of: "+", with: "")) ?? 0
-                return SkillUpdateRow(
-                    skill: pipeParts[0],
-                    oldValue: Int(pipeParts[1]) ?? 0,
-                    newValue: Int(pipeParts[2]) ?? 0,
-                    delta: deltaVal
-                )
-            }
-            // Legacy format: "Dinking: 45% → 52% (+7)"
-            let colonParts = line.components(separatedBy: ": ")
-            guard colonParts.count == 2 else { return nil }
-            let skill = colonParts[0]
-            let rest = colonParts[1]
-                .replacingOccurrences(of: "%", with: "")
-                .replacingOccurrences(of: "(", with: "")
-                .replacingOccurrences(of: ")", with: "")
-            let arrowParts = rest.components(separatedBy: " \u{2192} ")
-            guard arrowParts.count == 2 else { return nil }
-            let old = Int(arrowParts[0].trimmingCharacters(in: .whitespaces)) ?? 0
-            let newAndDelta = arrowParts[1].components(separatedBy: " ")
-            let newVal = Int(newAndDelta[0].trimmingCharacters(in: .whitespaces)) ?? 0
-            let delta = newAndDelta.count >= 2 ? (Int(newAndDelta[1].trimmingCharacters(in: .whitespaces)) ?? 0) : 0
-            return SkillUpdateRow(skill: skill, oldValue: old, newValue: newVal, delta: delta)
-        }
-    }
-
-    /// Returns the skill update with the largest absolute delta (the "hero" highlight)
-    static func heroSkill(from updates: [SkillUpdateRow]) -> SkillUpdateRow? {
-        updates.max(by: { abs($0.delta) < abs($1.delta) })
-    }
-
-    /// Returns the average delta across all skill updates (net change percentage)
-    static func netChange(from updates: [SkillUpdateRow]) -> Int {
-        guard !updates.isEmpty else { return 0 }
-        let total = updates.reduce(0) { $0 + $1.delta }
-        return total / updates.count
-    }
-}
-
 @MainActor
 @Observable
 final class TimelineViewModel {
-    private(set) var dayGroups: [TimelineDayGroup] = []
+    private(set) var sessions: [Session] = []
     private(set) var isLoading = false
+    var selectedDate: Date = Calendar.current.startOfDay(for: Date())
+    var currentMonth: Date = Calendar.current.startOfDay(for: Date())
+    private(set) var sessionDates: Set<Date> = []
+    private(set) var skillNameMap: [UUID: String] = [:]
 
-    private let journalEntryRepository: JournalEntryRepository
-
-    init(journalEntryRepository: JournalEntryRepository) {
-        self.journalEntryRepository = journalEntryRepository
+    var sessionsForSelectedDate: [Session] {
+        let calendar = Calendar.current
+        return sessions
+            .filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
+            .sorted { $0.date > $1.date }
     }
 
-    func loadEntries() async {
+    private let sessionRepository: SessionRepository
+    private let skillRepository: SkillRepository
+
+    init(sessionRepository: SessionRepository, skillRepository: SkillRepository) {
+        self.sessionRepository = sessionRepository
+        self.skillRepository = skillRepository
+    }
+
+    func loadSessions() async {
         isLoading = true
         do {
-            let entries = try await journalEntryRepository.fetchAll()
-            dayGroups = groupByDay(entries)
+            let allSessions = try await sessionRepository.fetchAll()
+            sessions = allSessions
+
+            let calendar = Calendar.current
+            sessionDates = Set(allSessions.map { calendar.startOfDay(for: $0.date) })
+
+            let skills = try await skillRepository.fetchActive()
+            let archived = try await skillRepository.fetchArchived()
+            var map: [UUID: String] = [:]
+            for skill in skills { map[skill.id] = skill.name }
+            for skill in archived { map[skill.id] = skill.name }
+            skillNameMap = map
         } catch {
-            dayGroups = []
+            sessions = []
+            sessionDates = []
         }
         isLoading = false
     }
 
-    func deleteEntry(_ id: UUID) async {
+    func selectDate(_ date: Date) {
+        selectedDate = Calendar.current.startOfDay(for: date)
+    }
+
+    func changeMonth(by offset: Int) {
+        guard let newMonth = Calendar.current.date(byAdding: .month, value: offset, to: currentMonth) else { return }
+        currentMonth = newMonth
+    }
+
+    func deleteSession(_ id: UUID) async {
         do {
-            try await journalEntryRepository.delete(id)
-            await loadEntries()
+            try await sessionRepository.delete(id)
+            await loadSessions()
         } catch {
             // Non-critical
         }
     }
 
-    private func groupByDay(_ entries: [JournalEntry]) -> [TimelineDayGroup] {
+    // MARK: - Calendar Helpers
+
+    func daysInMonthGrid() -> [Date?] {
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: entries) { entry in
-            calendar.startOfDay(for: entry.date)
+        guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth),
+              let monthRange = calendar.range(of: .day, in: .month, for: currentMonth) else {
+            return []
         }
 
-        return grouped.keys.sorted(by: >).map { dayStart in
-            TimelineDayGroup(
-                id: dayStart,
-                displayDate: formatDayHeader(dayStart),
-                entries: grouped[dayStart] ?? []
-            )
+        let firstDay = monthInterval.start
+        let firstWeekday = calendar.component(.weekday, from: firstDay)
+        // Sunday = 1, so offset = firstWeekday - 1
+        let leadingBlanks = firstWeekday - 1
+
+        var days: [Date?] = Array(repeating: nil, count: leadingBlanks)
+
+        for day in monthRange {
+            if let date = calendar.date(bySetting: .day, value: day, of: firstDay) {
+                days.append(calendar.startOfDay(for: date))
+            }
         }
+
+        // Pad to fill last row (multiple of 7)
+        while days.count % 7 != 0 {
+            days.append(nil)
+        }
+
+        return days
     }
 
-    private func formatDayHeader(_ date: Date) -> String {
+    func monthYearString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: currentMonth)
+    }
+
+    func isToday(_ date: Date) -> Bool {
+        Calendar.current.isDateInToday(date)
+    }
+
+    func isSelected(_ date: Date) -> Bool {
+        Calendar.current.isDate(date, inSameDayAs: selectedDate)
+    }
+
+    func hasSession(on date: Date) -> Bool {
+        sessionDates.contains(Calendar.current.startOfDay(for: date))
+    }
+
+    func selectedDateDisplayString() -> String {
         let calendar = Calendar.current
-        if calendar.isDateInToday(date) {
-            return "TODAY"
-        } else if calendar.isDateInYesterday(date) {
-            return "YESTERDAY"
+        if calendar.isDateInToday(selectedDate) {
+            return "Today"
+        } else if calendar.isDateInYesterday(selectedDate) {
+            return "Yesterday"
         } else {
             let formatter = DateFormatter()
             formatter.dateFormat = "EEE, MMM d"
-            return formatter.string(from: date).uppercased()
+            return formatter.string(from: selectedDate)
         }
+    }
+
+    func skillNames(for session: Session) -> [String] {
+        session.skillIdArray.compactMap { skillNameMap[$0] }
     }
 }

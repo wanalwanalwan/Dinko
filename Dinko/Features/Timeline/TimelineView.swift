@@ -18,260 +18,257 @@ struct TimelineView: View {
         .task {
             if viewModel == nil {
                 let vm = TimelineViewModel(
-                    journalEntryRepository: dependencies.journalEntryRepository
+                    sessionRepository: dependencies.sessionRepository,
+                    skillRepository: dependencies.skillRepository
                 )
                 viewModel = vm
                 withAnimation { contentReady = true }
-                await vm.loadEntries()
+                await vm.loadSessions()
             }
         }
     }
 
     @ViewBuilder
     private func timelineContent(_ viewModel: TimelineViewModel) -> some View {
-        if viewModel.dayGroups.isEmpty && !viewModel.isLoading {
-            emptyState
-        } else {
-            ScrollView {
-                LazyVStack(spacing: AppSpacing.sm) {
-                    ForEach(Array(viewModel.dayGroups.enumerated()), id: \.element.id) { index, group in
-                        TimelineDayCard(group: group, viewModel: viewModel)
-                            .staggeredAppearance(index: index)
+        ScrollView {
+            VStack(spacing: AppSpacing.sm) {
+                calendarSection(viewModel)
+                    .staggeredAppearance(index: 0)
+
+                sessionListSection(viewModel)
+                    .staggeredAppearance(index: 1)
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, AppSpacing.xs)
+            .contentLoadTransition(isLoaded: contentReady)
+        }
+        .refreshable {
+            await viewModel.loadSessions()
+        }
+    }
+
+    // MARK: - Calendar Section
+
+    private func calendarSection(_ viewModel: TimelineViewModel) -> some View {
+        VStack(spacing: AppSpacing.xs) {
+            // Month header with navigation
+            HStack {
+                Button {
+                    withAnimation(AppAnimations.springSmooth) {
+                        viewModel.changeMonth(by: -1)
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(AppColors.teal)
+                        .frame(width: 32, height: 32)
+                }
+
+                Spacer()
+
+                Text(viewModel.monthYearString())
+                    .font(AppTypography.title)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                Button {
+                    withAnimation(AppAnimations.springSmooth) {
+                        viewModel.changeMonth(by: 1)
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(AppColors.teal)
+                        .frame(width: 32, height: 32)
+                }
+            }
+            .padding(.horizontal, AppSpacing.xxs)
+
+            // Weekday labels
+            let weekdays = ["S", "M", "T", "W", "T", "F", "S"]
+            HStack(spacing: 0) {
+                ForEach(weekdays.indices, id: \.self) { index in
+                    Text(weekdays[index])
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, AppSpacing.xxs)
+
+            // Calendar grid
+            let days = viewModel.daysInMonthGrid()
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
+
+            LazyVGrid(columns: columns, spacing: AppSpacing.xxs) {
+                ForEach(Array(days.enumerated()), id: \.offset) { _, date in
+                    if let date {
+                        calendarDayCell(date: date, viewModel: viewModel)
+                    } else {
+                        Color.clear
+                            .frame(height: 44)
                     }
                 }
-                .padding(.horizontal, AppSpacing.sm)
-                .padding(.vertical, AppSpacing.xs)
-                .contentLoadTransition(isLoaded: contentReady)
             }
-            .refreshable {
-                await viewModel.loadEntries()
-            }
+            .padding(.horizontal, AppSpacing.xxs)
         }
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: AppSpacing.sm) {
-            Spacer()
-
-            ZStack {
-                Circle()
-                    .fill(AppColors.teal.opacity(0.08))
-                    .frame(width: 100, height: 100)
-
-                Image(systemName: "book.pages")
-                    .font(.system(size: 40))
-                    .foregroundStyle(AppColors.teal.opacity(0.6))
-            }
-
-            Text("No Sessions Yet")
-                .font(AppTypography.title)
-                .foregroundStyle(AppColors.textPrimary)
-
-            Text("Log a session with the Coach to start tracking your progress.")
-                .font(AppTypography.callout)
-                .foregroundStyle(AppColors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, AppSpacing.lg)
-
-            Spacer()
-        }
-    }
-}
-
-// MARK: - Day Card (groups all sessions under one date card)
-
-struct TimelineDayCard: View {
-    let group: TimelineDayGroup
-    let viewModel: TimelineViewModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Date header inside the card
-            Text(group.displayDate)
-                .font(.system(size: 12, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-                .tracking(0.5)
-                .padding(.horizontal, AppSpacing.sm)
-                .padding(.top, AppSpacing.sm)
-                .padding(.bottom, AppSpacing.xs)
-
-            // Session rows
-            ForEach(Array(group.entries.enumerated()), id: \.element.id) { index, entry in
-                TimelineSessionRow(entry: entry, viewModel: viewModel)
-
-                if index < group.entries.count - 1 {
-                    Divider()
-                        .padding(.horizontal, AppSpacing.sm)
-                }
-            }
-        }
+        .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
-}
 
-// MARK: - Session Row (collapsed = one line, expanded = TLDR)
+    private func calendarDayCell(date: Date, viewModel: TimelineViewModel) -> some View {
+        let day = Calendar.current.component(.day, from: date)
+        let selected = viewModel.isSelected(date)
+        let today = viewModel.isToday(date)
+        let hasSession = viewModel.hasSession(on: date)
 
-struct TimelineSessionRow: View {
-    let entry: JournalEntry
-    let viewModel: TimelineViewModel
-    @State private var isExpanded = false
-
-    private var timeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: entry.date)
-    }
-
-    private var skillUpdates: [SkillUpdateRow] {
-        SkillUpdateRow.parseSkillUpdates(from: entry.skillUpdatesSummary)
-    }
-
-    var body: some View {
-        Button {
-            withAnimation(AppAnimations.springSmooth) {
-                isExpanded.toggle()
+        return Button {
+            withAnimation(AppAnimations.springSnappy) {
+                viewModel.selectDate(date)
             }
         } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                // Collapsed: single clean row
-                collapsedRow
+            VStack(spacing: 2) {
+                ZStack {
+                    if selected {
+                        Circle()
+                            .fill(AppColors.teal)
+                            .frame(width: 34, height: 34)
+                    } else if today {
+                        Circle()
+                            .strokeBorder(AppColors.teal, lineWidth: 1.5)
+                            .frame(width: 34, height: 34)
+                    }
 
-                // Expanded: TLDR
-                if isExpanded {
-                    tldrSection
-                        .padding(.top, AppSpacing.xs)
-                        .transition(.scale(scale: 0.97, anchor: .top).combined(with: .opacity))
+                    Text("\(day)")
+                        .font(.system(size: 15, weight: selected ? .bold : .medium, design: .rounded))
+                        .foregroundStyle(selected ? .white : (today ? AppColors.teal : AppColors.textPrimary))
                 }
+
+                Circle()
+                    .fill(hasSession ? (selected ? .white : AppColors.teal) : .clear)
+                    .frame(width: 6, height: 6)
             }
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.vertical, AppSpacing.xs)
+            .frame(height: 44)
+            .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Session List Section
+
+    private func sessionListSection(_ viewModel: TimelineViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(viewModel.selectedDateDisplayString().uppercased())
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .tracking(0.5)
+                .padding(.horizontal, AppSpacing.xxs)
+
+            let sessionsForDay = viewModel.sessionsForSelectedDate
+
+            if sessionsForDay.isEmpty {
+                emptyDayState
+            } else {
+                ForEach(sessionsForDay) { session in
+                    sessionCard(session: session, viewModel: viewModel)
+                }
+            }
+        }
+    }
+
+    private var emptyDayState: some View {
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: "calendar.badge.minus")
+                .font(.system(size: 20))
+                .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+
+            Text("No sessions on this day")
+                .font(.system(size: 14, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.vertical, AppSpacing.lg)
+        .padding(.horizontal, AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    private func sessionCard(session: Session, viewModel: TimelineViewModel) -> some View {
+        let skillNames = viewModel.skillNames(for: session)
+        let timeFormatter: DateFormatter = {
+            let f = DateFormatter()
+            f.dateFormat = "h:mm a"
+            return f
+        }()
+
+        return VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            // Header: type icon + label + time + duration
+            HStack(spacing: AppSpacing.xxs) {
+                Image(systemName: session.sessionType.iconName)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(AppColors.teal)
+
+                Text(session.sessionType.displayName)
+                    .font(AppTypography.headline)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                Text(timeFormatter.string(from: session.date))
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            // Duration pill
+            if session.duration > 0 {
+                Text("\(session.duration) min")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .padding(.horizontal, AppSpacing.xxs)
+                    .padding(.vertical, 3)
+                    .background(AppColors.background)
+                    .clipShape(Capsule())
+            }
+
+            // Skill tags
+            if !skillNames.isEmpty {
+                FlowLayout(spacing: AppSpacing.xxxs) {
+                    ForEach(skillNames, id: \.self) { name in
+                        Text(name)
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+                            .padding(.horizontal, AppSpacing.xxs)
+                            .padding(.vertical, 3)
+                            .background(AppColors.primaryTint)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+
+            // Notes
+            if let notes = session.notes, !notes.isEmpty {
+                Text(notes)
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
         .contextMenu {
             Button(role: .destructive) {
-                Task { await viewModel.deleteEntry(entry.id) }
+                Task { await viewModel.deleteSession(session.id) }
             } label: {
                 Label("Delete", systemImage: "trash")
             }
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Session at \(timeString), \(entry.skillUpdatesCount) skill updates")
-        .accessibilityHint(isExpanded ? "Tap to collapse" : "Tap to expand details")
-    }
-
-    // MARK: - Collapsed Row
-
-    private var collapsedRow: some View {
-        let updates = skillUpdates
-        let net = SkillUpdateRow.netChange(from: updates)
-
-        return HStack(spacing: AppSpacing.xxs) {
-            Text(timeString)
-                .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-
-            if !updates.isEmpty {
-                Text("\u{00B7}")
-                    .foregroundStyle(AppColors.textSecondary)
-                Text("\(updates.count) skill\(updates.count == 1 ? "" : "s")")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-            }
-
-            if net != 0 {
-                Text(net > 0 ? "+\(net)%" : "\(net)%")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(net > 0 ? AppColors.successGreen : AppColors.coral)
-            }
-
-            Spacer()
-
-            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(AppColors.textSecondary)
-        }
-    }
-
-    // MARK: - TLDR Section
-
-    private var tldrSection: some View {
-        Text(buildSummary())
-            .font(.system(size: 14, design: .rounded))
-            .foregroundStyle(AppColors.textPrimary)
-            .lineSpacing(3)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(AppSpacing.xs)
-            .background(AppColors.background)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-    }
-
-    // MARK: - Summary Builder
-
-    private func buildSummary() -> String {
-        let updates = skillUpdates
-        let improved = updates.filter { $0.delta > 0 }
-        let declined = updates.filter { $0.delta < 0 }
-        let skillNames = Set(updates.map { $0.skill.lowercased() })
-
-        var parts: [String] = []
-
-        // Part 1: What changed
-        if !improved.isEmpty {
-            let names = improved.prefix(3).map { $0.skill }
-            let avgGain = improved.reduce(0) { $0 + $1.delta } / improved.count
-            parts.append("Improved \(names.joined(separator: ", ")) (+\(avgGain)% avg)")
-        }
-        if !declined.isEmpty {
-            let names = declined.map { $0.skill }
-            parts.append("\(names.joined(separator: ", ")) dipped")
-        }
-
-        // Part 2: Actionable tip from coach — skip if it just restates skill names
-        if !entry.coachInsight.isEmpty {
-            let sentences = entry.coachInsight
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-                .components(separatedBy: CharacterSet(charactersIn: ".!?\n"))
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-
-            // Find a sentence that doesn't just repeat the skill names
-            let actionWords = ["try", "focus", "practice", "work on", "keep", "use",
-                               "improve", "start", "avoid", "remember", "make sure",
-                               "drill", "aim", "slow", "stay", "add", "increase"]
-            let tip = sentences.first { sentence in
-                let lower = sentence.lowercased()
-                let repeatsSkill = skillNames.contains { lower.hasPrefix($0) || lower == $0 }
-                let hasAction = actionWords.contains { lower.contains($0) }
-                return !repeatsSkill && (hasAction || sentences.count == 1)
-            } ?? sentences.last(where: { sentence in
-                let lower = sentence.lowercased()
-                return !skillNames.contains { lower.hasPrefix($0) }
-            })
-
-            if let tip, !tip.isEmpty {
-                parts.append(tip)
-            }
-        }
-
-        // Part 3: Fall back to user note if nothing else
-        if parts.isEmpty {
-            if !entry.userNote.isEmpty {
-                parts.append(entry.userNote.trimmingCharacters(in: .whitespacesAndNewlines))
-            } else if entry.drillsCount > 0 {
-                parts.append("\(entry.drillsCount) drill\(entry.drillsCount == 1 ? "" : "s") assigned")
-            }
-        }
-
-        if parts.isEmpty { return "Logged a session." }
-
-        // Cap at 3 parts max
-        let capped = Array(parts.prefix(3))
-        var summary = capped.joined(separator: ". ")
-        if !summary.hasSuffix(".") { summary += "." }
-        return summary
     }
 }
 

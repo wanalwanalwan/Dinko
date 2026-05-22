@@ -55,6 +55,16 @@ struct CompletedSkillItem: Identifiable {
     let subskills: [CompletedSubskill]
 }
 
+// MARK: - Week Day Model
+
+struct HomeWeekDay: Identifiable {
+    let id: Date
+    let dayLabel: String    // "M", "T", "W"...
+    let dayNumber: Int      // 19, 20, 21...
+    let isToday: Bool
+    let hasSession: Bool
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -80,6 +90,11 @@ final class HomeViewModel {
 
     private(set) var streakDays = 0
     private(set) var daysToWeeklyGoal = 0
+
+    private(set) var weekDays: [HomeWeekDay] = []
+    private(set) var sessionDatesThisWeek: Set<Date> = []
+    private(set) var thisWeekSessionCount = 0
+    private(set) var thisWeekTotalMinutes = 0
 
     var totalSkillsIncludingCompleted: Int {
         totalActiveSkills + completedSkills.count
@@ -688,6 +703,9 @@ final class HomeViewModel {
             }
         }
 
+        // Compute week data from sessions
+        computeWeekData(sessions: sessions)
+
         guard !activityDates.isEmpty else {
             streakDays = 0
             daysToWeeklyGoal = weeklyGoal
@@ -715,6 +733,53 @@ final class HomeViewModel {
 
         streakDays = streak
         daysToWeeklyGoal = max(0, weeklyGoal - streak)
+    }
+
+    private func computeWeekData(sessions: [Session]) {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Find start of the current week (Sunday)
+        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: today) else {
+            weekDays = []
+            return
+        }
+
+        let weekStart = weekInterval.start
+        let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
+
+        // Build session dates for this week
+        var weekSessionDates: Set<Date> = []
+        var weekCount = 0
+        var weekMinutes = 0
+
+        for session in sessions {
+            let sessionDay = calendar.startOfDay(for: session.date)
+            if sessionDay >= weekStart && sessionDay < weekInterval.end {
+                weekSessionDates.insert(sessionDay)
+                weekCount += 1
+                weekMinutes += session.duration
+            }
+        }
+
+        sessionDatesThisWeek = weekSessionDates
+        thisWeekSessionCount = weekCount
+        thisWeekTotalMinutes = weekMinutes
+
+        var days: [HomeWeekDay] = []
+        for i in 0..<7 {
+            guard let date = calendar.date(byAdding: .day, value: i, to: weekStart) else { continue }
+            let dayOfMonth = calendar.component(.day, from: date)
+            days.append(HomeWeekDay(
+                id: date,
+                dayLabel: dayLabels[i],
+                dayNumber: dayOfMonth,
+                isToday: calendar.isDate(date, inSameDayAs: today),
+                hasSession: weekSessionDates.contains(calendar.startOfDay(for: date))
+            ))
+        }
+
+        weekDays = days
     }
 
     private func priorityValue(_ priority: String) -> Int {
