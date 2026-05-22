@@ -106,6 +106,11 @@
 		Q10000010000000000000004 /* DrillNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000004 /* DrillNodeView.swift */; };
 		Q10000010000000000000005 /* CoachBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = Q20000010000000000000005 /* CoachBubbleView.swift */; };
 		R10000010000000000000001 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = R20000010000000000000001 /* AppleSignInCoordinator.swift */; };
+		S10000010000000000000001 /* SessionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000001 /* SessionType.swift */; };
+		S10000010000000000000002 /* FloatingActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000002 /* FloatingActionButton.swift */; };
+		S10000010000000000000003 /* SessionTypeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000003 /* SessionTypeSheet.swift */; };
+		S10000010000000000000004 /* LogSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000004 /* LogSessionView.swift */; };
+		S10000010000000000000005 /* LogSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000005 /* LogSessionViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -231,6 +236,11 @@
 		Q20000010000000000000005 /* CoachBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachBubbleView.swift; sourceTree = "<group>"; };
 		R20000010000000000000001 /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
 		R20000010000000000000002 /* Dinko.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Dinko.entitlements; sourceTree = "<group>"; };
+		S20000010000000000000001 /* SessionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionType.swift; sourceTree = "<group>"; };
+		S20000010000000000000002 /* FloatingActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingActionButton.swift; sourceTree = "<group>"; };
+		S20000010000000000000003 /* SessionTypeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTypeSheet.swift; sourceTree = "<group>"; };
+		S20000010000000000000004 /* LogSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSessionView.swift; sourceTree = "<group>"; };
+		S20000010000000000000005 /* LogSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSessionViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -380,6 +390,7 @@
 				B2000001000000000000000D /* SectionHeaderView.swift */,
 				B2000001000000000000000C /* SkillCard.swift */,
 				B20000010000000000000008 /* SparklineChart.swift */,
+				S20000010000000000000002 /* FloatingActionButton.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -457,6 +468,7 @@
 				E20000020000000000000001 /* ChatMessage.swift */,
 				E30000020000000000000001 /* Drill.swift */,
 				J20000010000000000000001 /* JournalEntry.swift */,
+				S20000010000000000000001 /* SessionType.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -474,6 +486,7 @@
 				E70000030000000000000001 /* Drills */,
 				J70000000000000000000001 /* Timeline */,
 				M70000000000000000000001 /* Onboarding */,
+				S70000010000000000000001 /* LogSession */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -584,6 +597,16 @@
 				N20000000000000000000002 /* HomeView.swift */,
 			);
 			path = Home;
+			sourceTree = "<group>";
+		};
+		S70000010000000000000001 /* LogSession */ = {
+			isa = PBXGroup;
+			children = (
+				S20000010000000000000005 /* LogSessionViewModel.swift */,
+				S20000010000000000000004 /* LogSessionView.swift */,
+				S20000010000000000000003 /* SessionTypeSheet.swift */,
+			);
+			path = LogSession;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -808,6 +831,11 @@
 				Q10000010000000000000004 /* DrillNodeView.swift in Sources */,
 				Q10000010000000000000005 /* CoachBubbleView.swift in Sources */,
 				R10000010000000000000001 /* AppleSignInCoordinator.swift in Sources */,
+				S10000010000000000000001 /* SessionType.swift in Sources */,
+				S10000010000000000000002 /* FloatingActionButton.swift in Sources */,
+				S10000010000000000000003 /* SessionTypeSheet.swift in Sources */,
+				S10000010000000000000004 /* LogSessionView.swift in Sources */,
+				S10000010000000000000005 /* LogSessionViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

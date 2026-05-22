@@ -7,6 +7,8 @@ extension SessionEntity {
             date: date ?? Date(),
             duration: Int(duration),
             notes: notes,
+            sessionType: SessionType(rawValue: sessionType ?? "game") ?? .game,
+            skillIds: skillIds ?? "",
             updatedAt: updatedAt ?? Date()
         )
     }
@@ -16,6 +18,8 @@ extension SessionEntity {
         date = session.date
         duration = Int16(session.duration)
         notes = session.notes
+        sessionType = session.sessionType.rawValue
+        skillIds = session.skillIds
         updatedAt = session.updatedAt
     }
 }
