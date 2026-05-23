@@ -82,7 +82,9 @@ struct ContentView: View {
             let viewModel = LogSessionViewModel(
                 skillRepository: dependencies.skillRepository,
                 sessionRepository: dependencies.sessionRepository,
-                journalEntryRepository: dependencies.journalEntryRepository
+                journalEntryRepository: dependencies.journalEntryRepository,
+                skillRatingRepository: dependencies.skillRatingRepository,
+                drillRepository: dependencies.drillRepository
             )
             LogSessionView(
                 viewModel: {

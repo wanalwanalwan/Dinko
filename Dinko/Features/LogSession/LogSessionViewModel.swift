@@ -10,10 +10,16 @@ final class LogSessionViewModel {
     var isSaving = false
     var errorMessage: String?
     var saveSucceeded = false
+    var skillRatings: [UUID: Double] = [:]
+    var currentRatings: [UUID: Int] = [:]
+    var skillDrills: [UUID: [Drill]] = [:]
+    var completedDrillIds: Set<UUID> = []
 
     private let skillRepository: SkillRepository
     private let sessionRepository: SessionRepository
     private let journalEntryRepository: JournalEntryRepository
+    private let skillRatingRepository: SkillRatingRepository
+    private let drillRepository: DrillRepository
 
     var canSave: Bool {
         !selectedSkillIds.isEmpty && !isSaving
@@ -30,17 +36,27 @@ final class LogSessionViewModel {
     init(
         skillRepository: SkillRepository,
         sessionRepository: SessionRepository,
-        journalEntryRepository: JournalEntryRepository
+        journalEntryRepository: JournalEntryRepository,
+        skillRatingRepository: SkillRatingRepository,
+        drillRepository: DrillRepository
     ) {
         self.skillRepository = skillRepository
         self.sessionRepository = sessionRepository
         self.journalEntryRepository = journalEntryRepository
+        self.skillRatingRepository = skillRatingRepository
+        self.drillRepository = drillRepository
     }
 
     func loadSkills() async {
         do {
             let allSkills = try await skillRepository.fetchActive()
             skills = allSkills.filter { $0.hierarchyLevel == 0 }
+
+            for skill in skills {
+                if let latest = try await skillRatingRepository.fetchLatest(skill.id) {
+                    currentRatings[skill.id] = latest.rating
+                }
+            }
         } catch {
             errorMessage = "Failed to load skills."
         }
@@ -49,8 +65,35 @@ final class LogSessionViewModel {
     func toggleSkill(_ id: UUID) {
         if selectedSkillIds.contains(id) {
             selectedSkillIds.remove(id)
+            skillRatings.removeValue(forKey: id)
+            if let drills = skillDrills.removeValue(forKey: id) {
+                for drill in drills {
+                    completedDrillIds.remove(drill.id)
+                }
+            }
         } else {
             selectedSkillIds.insert(id)
+            skillRatings[id] = Double(currentRatings[id] ?? 50)
+            if sessionType == .drill {
+                Task { await loadDrills(for: id) }
+            }
+        }
+    }
+
+    func loadDrills(for skillId: UUID) async {
+        do {
+            let drills = try await drillRepository.fetchForSkill(skillId)
+            skillDrills[skillId] = drills.filter { $0.status == .pending }
+        } catch {
+            // Drills are non-critical — don't block the session
+        }
+    }
+
+    func toggleDrill(_ drillId: UUID) {
+        if completedDrillIds.contains(drillId) {
+            completedDrillIds.remove(drillId)
+        } else {
+            completedDrillIds.insert(drillId)
         }
     }
 
@@ -88,6 +131,18 @@ final class LogSessionViewModel {
 
             try await journalEntryRepository.save(journalEntry)
 
+            for (skillId, value) in skillRatings {
+                let newRating = Int(value)
+                if newRating != currentRatings[skillId] {
+                    let rating = SkillRating(skillId: skillId, rating: newRating)
+                    try await skillRatingRepository.save(rating)
+                }
+            }
+
+            for drillId in completedDrillIds {
+                try await drillRepository.updateStatus(drillId, status: .completed)
+            }
+
             saveSucceeded = true
         } catch {
             errorMessage = "Failed to save session. Please try again."
@@ -98,6 +153,10 @@ final class LogSessionViewModel {
 
     func reset() {
         selectedSkillIds = []
+        skillRatings = [:]
+        currentRatings = [:]
+        skillDrills = [:]
+        completedDrillIds = []
         notes = ""
         duration = 60
         isSaving = false

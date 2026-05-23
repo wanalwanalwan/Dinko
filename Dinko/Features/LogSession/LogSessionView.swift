@@ -17,10 +17,6 @@ struct LogSessionView: View {
                     skillsSection
                     notesSection
 
-                    if viewModel.sessionType == .drill {
-                        generateDrillsButton
-                    }
-
                     if let error = viewModel.errorMessage {
                         Text(error)
                             .font(AppTypography.caption)
@@ -135,10 +131,17 @@ struct LogSessionView: View {
                             ForEach(group.skills) { skill in
                                 SkillSelectionRow(
                                     skill: skill,
-                                    isSelected: viewModel.selectedSkillIds.contains(skill.id)
-                                ) {
-                                    viewModel.toggleSkill(skill.id)
-                                }
+                                    isSelected: viewModel.selectedSkillIds.contains(skill.id),
+                                    rating: Binding(
+                                        get: { viewModel.skillRatings[skill.id] ?? 50 },
+                                        set: { viewModel.skillRatings[skill.id] = $0 }
+                                    ),
+                                    drills: viewModel.skillDrills[skill.id] ?? [],
+                                    completedDrillIds: viewModel.completedDrillIds,
+                                    isDrillSession: viewModel.sessionType == .drill,
+                                    onToggle: { viewModel.toggleSkill(skill.id) },
+                                    onToggleDrill: { viewModel.toggleDrill($0) }
+                                )
                             }
                         }
                     }
@@ -165,29 +168,6 @@ struct LogSessionView: View {
                 .background(AppColors.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
-    }
-
-    // MARK: - Generate Drills Button
-
-    private var generateDrillsButton: some View {
-        Button {
-            dismiss()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                selectedTab?.wrappedValue = 1
-            }
-        } label: {
-            HStack(spacing: AppSpacing.xxs) {
-                Image(systemName: "sparkles")
-                Text("Generate Drills with Coach")
-            }
-            .font(.system(size: 15, weight: .medium, design: .rounded))
-            .foregroundStyle(AppColors.teal)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, AppSpacing.xs)
-            .background(AppColors.primaryTint)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Save Button
@@ -223,28 +203,79 @@ struct LogSessionView: View {
 private struct SkillSelectionRow: View {
     let skill: Skill
     let isSelected: Bool
-    let action: () -> Void
+    @Binding var rating: Double
+    let drills: [Drill]
+    let completedDrillIds: Set<UUID>
+    let isDrillSession: Bool
+    let onToggle: () -> Void
+    let onToggleDrill: (UUID) -> Void
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: AppSpacing.xs) {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 20))
-                    .foregroundStyle(isSelected ? AppColors.teal : AppColors.lockedGray)
+        VStack(spacing: 0) {
+            Button(action: onToggle) {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 20))
+                        .foregroundStyle(isSelected ? AppColors.teal : AppColors.lockedGray)
 
-                Text(skill.category.iconName)
-                    .font(.system(size: 16))
+                    Text(skill.category.iconName)
+                        .font(.system(size: 16))
 
-                Text(skill.name)
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.textPrimary)
+                    Text(skill.name)
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColors.textPrimary)
 
-                Spacer()
+                    Spacer()
+                }
+                .padding(.vertical, AppSpacing.xxxs)
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, AppSpacing.xxxs)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+
+            if isSelected {
+                VStack(spacing: AppSpacing.xxs) {
+                    HStack(spacing: AppSpacing.xxs) {
+                        Slider(value: $rating, in: 0...100, step: 1)
+                            .tint(AppColors.teal)
+
+                        Text("\(Int(rating))%")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.teal)
+                            .frame(width: 40, alignment: .trailing)
+                    }
+
+                    if isDrillSession && !drills.isEmpty {
+                        VStack(spacing: 0) {
+                            ForEach(drills) { drill in
+                                let isCompleted = completedDrillIds.contains(drill.id)
+                                Button { onToggleDrill(drill.id) } label: {
+                                    HStack(spacing: AppSpacing.xxs) {
+                                        Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(isCompleted ? AppColors.successGreen : AppColors.lockedGray)
+
+                                        Text(drill.name)
+                                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                                            .foregroundStyle(isCompleted ? AppColors.textSecondary : AppColors.textPrimary)
+                                            .strikethrough(isCompleted)
+
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 3)
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding(.leading, 32)
+                .padding(.trailing, AppSpacing.xxs)
+                .padding(.bottom, AppSpacing.xxs)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
 
@@ -253,7 +284,9 @@ private struct SkillSelectionRow: View {
     let vm = LogSessionViewModel(
         skillRepository: deps.skillRepository,
         sessionRepository: deps.sessionRepository,
-        journalEntryRepository: deps.journalEntryRepository
+        journalEntryRepository: deps.journalEntryRepository,
+        skillRatingRepository: deps.skillRatingRepository,
+        drillRepository: deps.drillRepository
     )
     LogSessionView(viewModel: vm)
 }
