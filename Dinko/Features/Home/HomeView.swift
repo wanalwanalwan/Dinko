@@ -4,6 +4,7 @@ struct HomeView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.authViewModel) private var authViewModel
     @Binding var selectedTab: Int
+    var refreshID: UUID = UUID()
     @State private var viewModel: HomeViewModel?
     @State private var contentReady = false
     @State private var expandedSkillId: UUID?
@@ -35,6 +36,11 @@ struct HomeView: View {
             }
         }
         .onAppear {
+            if let viewModel {
+                Task { await viewModel.loadDashboard() }
+            }
+        }
+        .onChange(of: refreshID) {
             if let viewModel {
                 Task { await viewModel.loadDashboard() }
             }
@@ -614,6 +620,6 @@ struct HomeView: View {
 
 #Preview {
     NavigationStack {
-        HomeView(selectedTab: .constant(0))
+        HomeView(selectedTab: .constant(0), refreshID: UUID())
     }
 }

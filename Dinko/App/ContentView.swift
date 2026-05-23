@@ -6,12 +6,13 @@ struct ContentView: View {
     @State private var showTypeSelection = false
     @State private var showSessionForm = false
     @State private var selectedSessionType: SessionType = .game
+    @State private var homeRefreshID = UUID()
 
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
                 NavigationStack {
-                    HomeView(selectedTab: $selectedTab)
+                    HomeView(selectedTab: $selectedTab, refreshID: homeRefreshID)
                 }
                 .tag(0)
                 .tabItem {
@@ -57,11 +58,15 @@ struct ContentView: View {
             }
             .tint(AppColors.teal)
 
-            FloatingActionButton {
-                showTypeSelection = true
+            if selectedTab == 0 {
+                FloatingActionButton {
+                    showTypeSelection = true
+                }
+                .padding(.bottom, 60)
+                .transition(.scale.combined(with: .opacity))
             }
-            .padding(.bottom, 60)
         }
+        .animation(.easeInOut(duration: 0.2), value: selectedTab)
         .sheet(isPresented: $showTypeSelection) {
             SessionTypeSheet { type in
                 selectedSessionType = type
@@ -71,7 +76,9 @@ struct ContentView: View {
                 }
             }
         }
-        .sheet(isPresented: $showSessionForm) {
+        .sheet(isPresented: $showSessionForm, onDismiss: {
+            homeRefreshID = UUID()
+        }) {
             let viewModel = LogSessionViewModel(
                 skillRepository: dependencies.skillRepository,
                 sessionRepository: dependencies.sessionRepository,
