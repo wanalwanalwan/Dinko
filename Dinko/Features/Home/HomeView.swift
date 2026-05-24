@@ -11,6 +11,8 @@ struct HomeView: View {
     @State private var sliderValue: Double = 0
     @State private var isSavingRating = false
     @State private var showAddSkill = false
+    @State private var showProfile = false
+    @AppStorage("pkkl_has_seen_profile_prompt") private var hasSeenProfilePrompt = false
 
     var body: some View {
         Group {
@@ -91,6 +93,12 @@ struct HomeView: View {
             VStack(spacing: AppSpacing.lg) {
                 greetingHeader(viewModel)
                     .staggeredAppearance(index: 0)
+
+                if !hasSeenProfilePrompt && !PlayerProfile.current().isComplete {
+                    completeProfileBanner
+                        .staggeredAppearance(index: 1)
+                }
+
                 overallSkillLevelSection(viewModel)
                     .staggeredAppearance(index: 1)
                 activityCalendar(viewModel)
@@ -112,64 +120,91 @@ struct HomeView: View {
         .refreshable {
             await viewModel.loadDashboard()
         }
+        .sheet(isPresented: $showProfile) {
+            ProfileView()
+        }
     }
 
     // MARK: - Greeting Header
 
     private func greetingHeader(_ viewModel: HomeViewModel) -> some View {
         HStack(alignment: .top, spacing: AppSpacing.sm) {
-            VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
-                Text(viewModel.todayDateText.uppercased())
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(viewModel.greetingText),")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
 
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("\(viewModel.greetingText),")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    Text(viewModel.playerName)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
-                }
+                Text(viewModel.playerName)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.teal)
             }
 
             Spacer()
 
-            Menu {
-                Link(destination: AppURLs.privacyPolicy) {
-                    Label("Privacy Policy", systemImage: "hand.raised")
-                }
-
-                Link(destination: AppURLs.termsOfService) {
-                    Label("Terms of Service", systemImage: "doc.text")
-                }
-
-                Divider()
-
-                Button(role: .destructive) {
-                    Task { await authViewModel?.signOut() }
-                } label: {
-                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                }
-
-                Button(role: .destructive) {
-                    authViewModel?.showDeleteConfirmation = true
-                } label: {
-                    Label("Delete Account", systemImage: "trash")
-                }
+            Button {
+                showProfile = true
             } label: {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .frame(width: 36, height: 36)
+                Image(systemName: "person.fill")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .frame(width: 44, height: 44)
                     .background(AppColors.cardBackground)
                     .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .strokeBorder(AppColors.separator, lineWidth: 1.5)
+                    )
             }
-            .accessibilityLabel("Account Settings")
+            .accessibilityLabel("Profile")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, AppSpacing.xs)
+    }
+
+    // MARK: - Complete Profile Banner
+
+    private var completeProfileBanner: some View {
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: "person.crop.circle.badge.exclamationmark")
+                .font(.system(size: 20))
+                .foregroundStyle(AppColors.teal)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Complete your profile")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Get personalized coaching tips")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            Spacer()
+
+            Button {
+                showProfile = true
+            } label: {
+                Text("Set up")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(AppColors.teal)
+                    .clipShape(Capsule())
+            }
+
+            Button {
+                withAnimation { hasSeenProfilePrompt = true }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .frame(width: 24, height: 24)
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
     // MARK: - Skills Section
