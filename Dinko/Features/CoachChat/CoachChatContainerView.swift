@@ -4,10 +4,9 @@ import SwiftUI
 /// - Player: single conversation thread (or "no coach assigned" empty state)
 /// - Coach: list of player conversations
 struct CoachChatContainerView: View {
-    @State private var userRole: UserRole?
+    @State private var userRole: UserRole? = .player
     @State private var conversation: Conversation?
     @State private var isLoading = true
-    @State private var error: String?
 
     let realtimeService: RealtimeService
 
@@ -18,18 +17,16 @@ struct CoachChatContainerView: View {
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let role = userRole {
-                switch role {
+            } else {
+                switch userRole {
                 case .coach:
                     CoachChatListView(
                         viewModel: CoachChatListViewModel(currentUserId: currentUserId),
                         realtimeService: realtimeService
                     )
-                case .player, .admin:
+                default:
                     playerView
                 }
-            } else {
-                noProfileState
             }
         }
         .background(AppColors.background)
@@ -76,31 +73,10 @@ struct CoachChatContainerView: View {
         .padding(.horizontal, AppSpacing.xl)
     }
 
-    private var noProfileState: some View {
-        VStack(spacing: AppSpacing.sm) {
-            Spacer()
-            Image(systemName: "person.crop.circle.badge.questionmark")
-                .font(.system(size: 48))
-                .foregroundStyle(AppColors.textSecondary.opacity(0.5))
-            Text("Profile not set up")
-                .font(AppTypography.title)
-                .foregroundStyle(AppColors.textPrimary)
-            if let error {
-                Text(error)
-                    .font(AppTypography.callout)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-            Spacer()
-        }
-        .padding(.horizontal, AppSpacing.xl)
-    }
-
     // MARK: - Load
 
     private func loadUserContext() async {
         guard let token = await AuthService.shared.validAccessToken() else {
-            error = "Please sign in again."
             isLoading = false
             return
         }
@@ -112,20 +88,23 @@ struct CoachChatContainerView: View {
         }
 
         do {
-            // Fetch fresh profile
+            // Fetch fresh profile — default to player if none exists
             if let profile = try await chatService.fetchUserProfile(userId: currentUserId, authToken: token) {
                 userRole = profile.role
                 UserDefaults.standard.set(profile.role.rawValue, forKey: "pkkl_user_role")
+            } else {
+                userRole = .player
+                UserDefaults.standard.set(UserRole.player.rawValue, forKey: "pkkl_user_role")
             }
 
             // If player, fetch their conversation
-            if userRole == .player || userRole == nil {
+            if userRole == .player {
                 conversation = try await chatService.fetchConversation(playerId: currentUserId, authToken: token)
             }
         } catch {
-            // If we already have a cached role, don't show error
+            // Default to player on error if no cached role
             if userRole == nil {
-                self.error = error.localizedDescription
+                userRole = .player
             }
         }
 
