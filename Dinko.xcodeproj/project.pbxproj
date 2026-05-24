@@ -111,6 +111,9 @@
 		S10000010000000000000003 /* SessionTypeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000003 /* SessionTypeSheet.swift */; };
 		S10000010000000000000004 /* LogSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000004 /* LogSessionView.swift */; };
 		S10000010000000000000005 /* LogSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = S20000010000000000000005 /* LogSessionViewModel.swift */; };
+		T10000010000000000000001 /* GameTip.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000001 /* GameTip.swift */; };
+		T10000010000000000000002 /* SkillCoachingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000002 /* SkillCoachingViewModel.swift */; };
+		T10000010000000000000003 /* SkillCoachingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000003 /* SkillCoachingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -241,6 +244,9 @@
 		S20000010000000000000003 /* SessionTypeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTypeSheet.swift; sourceTree = "<group>"; };
 		S20000010000000000000004 /* LogSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSessionView.swift; sourceTree = "<group>"; };
 		S20000010000000000000005 /* LogSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSessionViewModel.swift; sourceTree = "<group>"; };
+		T20000010000000000000001 /* GameTip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTip.swift; sourceTree = "<group>"; };
+		T20000010000000000000002 /* SkillCoachingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCoachingViewModel.swift; sourceTree = "<group>"; };
+		T20000010000000000000003 /* SkillCoachingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCoachingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -469,6 +475,7 @@
 				E30000020000000000000001 /* Drill.swift */,
 				J20000010000000000000001 /* JournalEntry.swift */,
 				S20000010000000000000001 /* SessionType.swift */,
+				T20000010000000000000001 /* GameTip.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -507,6 +514,8 @@
 				F20000010000000000000002 /* SkillDetailView.swift */,
 				H20000010000000000000001 /* RateSkillView.swift */,
 				H20000010000000000000002 /* SkillNotesView.swift */,
+				T20000010000000000000002 /* SkillCoachingViewModel.swift */,
+				T20000010000000000000003 /* SkillCoachingView.swift */,
 			);
 			path = SkillDetail;
 			sourceTree = "<group>";
@@ -836,6 +845,9 @@
 				S10000010000000000000003 /* SessionTypeSheet.swift in Sources */,
 				S10000010000000000000004 /* LogSessionView.swift in Sources */,
 				S10000010000000000000005 /* LogSessionViewModel.swift in Sources */,
+				T10000010000000000000001 /* GameTip.swift in Sources */,
+				T10000010000000000000002 /* SkillCoachingViewModel.swift in Sources */,
+				T10000010000000000000003 /* SkillCoachingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

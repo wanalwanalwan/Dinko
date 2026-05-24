@@ -7,6 +7,7 @@ struct SkillDetailView: View {
     @State private var showingRateSkill = false
     @State private var showingAddSubskill = false
     @State private var showingDeleteConfirm = false
+    @State private var showingCoaching = false
     @State private var ratingNotesExpanded = false
     @State private var contentReady = false
     @State private var celebrationVisible = false
@@ -53,6 +54,7 @@ struct SkillDetailView: View {
                     }
 
                     notesSection(viewModel)
+                    coachingButton(viewModel)
                     drillsSection(viewModel)
                     ratingNotesSection(viewModel)
 
@@ -83,6 +85,21 @@ struct SkillDetailView: View {
             Task { await viewModel.loadDetail() }
         }) {
             AddEditSkillView(parentSkillId: skill.id)
+        }
+        .sheet(isPresented: $showingCoaching, onDismiss: {
+            Task { await viewModel.loadDetail() }
+        }) {
+            SkillCoachingView(
+                viewModel: SkillCoachingViewModel(
+                    skill: skill,
+                    subskills: viewModel.subskills,
+                    subskillRatings: viewModel.subskillRatings,
+                    currentRating: viewModel.latestRating,
+                    existingDrills: viewModel.drills,
+                    ratings: viewModel.ratings,
+                    drillRepository: dependencies.drillRepository
+                )
+            )
         }
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
@@ -364,6 +381,68 @@ struct SkillDetailView: View {
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Coaching Button
+
+    @ViewBuilder
+    private func coachingButton(_ viewModel: SkillDetailViewModel) -> some View {
+        let hasPendingDrills = viewModel.drills.contains { $0.status == .pending }
+
+        if skill.status == .active {
+            if hasPendingDrills {
+                // Subtle button when drills already exist
+                Button {
+                    showingCoaching = true
+                } label: {
+                    HStack(spacing: AppSpacing.xxs) {
+                        Image(systemName: "sparkles")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.teal)
+
+                        Text("Get More Coaching")
+                            .font(AppTypography.callout)
+                            .foregroundStyle(AppColors.teal)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.xs)
+                    .background(AppColors.teal.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                }
+                .buttonStyle(.pressable)
+            } else {
+                // Prominent card when no drills exist
+                Button {
+                    showingCoaching = true
+                } label: {
+                    HStack(spacing: AppSpacing.xs) {
+                        Image(systemName: "sparkles")
+                            .font(.title3)
+                            .foregroundStyle(.white)
+
+                        VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                            Text("Get AI Coaching")
+                                .font(AppTypography.headline)
+                                .foregroundStyle(.white)
+
+                            Text("Personalized drills & game tips")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+                    .padding(AppSpacing.sm)
+                    .background(AppColors.teal)
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+                }
+                .buttonStyle(.pressable)
+            }
+        }
     }
 
     // MARK: - Drills Section

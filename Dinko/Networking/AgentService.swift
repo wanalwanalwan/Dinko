@@ -164,6 +164,74 @@ final class AgentService {
         let deleted: Bool
     }
 
+    // MARK: - Skill Coaching
+
+    struct PendingDrillPayload: Codable {
+        let name: String
+        let targetSubskill: String?
+
+        enum CodingKeys: String, CodingKey {
+            case name
+            case targetSubskill = "target_subskill"
+        }
+    }
+
+    struct RatingTrendPoint: Codable {
+        let date: String
+        let rating: Int
+    }
+
+    struct CoachingSubskillPayload: Codable {
+        let name: String
+        let currentRating: Int
+
+        enum CodingKeys: String, CodingKey {
+            case name
+            case currentRating = "current_rating"
+        }
+    }
+
+    /// Get AI coaching (game tips + drill suggestions) for a specific skill
+    func skillCoaching(
+        skillName: String,
+        category: String,
+        currentRating: Int,
+        skillDescription: String,
+        subskills: [CoachingSubskillPayload],
+        pendingDrills: [PendingDrillPayload],
+        ratingTrend: [RatingTrendPoint],
+        authToken: String
+    ) async throws -> SkillCoachingResponse {
+        let body: [String: Any] = [
+            "action": "skill_coaching",
+            "skill_name": skillName,
+            "category": category,
+            "current_rating": currentRating,
+            "skill_description": skillDescription,
+            "subskills": subskills.map { sub in
+                [
+                    "name": sub.name,
+                    "current_rating": sub.currentRating,
+                ] as [String: Any]
+            },
+            "pending_drills": pendingDrills.map { drill in
+                var dict: [String: Any] = ["name": drill.name]
+                if let subskill = drill.targetSubskill {
+                    dict["target_subskill"] = subskill
+                }
+                return dict
+            },
+            "rating_trend": ratingTrend.map { point in
+                [
+                    "date": point.date,
+                    "rating": point.rating,
+                ] as [String: Any]
+            },
+        ]
+
+        return try await post(body: body, authToken: authToken)
+    }
+
     /// Delete the user's account and all associated data
     func deleteAccount(authToken: String) async throws {
         let body: [String: Any] = [
