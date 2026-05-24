@@ -21,7 +21,7 @@ struct ContentView: View {
                 }
 
                 NavigationStack {
-                    ChatView()
+                    CoachTabView()
                 }
                 .tag(1)
                 .tabItem {

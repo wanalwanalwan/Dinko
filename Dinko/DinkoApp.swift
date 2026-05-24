@@ -41,6 +41,7 @@ struct DinkoApp: App {
                 await authViewModel.restoreSession()
             }
             .onReceive(NotificationCenter.default.publisher(for: .authSessionExpired)) { _ in
+                UserDefaults.standard.removeObject(forKey: "pkkl_user_role")
                 Task { await authViewModel.signOut() }
             }
         }

@@ -281,6 +281,12 @@ final class AuthViewModel {
         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         UserDefaults.standard.removeObject(forKey: "pkkl_weekly_goal")
         UserDefaults.standard.removeObject(forKey: "pkkl_drill_preferences")
+        UserDefaults.standard.removeObject(forKey: "pkkl_dupr_range")
+        UserDefaults.standard.removeObject(forKey: "pkkl_play_style")
+        UserDefaults.standard.removeObject(forKey: "pkkl_game_format")
+        UserDefaults.standard.removeObject(forKey: "pkkl_primary_goal")
+        UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
+        UserDefaults.standard.removeObject(forKey: "pkkl_has_seen_profile_prompt")
 
         accessToken = ""
         userId = ""
@@ -297,6 +303,15 @@ final class AuthViewModel {
         authService.clearSession()
         await PersistenceController.shared.deleteAllData()
         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.removeObject(forKey: "pkkl_weekly_goal")
+        UserDefaults.standard.removeObject(forKey: "pkkl_drill_preferences")
+        UserDefaults.standard.removeObject(forKey: "pkkl_dupr_range")
+        UserDefaults.standard.removeObject(forKey: "pkkl_play_style")
+        UserDefaults.standard.removeObject(forKey: "pkkl_game_format")
+        UserDefaults.standard.removeObject(forKey: "pkkl_primary_goal")
+        UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
+        UserDefaults.standard.removeObject(forKey: "pkkl_has_seen_profile_prompt")
+        UserDefaults.standard.removeObject(forKey: "pkkl_user_role")
         accessToken = ""
         userId = ""
         isAuthenticated = false

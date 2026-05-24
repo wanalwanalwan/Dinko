@@ -17,4 +17,10 @@ enum SupabaseConfig {
     }()
 
     static let agentFunctionURL = "\(url)/functions/v1/dinkit-agent"
+
+    static let realtimeURL: String = {
+        // Convert https://xxx.supabase.co to wss://xxx.supabase.co/realtime/v1/websocket
+        let wsBase = url.replacingOccurrences(of: "https://", with: "wss://")
+        return "\(wsBase)/realtime/v1/websocket"
+    }()
 }
