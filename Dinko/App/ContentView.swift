@@ -8,6 +8,31 @@ struct ContentView: View {
     @State private var selectedSessionType: SessionType = .game
     @State private var homeRefreshID = UUID()
 
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(AppColors.cardBackground)
+        appearance.shadowColor = UIColor(AppColors.separator)
+
+        let normalAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 10, weight: .medium)
+        ]
+        let selectedAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 10, weight: .semibold)
+        ]
+
+        let itemAppearance = UITabBarItemAppearance()
+        itemAppearance.normal.titleTextAttributes = normalAttributes
+        itemAppearance.selected.titleTextAttributes = selectedAttributes
+
+        appearance.stackedLayoutAppearance = itemAppearance
+        appearance.inlineLayoutAppearance = itemAppearance
+        appearance.compactInlineLayoutAppearance = itemAppearance
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
@@ -16,7 +41,7 @@ struct ContentView: View {
                 }
                 .tag(0)
                 .tabItem {
-                    Image(systemName: "house")
+                    Image(systemName: selectedTab == 0 ? "house.fill" : "house")
                     Text("Home")
                 }
 
@@ -25,7 +50,7 @@ struct ContentView: View {
                 }
                 .tag(1)
                 .tabItem {
-                    Image(systemName: "bubble.left")
+                    Image(systemName: selectedTab == 1 ? "bubble.left.fill" : "bubble.left")
                     Text("Coach")
                 }
 
@@ -34,7 +59,7 @@ struct ContentView: View {
                 }
                 .tag(2)
                 .tabItem {
-                    Image(systemName: "doc.text")
+                    Image(systemName: selectedTab == 2 ? "doc.text.fill" : "doc.text")
                     Text("Progress")
                 }
 
@@ -43,7 +68,7 @@ struct ContentView: View {
                 }
                 .tag(3)
                 .tabItem {
-                    Image(systemName: "list.bullet.clipboard")
+                    Image(systemName: selectedTab == 3 ? "list.bullet.clipboard.fill" : "list.bullet.clipboard")
                     Text("Drills")
                 }
 
@@ -52,7 +77,7 @@ struct ContentView: View {
                 }
                 .tag(4)
                 .tabItem {
-                    Image(systemName: "book")
+                    Image(systemName: selectedTab == 4 ? "book.fill" : "book")
                     Text("Timeline")
                 }
             }
