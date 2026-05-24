@@ -21,24 +21,6 @@ CREATE POLICY "Users can update own profile"
     ON user_profiles FOR UPDATE
     USING (auth.uid() = id);
 
-CREATE POLICY "Coaches can read assigned player profiles"
-    ON user_profiles FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM coach_assignments
-            WHERE coach_id = auth.uid() AND player_id = user_profiles.id
-        )
-    );
-
-CREATE POLICY "Players can read assigned coach profiles"
-    ON user_profiles FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM coach_assignments
-            WHERE player_id = auth.uid() AND coach_id = user_profiles.id
-        )
-    );
-
 -- 2. Coach assignments (admin-managed)
 CREATE TABLE IF NOT EXISTS coach_assignments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -57,6 +39,25 @@ CREATE POLICY "Players can see own assignments"
 CREATE POLICY "Coaches can see own assignments"
     ON coach_assignments FOR SELECT
     USING (auth.uid() = coach_id);
+
+-- Cross-table RLS policies (now that coach_assignments exists)
+CREATE POLICY "Coaches can read assigned player profiles"
+    ON user_profiles FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM coach_assignments
+            WHERE coach_id = auth.uid() AND player_id = user_profiles.id
+        )
+    );
+
+CREATE POLICY "Players can read assigned coach profiles"
+    ON user_profiles FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM coach_assignments
+            WHERE player_id = auth.uid() AND coach_id = user_profiles.id
+        )
+    );
 
 -- 3. Conversations
 CREATE TABLE IF NOT EXISTS conversations (
