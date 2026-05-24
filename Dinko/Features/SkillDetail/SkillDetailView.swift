@@ -8,6 +8,7 @@ struct SkillDetailView: View {
     @State private var showingAddSubskill = false
     @State private var showingDeleteConfirm = false
     @State private var showingCoaching = false
+    @State private var showingProgressCheckers = false
     @State private var ratingNotesExpanded = false
     @State private var contentReady = false
     @State private var celebrationVisible = false
@@ -29,7 +30,8 @@ struct SkillDetailView: View {
                     skill: skill,
                     skillRepository: dependencies.skillRepository,
                     skillRatingRepository: dependencies.skillRatingRepository,
-                    drillRepository: dependencies.drillRepository
+                    drillRepository: dependencies.drillRepository,
+                    progressCheckerRepository: dependencies.progressCheckerRepository
                 )
                 viewModel = vm
                 withAnimation { contentReady = true }
@@ -51,6 +53,10 @@ struct SkillDetailView: View {
 
                     if viewModel.isParentSkill {
                         subskillsSection(viewModel)
+                    }
+
+                    if !viewModel.progressCheckers.isEmpty {
+                        progressCheckersCard(viewModel)
                     }
 
                     notesSection(viewModel)
@@ -128,6 +134,11 @@ struct SkillDetailView: View {
         .overlay {
             if viewModel.showCompletionCelebration {
                 completionCelebration(viewModel)
+            }
+        }
+        .overlay {
+            if showingProgressCheckers {
+                progressCheckersPopup(viewModel)
             }
         }
         .onChange(of: viewModel.showCompletionCelebration) { _, newValue in
@@ -639,6 +650,211 @@ struct SkillDetailView: View {
             .padding(AppSpacing.sm)
             .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+    }
+
+    // MARK: - Progress Checkers Card
+
+    private func progressCheckersCard(_ viewModel: SkillDetailViewModel) -> some View {
+        Button {
+            withAnimation(AppAnimations.springSmooth) {
+                showingProgressCheckers = true
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                HStack {
+                    Image(systemName: "checklist")
+                        .font(.caption)
+                        .foregroundStyle(AppColors.teal)
+
+                    Text("PROGRESS")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Spacer()
+
+                    Text("\(viewModel.completedCheckersCount)/\(viewModel.progressCheckers.count)")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                }
+
+                ProgressBar(progress: viewModel.checkerProgress)
+
+                // Show first 2 checkers as preview
+                ForEach(viewModel.progressCheckers.prefix(2)) { checker in
+                    HStack(spacing: AppSpacing.xxs) {
+                        Image(systemName: checker.isCompleted ? "checkmark.circle.fill" : "circle")
+                            .font(.caption)
+                            .foregroundStyle(checker.isCompleted ? AppColors.successGreen : AppColors.lockedGray)
+
+                        Text(checker.name)
+                            .font(AppTypography.caption)
+                            .foregroundStyle(checker.isCompleted ? AppColors.textSecondary : AppColors.textPrimary)
+                            .lineLimit(1)
+                    }
+                }
+
+                if viewModel.progressCheckers.count > 2 {
+                    Text("+ \(viewModel.progressCheckers.count - 2) more")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.teal)
+                }
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        }
+        .buttonStyle(.pressable)
+    }
+
+    // MARK: - Progress Checkers Popup
+
+    @State private var progressPopupVisible = false
+
+    private func progressCheckersPopup(_ viewModel: SkillDetailViewModel) -> some View {
+        ZStack {
+            // Blurred background scrim
+            Color.clear
+                .background(.ultraThinMaterial)
+                .opacity(progressPopupVisible ? 1 : 0)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismissProgressPopup()
+                }
+
+            // Popup card
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text("Progress")
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Spacer()
+
+                    Button {
+                        dismissProgressPopup()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+                            .frame(width: 30, height: 30)
+                            .background(AppColors.separator)
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.lg)
+                .padding(.bottom, AppSpacing.sm)
+
+                Divider()
+                    .padding(.horizontal, AppSpacing.lg)
+
+                // Progress summary
+                HStack(spacing: AppSpacing.sm) {
+                    VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                        Text("\(viewModel.completedCheckersCount) of \(viewModel.progressCheckers.count) completed")
+                            .font(AppTypography.callout)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Text("\(Int(viewModel.checkerProgress * 100))% done")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    Spacer()
+
+                    RatingBadge(
+                        rating: Int(viewModel.checkerProgress * 100),
+                        size: 48,
+                        ringColor: AppColors.teal
+                    )
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.vertical, AppSpacing.sm)
+
+                ProgressBar(progress: viewModel.checkerProgress)
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.bottom, AppSpacing.sm)
+
+                Divider()
+                    .padding(.horizontal, AppSpacing.lg)
+
+                // Checkers list
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.progressCheckers.enumerated()), id: \.element.id) { index, checker in
+                            if index > 0 {
+                                Divider()
+                                    .padding(.leading, 52)
+                            }
+
+                            Button {
+                                Task { await viewModel.toggleChecker(checker.id) }
+                                let generator = UIImpactFeedbackGenerator(style: .light)
+                                generator.impactOccurred()
+                            } label: {
+                                HStack(spacing: AppSpacing.xs) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(checker.isCompleted ? AppColors.teal.opacity(0.12) : AppColors.separator.opacity(0.5))
+                                            .frame(width: 36, height: 36)
+
+                                        Image(systemName: checker.isCompleted ? "checkmark" : "circle")
+                                            .font(.system(size: checker.isCompleted ? 14 : 18, weight: .semibold))
+                                            .foregroundStyle(checker.isCompleted ? AppColors.teal : AppColors.lockedGray)
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(checker.name)
+                                            .font(AppTypography.body)
+                                            .foregroundStyle(checker.isCompleted ? AppColors.textSecondary : AppColors.textPrimary)
+                                            .strikethrough(checker.isCompleted, color: AppColors.textSecondary)
+                                            .multilineTextAlignment(.leading)
+
+                                        if checker.isCompleted, let date = checker.completedDate {
+                                            Text("Completed \(date, style: .relative) ago")
+                                                .font(.system(size: 11, design: .rounded))
+                                                .foregroundStyle(AppColors.textSecondary.opacity(0.7))
+                                        }
+                                    }
+
+                                    Spacer()
+                                }
+                                .padding(.vertical, AppSpacing.xs)
+                                .padding(.horizontal, AppSpacing.lg)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .shadow(color: .black.opacity(0.12), radius: 30, y: 10)
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, 60)
+            .scaleEffect(progressPopupVisible ? 1.0 : 0.92)
+            .opacity(progressPopupVisible ? 1 : 0)
+        }
+        .onAppear {
+            withAnimation(AppAnimations.springSmooth) {
+                progressPopupVisible = true
+            }
+        }
+    }
+
+    private func dismissProgressPopup() {
+        withAnimation(AppAnimations.springSmooth) {
+            progressPopupVisible = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            showingProgressCheckers = false
         }
     }
 

@@ -9,6 +9,7 @@ final class SkillDetailViewModel {
     private(set) var subskillDeltas: [UUID: Int] = [:]
     private(set) var ratings: [SkillRating] = []
     private(set) var drills: [Drill] = []
+    private(set) var progressCheckers: [ProgressChecker] = []
     private(set) var latestRating: Int = 0
     private(set) var weeklyDelta: Int?
     private(set) var hasSubskills: Bool = false
@@ -16,6 +17,15 @@ final class SkillDetailViewModel {
     var errorMessage: String?
 
     var isParentSkill: Bool { skill.parentSkillId == nil }
+
+    var completedCheckersCount: Int {
+        progressCheckers.filter(\.isCompleted).count
+    }
+
+    var checkerProgress: Double {
+        guard !progressCheckers.isEmpty else { return 0 }
+        return Double(completedCheckersCount) / Double(progressCheckers.count)
+    }
 
     var lastUpdatedText: String {
         let calendar = Calendar.current
@@ -34,17 +44,20 @@ final class SkillDetailViewModel {
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
+    private let progressCheckerRepository: ProgressCheckerRepository
 
     init(
         skill: Skill,
         skillRepository: SkillRepository,
         skillRatingRepository: SkillRatingRepository,
-        drillRepository: DrillRepository
+        drillRepository: DrillRepository,
+        progressCheckerRepository: ProgressCheckerRepository
     ) {
         self.skill = skill
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
         self.drillRepository = drillRepository
+        self.progressCheckerRepository = progressCheckerRepository
     }
 
     func loadDetail() async {
@@ -108,6 +121,10 @@ final class SkillDetailViewModel {
             // Load drills
             drills = try await drillRepository.fetchForSkill(skill.id)
 
+            // Load progress checkers
+            progressCheckers = try await progressCheckerRepository.fetchForSkill(skill.id)
+                .sorted { $0.displayOrder < $1.displayOrder }
+
             errorMessage = nil
         } catch {
             errorMessage = "Failed to load skill details."
@@ -157,6 +174,16 @@ final class SkillDetailViewModel {
             drills = try await drillRepository.fetchForSkill(skill.id)
         } catch {
             errorMessage = "Failed to update drill."
+        }
+    }
+
+    func toggleChecker(_ id: UUID) async {
+        do {
+            try await progressCheckerRepository.toggleCompletion(id)
+            progressCheckers = try await progressCheckerRepository.fetchForSkill(skill.id)
+                .sorted { $0.displayOrder < $1.displayOrder }
+        } catch {
+            errorMessage = "Failed to update checker."
         }
     }
 
