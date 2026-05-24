@@ -1307,7 +1307,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { action, note, skills, session_id, clarification_action } = body;
+    const { action, note, skills, session_id, clarification_action,
+      skill_name, category, current_rating, skill_description,
+      subskills: coachingSubskills, pending_drills, rating_trend } = body;
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -1393,6 +1395,109 @@ Deno.serve(async (req: Request) => {
     }
     if (skills && Array.isArray(skills) && skills.length > 100) {
       return jsonResponse({ error: "Too many skills provided." }, 400);
+    }
+
+    // ---- action: skill_coaching ----
+    if (action === "skill_coaching") {
+      if (!skill_name || typeof skill_name !== "string") {
+        return jsonResponse({ error: "skill_name is required" }, 400);
+      }
+
+      const rating = typeof current_rating === "number" ? current_rating : 0;
+      const desc = typeof skill_description === "string" ? skill_description : "";
+      const subs = Array.isArray(coachingSubskills) ? coachingSubskills as { name: string; current_rating: number }[] : [];
+      const pending = Array.isArray(pending_drills) ? pending_drills as { name: string; target_subskill?: string }[] : [];
+      const trend = Array.isArray(rating_trend) ? rating_trend as { date: string; rating: number }[] : [];
+      const cat = typeof category === "string" ? category : "general";
+
+      const subskillSummary = subs.length > 0
+        ? subs.map((s) => `  - ${s.name}: ${s.current_rating}%`).join("\n")
+        : "(no subskills)";
+
+      const pendingDrillSummary = pending.length > 0
+        ? pending.map((d) => `  - ${d.name}${d.target_subskill ? ` (targets: ${d.target_subskill})` : ""}`).join("\n")
+        : "(none)";
+
+      const trendSummary = trend.length > 0
+        ? trend.map((t) => `  ${t.date}: ${t.rating}%`).join("\n")
+        : "(no history)";
+
+      const systemPrompt = `You are an expert pickleball coach providing personalized coaching for a specific skill.
+
+SKILL PROFILE:
+- Name: ${skill_name}
+- Category: ${cat}
+- Current Rating: ${rating}%
+- Player Notes: ${desc || "(none)"}
+
+Subskills:
+${subskillSummary}
+
+Already Queued Drills (do NOT repeat these):
+${pendingDrillSummary}
+
+Rating History (recent trend):
+${trendSummary}
+
+COACHING KNOWLEDGE:
+- Overheads: prioritize contact point height and timing over power. Common fix is tossing drills to find the ideal contact window.
+- Dinks: emphasize soft hands, paddle face angle, and reset position. Cross-court dinks build consistency before down-the-line.
+- Drives: focus on weight transfer and follow-through. Low-to-high swing path for topspin control.
+- Drops: wrist stability and arc control. Practice from transition zone before baseline.
+- Serves: consistent toss placement and controlled power. Deep serves reduce third-shot pressure.
+- Defense: ready position, split step timing, and paddle positioning at the kitchen line.
+
+YOUR TASK:
+Generate two types of coaching content:
+
+1. GAME TIPS: 2-3 strategic tips the player can use during live play RIGHT NOW. Each tip should address a specific in-game situation relevant to their current level and weaknesses.
+
+2. DRILL SUGGESTIONS: 2-3 actionable practice drills. Each drill should be specific, have clear instructions, and directly target areas where the player needs improvement based on their ratings and trend.
+
+RULES:
+- Do NOT suggest drills that duplicate the already-queued drills listed above.
+- Tailor advice to their rating level (beginners need fundamentals, advanced players need nuance).
+- If subskills exist, prioritize the weakest ones.
+- If the rating trend shows decline, address what might be causing it.
+- Keep drills 5-15 minutes each.
+
+Respond ONLY with a valid JSON object:
+{
+  "game_tips": [
+    {
+      "id": "tip_1",
+      "title": "short title",
+      "tip": "detailed advice paragraph",
+      "situation": "when to apply this tip"
+    }
+  ],
+  "drills": [
+    {
+      "name": "drill name",
+      "description": "step-by-step instructions",
+      "target_skill": "${skill_name}",
+      "target_subskill": "subskill name or null",
+      "duration_minutes": 10,
+      "player_count": 1,
+      "equipment": "what's needed",
+      "reason": "why this drill helps this player right now",
+      "priority": "high | medium | low"
+    }
+  ]
+}`;
+
+      const cleaned = await callClaude(
+        anthropicKey,
+        systemPrompt,
+        `Generate personalized game tips and drill suggestions for my ${skill_name} skill.`,
+        2048
+      );
+
+      const parsed = JSON.parse(cleaned);
+      return jsonResponse({
+        game_tips: parsed.game_tips ?? [],
+        drills: parsed.drills ?? [],
+      });
     }
 
     // ---- action: log_session ----
