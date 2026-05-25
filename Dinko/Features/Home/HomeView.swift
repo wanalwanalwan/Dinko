@@ -117,6 +117,7 @@ struct HomeView: View {
             .padding(.bottom, AppSpacing.lg)
             .contentLoadTransition(isLoaded: contentReady)
         }
+        .background(AppColors.background)
         .refreshable {
             await viewModel.loadDashboard()
         }
@@ -429,6 +430,10 @@ struct HomeView: View {
                 }
             }
         }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
     // MARK: - Overall Skill Level

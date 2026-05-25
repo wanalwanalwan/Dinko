@@ -99,6 +99,7 @@ struct SkillListView: View {
                 .padding(.bottom, AppSpacing.xl)
                 .contentLoadTransition(isLoaded: contentReady)
             }
+            .background(AppColors.background)
             .refreshable {
                 await viewModel.loadSkills()
             }
@@ -165,6 +166,8 @@ struct SkillListView: View {
         } description: {
             Text("Add your first skill to start tracking your progress.")
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.background)
     }
 }
 

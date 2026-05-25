@@ -42,6 +42,7 @@ struct TimelineView: View {
             .padding(.vertical, AppSpacing.xs)
             .contentLoadTransition(isLoaded: contentReady)
         }
+        .background(AppColors.background)
         .refreshable {
             await viewModel.loadSessions()
         }

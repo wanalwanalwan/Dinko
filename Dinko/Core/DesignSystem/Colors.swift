@@ -2,7 +2,7 @@ import SwiftUI
 
 enum AppColors {
     // MARK: - Backgrounds
-    static let background = Color(light: "F7F8FA", dark: "11151A")
+    static let background = Color(light: "F2F7F3", dark: "111A14")
     static let cardBackground = Color(light: "FFFFFF", dark: "1A2027")
 
     // MARK: - Primary (Athletic Green — CTA / Interactive)
