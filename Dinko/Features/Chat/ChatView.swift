@@ -95,7 +95,7 @@ struct ChatView: View {
 
             CoachMascot(state: .idle, size: 72)
 
-            Text("How was your session?")
+            Text("How can I help you today?")
                 .font(AppTypography.title)
                 .foregroundStyle(AppColors.textPrimary)
 
@@ -325,8 +325,8 @@ struct ChatView: View {
             && !viewModel.isSending
             && networkMonitor.isConnected
 
-        return HStack(alignment: .bottom, spacing: 8) {
-            TextField("How was your session?", text: Binding(
+        return HStack(alignment: .center, spacing: 8) {
+            TextField("How can I help you today?", text: Binding(
                 get: { viewModel.inputText },
                 set: { viewModel.inputText = $0 }
             ), axis: .vertical)
