@@ -687,16 +687,24 @@ struct HomeView: View {
             if hasSession {
                 Circle()
                     .fill(AppColors.teal)
-                    .frame(width: 34, height: 34)
+                    .frame(width: 36, height: 36)
+                    .shadow(color: AppColors.teal.opacity(0.4), radius: 6, y: 2)
             }
 
             Text("\(dayNumber)")
-                .font(.system(size: 14, weight: hasSession || isToday ? .bold : .regular, design: .rounded))
+                .font(.system(size: hasSession ? 15 : 14, weight: hasSession || isToday ? .bold : .regular, design: .rounded))
                 .foregroundStyle(
                     hasSession ? .white : (isToday ? AppColors.teal : AppColors.textPrimary)
                 )
+
+            if hasSession {
+                Circle()
+                    .fill(.white)
+                    .frame(width: 5, height: 5)
+                    .offset(y: 14)
+            }
         }
-        .frame(maxWidth: .infinity, minHeight: 38)
+        .frame(maxWidth: .infinity, minHeight: 42)
     }
 
     private func streakLabel(_ days: Int) -> String {
