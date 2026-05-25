@@ -60,14 +60,14 @@ struct TimelineView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.textSecondary)
                         .frame(width: 32, height: 32)
                 }
 
                 Spacer()
 
                 Text(viewModel.monthYearString())
-                    .font(AppTypography.title)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
                 Spacer()
@@ -79,18 +79,18 @@ struct TimelineView: View {
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.textSecondary)
                         .frame(width: 32, height: 32)
                 }
             }
             .padding(.horizontal, AppSpacing.xxs)
 
-            // Weekday labels
-            let weekdays = ["S", "M", "T", "W", "T", "F", "S"]
+            // Weekday labels (Monday-start)
+            let weekdays = ["M", "T", "W", "T", "F", "S", "S"]
             HStack(spacing: 0) {
-                ForEach(weekdays.indices, id: \.self) { index in
-                    Text(weekdays[index])
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                ForEach(Array(weekdays.enumerated()), id: \.offset) { _, label in
+                    Text(label)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
                         .frame(maxWidth: .infinity)
                 }
@@ -98,10 +98,10 @@ struct TimelineView: View {
             .padding(.horizontal, AppSpacing.xxs)
 
             // Calendar grid
-            let days = viewModel.daysInMonthGrid()
+            let days = viewModel.daysInMonthGridMondayStart()
             let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
 
-            LazyVGrid(columns: columns, spacing: AppSpacing.xxs) {
+            LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(Array(days.enumerated()), id: \.offset) { _, date in
                     if let date {
                         calendarDayCell(date: date, viewModel: viewModel)
@@ -116,7 +116,6 @@ struct TimelineView: View {
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
     private func calendarDayCell(date: Date, viewModel: TimelineViewModel) -> some View {
@@ -130,26 +129,23 @@ struct TimelineView: View {
                 viewModel.selectDate(date)
             }
         } label: {
-            VStack(spacing: 2) {
-                ZStack {
-                    if selected {
-                        Circle()
-                            .fill(AppColors.teal)
-                            .frame(width: 34, height: 34)
-                    } else if today {
-                        Circle()
-                            .strokeBorder(AppColors.teal, lineWidth: 1.5)
-                            .frame(width: 34, height: 34)
-                    }
-
-                    Text("\(day)")
-                        .font(.system(size: 15, weight: selected ? .bold : .medium, design: .rounded))
-                        .foregroundStyle(selected ? .white : (today ? AppColors.teal : AppColors.textPrimary))
+            ZStack {
+                if selected {
+                    Circle()
+                        .fill(AppColors.teal)
+                        .frame(width: 36, height: 36)
+                        .shadow(color: AppColors.teal.opacity(0.35), radius: 6, y: 2)
+                } else if hasSession {
+                    Circle()
+                        .fill(AppColors.teal)
+                        .frame(width: 36, height: 36)
                 }
 
-                Circle()
-                    .fill(hasSession ? (selected ? .white : AppColors.teal) : .clear)
-                    .frame(width: 6, height: 6)
+                Text("\(day)")
+                    .font(.system(size: 15, weight: selected || hasSession || today ? .bold : .regular, design: .rounded))
+                    .foregroundStyle(
+                        selected || hasSession ? .white : (today ? AppColors.teal : AppColors.textPrimary)
+                    )
             }
             .frame(height: 44)
             .frame(maxWidth: .infinity)

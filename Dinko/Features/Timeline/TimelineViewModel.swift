@@ -95,6 +95,33 @@ final class TimelineViewModel {
         return days
     }
 
+    func daysInMonthGridMondayStart() -> [Date?] {
+        let calendar = Calendar.current
+        guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth),
+              let monthRange = calendar.range(of: .day, in: .month, for: currentMonth) else {
+            return []
+        }
+
+        let firstDay = monthInterval.start
+        let firstWeekday = calendar.component(.weekday, from: firstDay)
+        // Monday-based: Mon=0, Tue=1, ..., Sun=6
+        let leadingBlanks = (firstWeekday + 5) % 7
+
+        var days: [Date?] = Array(repeating: nil, count: leadingBlanks)
+
+        for day in monthRange {
+            if let date = calendar.date(bySetting: .day, value: day, of: firstDay) {
+                days.append(calendar.startOfDay(for: date))
+            }
+        }
+
+        while days.count % 7 != 0 {
+            days.append(nil)
+        }
+
+        return days
+    }
+
     func monthYearString() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
