@@ -17,7 +17,7 @@ struct ContentView: View {
                 .tag(0)
 
                 NavigationStack {
-                    CoachTabView()
+                    CoachTabView(selectedTab: $selectedTab)
                 }
                 .tag(1)
 

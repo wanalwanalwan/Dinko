@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ChatView: View {
+    @Binding var selectedTab: Int
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: ChatViewModel?
     @State private var contentReady = false
@@ -16,7 +17,20 @@ struct ChatView: View {
             }
         }
         .background(AppColors.background)
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Coach")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    selectedTab = 2
+                } label: {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(AppColors.primary)
+                }
+                .accessibilityLabel("View Progress")
+            }
+        }
         .task {
             if viewModel == nil {
                 let vm = ChatViewModel(
@@ -89,18 +103,63 @@ struct ChatView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: AppSpacing.sm) {
+        VStack(spacing: AppSpacing.md) {
             Spacer()
-                .frame(height: 80)
+                .frame(height: 60)
 
-            CoachMascot(state: .idle, size: 72)
+            CoachMascot(state: .idle, size: 80)
 
             Text("How can I improve your game today?")
                 .font(AppTypography.title)
                 .foregroundStyle(AppColors.textPrimary)
+                .multilineTextAlignment(.center)
+
+            Spacer()
+                .frame(height: AppSpacing.sm)
+
+            if let viewModel {
+                suggestionChips(viewModel)
+            }
         }
         .frame(maxWidth: .infinity)
+        .padding(.horizontal, AppSpacing.md)
         .padding(.bottom, AppSpacing.xl)
+    }
+
+    // MARK: - Suggestion Chips
+
+    private func suggestionChips(_ viewModel: ChatViewModel) -> some View {
+        let suggestions: [(label: String, prompt: String)] = [
+            ("Third Shot Drops", "Help me improve my third shot drops"),
+            ("Analyze Match", "I want to analyze my recent match"),
+            ("Drill Recommendations", "Recommend some drills for me"),
+            ("Paddle Advice", "Give me advice on paddle selection")
+        ]
+
+        return VStack(spacing: AppSpacing.sm) {
+            Text("Popular Topics")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .textCase(.uppercase)
+                .foregroundStyle(AppColors.textSecondary)
+                .tracking(0.5)
+
+            FlowLayout(spacing: AppSpacing.xs) {
+                ForEach(suggestions, id: \.label) { suggestion in
+                    Button {
+                        viewModel.inputText = suggestion.prompt
+                        viewModel.send()
+                    } label: {
+                        Text(suggestion.label)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.primary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(AppColors.primaryTint)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Message Row
