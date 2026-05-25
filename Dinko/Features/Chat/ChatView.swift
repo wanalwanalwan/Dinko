@@ -95,15 +95,9 @@ struct ChatView: View {
 
             CoachMascot(state: .idle, size: 72)
 
-            Text("How can I help you today?")
+            Text("How can I improve your game today?")
                 .font(AppTypography.title)
                 .foregroundStyle(AppColors.textPrimary)
-
-            Text("Describe your pickleball session and I'll analyze your skills, suggest drills, and update your progress.")
-                .font(AppTypography.callout)
-                .foregroundStyle(AppColors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, AppSpacing.xl)
         }
         .frame(maxWidth: .infinity)
         .padding(.bottom, AppSpacing.xl)
