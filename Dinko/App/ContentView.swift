@@ -11,19 +11,24 @@ struct ContentView: View {
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(AppColors.cardBackground)
-        appearance.shadowColor = UIColor(AppColors.separator)
+        appearance.backgroundColor = UIColor(AppColors.background)
+        appearance.shadowColor = .clear
+        appearance.shadowImage = UIImage.hairlineSeparator(color: UIColor(AppColors.separator))
 
         let normalAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 10, weight: .medium)
+            .font: UIFont.systemFont(ofSize: 10, weight: .medium),
+            .foregroundColor: UIColor(AppColors.textSecondary)
         ]
         let selectedAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 10, weight: .semibold)
+            .font: UIFont.systemFont(ofSize: 10, weight: .semibold),
+            .foregroundColor: UIColor(AppColors.teal)
         ]
 
         let itemAppearance = UITabBarItemAppearance()
         itemAppearance.normal.titleTextAttributes = normalAttributes
+        itemAppearance.normal.iconColor = UIColor(AppColors.textSecondary)
         itemAppearance.selected.titleTextAttributes = selectedAttributes
+        itemAppearance.selected.iconColor = UIColor(AppColors.teal)
 
         appearance.stackedLayoutAppearance = itemAppearance
         appearance.inlineLayoutAppearance = itemAppearance
@@ -119,6 +124,20 @@ struct ContentView: View {
                 selectedTab: $selectedTab
             )
             .presentationDetents([.large])
+        }
+    }
+}
+
+// MARK: - Hairline Separator Image
+
+private extension UIImage {
+    static func hairlineSeparator(color: UIColor) -> UIImage {
+        let pixel = 1.0 / UIScreen.main.scale
+        let size = CGSize(width: 1, height: pixel)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { context in
+            color.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
         }
     }
 }
