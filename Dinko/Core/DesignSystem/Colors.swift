@@ -13,7 +13,9 @@ enum AppColors {
     static let coral = Color(hex: "F07167")
 
     // MARK: - Semantic
-    static let successGreen = Color(hex: "8EDB3A")
+    static let successGreen = Color(hex: "2F9E44")
+    static let successGreenLight = Color(hex: "5EC269")
+    static let successGreenDark = Color(hex: "1B7A33")
     static let warningOrange = Color(hex: "F59E0B")
 
     // MARK: - Text

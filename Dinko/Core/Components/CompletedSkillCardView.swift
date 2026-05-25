@@ -8,11 +8,11 @@ struct CompletedSkillCardView: View {
             HStack(spacing: AppSpacing.xxxs) {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 14))
-                    .foregroundStyle(AppColors.successGreen)
+                    .foregroundStyle(AppColors.successGreenDark)
 
                 Text("Skill Completed")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.successGreen)
+                    .foregroundStyle(AppColors.successGreenDark)
             }
 
             Text(skill.name)
@@ -27,12 +27,12 @@ struct CompletedSkillCardView: View {
             if !skill.subskills.isEmpty {
                 Text("\(skill.subskills.count) subskill\(skill.subskills.count == 1 ? "" : "s") mastered")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.successGreen.opacity(0.8))
+                    .foregroundStyle(AppColors.successGreenLight)
             }
         }
         .padding(AppSpacing.sm)
         .frame(width: 220, alignment: .leading)
-        .background(AppColors.successGreen.opacity(0.1))
+        .background(AppColors.successGreenDark.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(skill.name), completed in \(skill.daysToComplete) day\(skill.daysToComplete == 1 ? "" : "s")\(skill.subskills.isEmpty ? "" : ", \(skill.subskills.count) subskills mastered")")

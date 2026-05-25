@@ -32,7 +32,7 @@ enum DrillNodeState {
     var backgroundColor: Color {
         switch self {
         case .next: AppColors.teal
-        case .completed: AppColors.successGreen
+        case .completed: AppColors.successGreenDark
         case .upcoming: AppColors.teal
         }
     }

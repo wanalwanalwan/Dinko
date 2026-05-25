@@ -67,10 +67,10 @@ struct DrillSuggestionsCard: View {
                         Label("Added", systemImage: "checkmark")
                             .font(AppTypography.caption)
                             .fontWeight(.semibold)
-                            .foregroundStyle(AppColors.successGreen)
+                            .foregroundStyle(AppColors.successGreenDark)
                             .padding(.horizontal, AppSpacing.xs)
                             .padding(.vertical, AppSpacing.xxxs)
-                            .background(AppColors.successGreen.opacity(0.12))
+                            .background(AppColors.successGreenDark.opacity(0.12))
                             .clipShape(Capsule())
                     } else {
                         Label("Add", systemImage: "plus")

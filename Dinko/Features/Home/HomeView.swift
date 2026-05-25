@@ -519,10 +519,10 @@ struct HomeView: View {
                         HStack(spacing: 3) {
                             Image(systemName: "arrow.up.right")
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(AppColors.successGreen)
+                                .foregroundStyle(AppColors.successGreenLight)
                             Text("\(improved) +\(viewModel.mostImprovedDelta)%")
                                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.successGreen)
+                                .foregroundStyle(AppColors.successGreenLight)
                         }
                     }
                 }

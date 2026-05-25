@@ -170,7 +170,7 @@ struct DrillQueueView: View {
     private func historyDrillRow(_ drill: Drill) -> some View {
         HStack(spacing: AppSpacing.xs) {
             Image(systemName: drill.status == .completed ? "checkmark.circle.fill" : "forward.fill")
-                .foregroundStyle(drill.status == .completed ? AppColors.successGreen : AppColors.textSecondary)
+                .foregroundStyle(drill.status == .completed ? AppColors.successGreenLight : AppColors.textSecondary)
                 .font(.system(size: 16))
                 .frame(width: 24, height: 24)
 
@@ -189,10 +189,10 @@ struct DrillQueueView: View {
 
             Text(drill.status == .completed ? "Done" : "Skipped")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(drill.status == .completed ? AppColors.successGreen : AppColors.textSecondary)
+                .foregroundStyle(drill.status == .completed ? AppColors.successGreenLight : AppColors.textSecondary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .background((drill.status == .completed ? AppColors.successGreen : AppColors.textSecondary).opacity(0.1))
+                .background((drill.status == .completed ? AppColors.successGreenLight : AppColors.textSecondary).opacity(0.1))
                 .clipShape(Capsule())
         }
         .padding(.vertical, AppSpacing.xxs)
