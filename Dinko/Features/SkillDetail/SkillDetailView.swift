@@ -4,7 +4,6 @@ struct SkillDetailView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: SkillDetailViewModel?
-    @State private var showingRateSkill = false
     @State private var showingAddSubskill = false
     @State private var showingDeleteConfirm = false
     @State private var showingCoaching = false
@@ -12,6 +11,8 @@ struct SkillDetailView: View {
     @State private var ratingNotesExpanded = false
     @State private var contentReady = false
     @State private var celebrationVisible = false
+    @State private var sliderRating: Double = 0
+    @State private var isEditingSlider = false
     let skill: Skill
 
     var body: some View {
@@ -79,14 +80,6 @@ struct SkillDetailView: View {
         .refreshable {
             await viewModel.loadDetail()
         }
-        .sheet(isPresented: $showingRateSkill) {
-            RateSkillView(
-                skillName: skill.name,
-                currentRating: viewModel.latestRating
-            ) { rating, notes in
-                await viewModel.saveRating(rating, notes: notes)
-            }
-        }
         .sheet(isPresented: $showingAddSubskill, onDismiss: {
             Task { await viewModel.loadDetail() }
         }) {
@@ -152,6 +145,14 @@ struct SkillDetailView: View {
                 celebrationVisible = false
             }
         }
+        .onChange(of: viewModel.latestRating) { _, newValue in
+            if !isEditingSlider {
+                sliderRating = Double(newValue)
+            }
+        }
+        .onAppear {
+            sliderRating = Double(viewModel.latestRating)
+        }
     }
 
     // MARK: - Completion Celebration
@@ -214,9 +215,10 @@ struct SkillDetailView: View {
     // MARK: - Rating Hero
 
     private func ratingHero(_ viewModel: SkillDetailViewModel) -> some View {
-        let tier = SkillTier(rating: viewModel.latestRating)
+        let displayRating = isEditingSlider ? Int(sliderRating) : viewModel.latestRating
+        let tier = SkillTier(rating: displayRating)
         return VStack(spacing: AppSpacing.xs) {
-            RatingBadge(rating: viewModel.latestRating, size: 160, ringColor: tier.color)
+            RatingBadge(rating: displayRating, size: 160, ringColor: tier.color)
                 .padding(.bottom, AppSpacing.xxs)
 
             Text(skill.name)
@@ -252,24 +254,40 @@ struct SkillDetailView: View {
             }
 
             if !viewModel.hasSubskills && skill.status == .active {
-                Button {
-                    showingRateSkill = true
-                } label: {
-                    Text("Update Mastery")
-                        .font(AppTypography.callout)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.vertical, AppSpacing.xxs)
-                        .background(AppColors.primary)
-                        .clipShape(Capsule())
+                VStack(spacing: AppSpacing.xxs) {
+                    Slider(
+                        value: $sliderRating,
+                        in: 0...100,
+                        step: 1
+                    ) {
+                        Text("Rating")
+                    } minimumValueLabel: {
+                        Text("0")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    } maximumValueLabel: {
+                        Text("100")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    } onEditingChanged: { editing in
+                        isEditingSlider = editing
+                        if !editing {
+                            let newRating = Int(sliderRating)
+                            if newRating != viewModel.latestRating {
+                                Task { _ = await viewModel.saveRating(newRating, notes: nil) }
+                            }
+                        }
+                    }
+                    .tint(tier.color)
                 }
+                .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.lg)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("\(skill.name), \(viewModel.latestRating) percent, \(tier.displayName)")
+        .accessibilityLabel("\(skill.name), \(displayRating) percent, \(tier.displayName)")
     }
 
     // MARK: - Subskills
@@ -346,50 +364,54 @@ struct SkillDetailView: View {
             }
         } label: {
             HStack(spacing: 0) {
-                // Teal accent bar
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(AppColors.primary.opacity(0.4))
-                    .frame(width: 3)
+                // Accent bar
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(AppColors.primary)
+                    .frame(width: 5)
 
-                VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                     HStack {
                         Text("MY NOTES")
-                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
                             .foregroundStyle(AppColors.primary)
 
                         Spacer()
 
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary.opacity(0.5))
                     }
 
                     if viewModel.skill.description.isEmpty {
                         HStack(spacing: AppSpacing.xxs) {
                             Image(systemName: "square.and.pencil")
-                                .font(.system(size: 13))
-                                .foregroundStyle(AppColors.primary.opacity(0.6))
+                                .font(.system(size: 15))
+                                .foregroundStyle(AppColors.primary.opacity(0.7))
 
                             Text("Tap to add notes about this skill...")
-                                .font(AppTypography.caption)
+                                .font(AppTypography.body)
                                 .foregroundStyle(AppColors.textSecondary)
                         }
                         .padding(.top, AppSpacing.xxxs)
                     } else {
                         Text(viewModel.skill.description)
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textPrimary.opacity(0.7))
-                            .lineLimit(2)
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textPrimary.opacity(0.85))
+                            .lineLimit(3)
                             .multilineTextAlignment(.leading)
                             .padding(.top, AppSpacing.xxxs)
                     }
                 }
                 .padding(.leading, AppSpacing.xs)
             }
-            .padding(.vertical, AppSpacing.xs)
+            .padding(.vertical, AppSpacing.sm)
             .padding(.horizontal, AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+            .background(AppColors.primary.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+                    .stroke(AppColors.primary.opacity(0.12), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }
