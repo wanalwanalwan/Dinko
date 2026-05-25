@@ -95,6 +95,8 @@ final class HomeViewModel {
     private(set) var sessionDatesThisWeek: Set<Date> = []
     private(set) var thisWeekSessionCount = 0
     private(set) var thisWeekTotalMinutes = 0
+    private(set) var allSessionDates: Set<Date> = []
+    private(set) var restDays: Int = 0
 
     var totalSkillsIncludingCompleted: Int {
         totalActiveSkills + completedSkills.count
@@ -693,9 +695,14 @@ final class HomeViewModel {
 
         var activityDates: Set<Date> = []
 
+        // Build all session dates for calendar display
+        var sessionDates: Set<Date> = []
         for session in sessions {
-            activityDates.insert(calendar.startOfDay(for: session.date))
+            let day = calendar.startOfDay(for: session.date)
+            activityDates.insert(day)
+            sessionDates.insert(day)
         }
+        allSessionDates = sessionDates
 
         for ratings in cachedRatings.values {
             for rating in ratings {
@@ -706,13 +713,22 @@ final class HomeViewModel {
         // Compute week data from sessions
         computeWeekData(sessions: sessions)
 
+        // Compute rest days (days since last session)
+        let today = calendar.startOfDay(for: Date())
+        if sessionDates.contains(today) {
+            restDays = 0
+        } else if let lastSession = sessionDates.sorted().last {
+            restDays = max(0, calendar.dateComponents([.day], from: lastSession, to: today).day ?? 0)
+        } else {
+            restDays = 0
+        }
+
         guard !activityDates.isEmpty else {
             streakDays = 0
             daysToWeeklyGoal = weeklyGoal
             return
         }
 
-        let today = calendar.startOfDay(for: Date())
         var streak = 0
         var checkDay = today
 

@@ -101,7 +101,7 @@ struct HomeView: View {
 
                 overallSkillLevelSection(viewModel)
                     .staggeredAppearance(index: 1)
-                activityCalendar(viewModel)
+                monthCalendar(viewModel)
                     .staggeredAppearance(index: 2)
                 completedSkillsSummary(viewModel)
                     .staggeredAppearance(index: 3)
@@ -567,62 +567,147 @@ struct HomeView: View {
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
-    // MARK: - Activity Calendar (Week Strip)
+    // MARK: - Month Calendar
 
-    private func activityCalendar(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            HStack {
-                Text("THIS WEEK")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
+    private func monthCalendar(_ viewModel: HomeViewModel) -> some View {
+        let calendar = Calendar.current
+        let today = Date()
+        let year = calendar.component(.year, from: today)
+        let month = calendar.component(.month, from: today)
 
-                Spacer()
+        let firstOfMonth = calendar.date(from: DateComponents(year: year, month: month, day: 1))!
+        let daysInMonth = calendar.range(of: .day, in: .month, for: firstOfMonth)!.count
 
-                if viewModel.thisWeekSessionCount > 0 {
-                    Text("\(viewModel.thisWeekSessionCount) session\(viewModel.thisWeekSessionCount == 1 ? "" : "s")")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+        // Monday-based offset: Mon=0, Tue=1, ..., Sun=6
+        let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
+        let offset = (firstWeekday + 5) % 7
+
+        let dayHeaders = ["M", "T", "W", "T", "F", "S", "S"]
+        let monthFormatter = DateFormatter()
+        monthFormatter.dateFormat = "MMMM yyyy"
+
+        let totalCells = offset + daysInMonth
+        let rows = (totalCells + 6) / 7
+
+        return VStack(spacing: AppSpacing.sm) {
+            // Streak & Rest stat cards
+            HStack(spacing: AppSpacing.xs) {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(AppColors.coral)
+
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(streakLabel(viewModel.streakDays))
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Text("Streak")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(AppSpacing.sm)
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppSpacing.xs)
+                        .strokeBorder(AppColors.separator, lineWidth: 1)
+                )
+
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "moon.fill")
+                        .font(.system(size: 20))
                         .foregroundStyle(AppColors.teal)
+
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(restLabel(viewModel.restDays))
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Text("Rest")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(AppSpacing.sm)
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppSpacing.xs)
+                        .strokeBorder(AppColors.separator, lineWidth: 1)
+                )
+            }
+
+            // Month header
+            Text(monthFormatter.string(from: today))
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+                .padding(.top, AppSpacing.xxxs)
+
+            // Day-of-week headers
+            HStack(spacing: 0) {
+                ForEach(Array(dayHeaders.enumerated()), id: \.offset) { _, label in
+                    Text(label)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .frame(maxWidth: .infinity)
                 }
             }
 
-            HStack(spacing: 0) {
-                ForEach(viewModel.weekDays) { day in
-                    Button {
-                        if day.hasSession {
-                            selectedTab = 4
-                        }
-                    } label: {
-                        VStack(spacing: AppSpacing.xxxs) {
-                            Text(day.dayLabel)
-                                .font(.system(size: 11, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
+            // Calendar grid
+            VStack(spacing: AppSpacing.xxxs) {
+                ForEach(0..<rows, id: \.self) { row in
+                    HStack(spacing: 0) {
+                        ForEach(0..<7, id: \.self) { col in
+                            let cellIndex = row * 7 + col
+                            let dayNumber = cellIndex - offset + 1
 
-                            ZStack {
-                                if day.hasSession {
-                                    Circle()
-                                        .fill(AppColors.teal)
-                                        .frame(width: 32, height: 32)
-                                } else if day.isToday {
-                                    Circle()
-                                        .strokeBorder(AppColors.teal, lineWidth: 1.5)
-                                        .frame(width: 32, height: 32)
-                                }
+                            if dayNumber >= 1 && dayNumber <= daysInMonth {
+                                let date = calendar.date(from: DateComponents(year: year, month: month, day: dayNumber))!
+                                let startOfDay = calendar.startOfDay(for: date)
+                                let hasSession = viewModel.allSessionDates.contains(startOfDay)
+                                let isToday = calendar.isDateInToday(date)
 
-                                Text("\(day.dayNumber)")
-                                    .font(.system(size: 14, weight: day.hasSession || day.isToday ? .bold : .medium, design: .rounded))
-                                    .foregroundStyle(day.hasSession ? .white : (day.isToday ? AppColors.teal : AppColors.textPrimary))
+                                calendarDayCell(dayNumber: dayNumber, hasSession: hasSession, isToday: isToday)
+                            } else {
+                                Color.clear
+                                    .frame(maxWidth: .infinity, minHeight: 38)
                             }
                         }
-                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    private func calendarDayCell(dayNumber: Int, hasSession: Bool, isToday: Bool) -> some View {
+        ZStack {
+            if hasSession {
+                Circle()
+                    .fill(AppColors.teal)
+                    .frame(width: 34, height: 34)
+            }
+
+            Text("\(dayNumber)")
+                .font(.system(size: 14, weight: hasSession || isToday ? .bold : .regular, design: .rounded))
+                .foregroundStyle(
+                    hasSession ? .white : (isToday ? AppColors.teal : AppColors.textPrimary)
+                )
+        }
+        .frame(maxWidth: .infinity, minHeight: 38)
+    }
+
+    private func streakLabel(_ days: Int) -> String {
+        if days == 0 { return "0 days" }
+        if days % 7 == 0 { return "\(days / 7) week\(days / 7 == 1 ? "" : "s")" }
+        return "\(days) day\(days == 1 ? "" : "s")"
+    }
+
+    private func restLabel(_ days: Int) -> String {
+        if days == 0 { return "Active" }
+        return "\(days) day\(days == 1 ? "" : "s")"
     }
 
     // MARK: - Streak Banner
