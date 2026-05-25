@@ -107,7 +107,7 @@ struct ContentView: View {
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .thin))
+                    .font(.system(size: 20, weight: .light))
                 Text(label)
                     .font(.system(size: 10, weight: selectedTab == tag ? .semibold : .medium))
             }
