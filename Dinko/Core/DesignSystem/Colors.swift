@@ -6,8 +6,10 @@ enum AppColors {
     static let cardBackground = Color(light: "FFFFFF", dark: "1E1E1E")
 
     // MARK: - Primary
-    static let teal = Color(hex: "0EA5A2")
-    static let primaryTint = Color(light: "E8F6F5", dark: "1A3332")
+    static let teal = Color(hex: "0D9488")
+    static let tealDark = Color(hex: "0F766E")
+    static let tealLight = Color(hex: "14B8A6")
+    static let primaryTint = Color(light: "E6F5F3", dark: "0F2D2A")
     static let coral = Color(hex: "F07167")
 
     // MARK: - Semantic
@@ -44,8 +46,8 @@ enum AppColors {
     static let bannerBackground = Color(light: "E8F6F5", dark: "1A3332")
 
     // MARK: - Splash Gradient
-    static let splashGradientStart = Color(hex: "12BDB9")
-    static let splashGradientEnd = Color(hex: "0A8E8B")
+    static let splashGradientStart = Color(hex: "14B8A6")
+    static let splashGradientEnd = Color(hex: "0F766E")
 
     // MARK: - Overlay
     static let overlayScrim = Color.black
