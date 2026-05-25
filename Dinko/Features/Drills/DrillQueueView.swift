@@ -51,7 +51,7 @@ struct DrillQueueView: View {
                 description: Text("Log a session with the Coach to get personalized drill recommendations.")
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.background)
+            .background(AppColors.backgroundGradient)
         } else {
             ScrollView {
                 VStack(spacing: AppSpacing.sm) {
@@ -111,7 +111,7 @@ struct DrillQueueView: View {
                 .contentLoadTransition(isLoaded: contentReady)
                 .animation(AppAnimations.springSmooth, value: viewModel.pendingDrills.count)
             }
-            .background(AppColors.background)
+            .background(AppColors.backgroundGradient)
             .refreshable {
                 await viewModel.loadDrills()
             }

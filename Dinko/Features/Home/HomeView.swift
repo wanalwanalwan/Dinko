@@ -117,7 +117,7 @@ struct HomeView: View {
             .padding(.bottom, AppSpacing.lg)
             .contentLoadTransition(isLoaded: contentReady)
         }
-        .background(AppColors.background)
+        .background(AppColors.backgroundGradient)
         .refreshable {
             await viewModel.loadDashboard()
         }
