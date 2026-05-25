@@ -24,7 +24,7 @@ struct FloatingActionButton: View {
 
 #Preview {
     ZStack {
-        Color(hex: "FAF8F5").ignoresSafeArea()
+        AppColors.background.ignoresSafeArea()
         VStack {
             Spacer()
             FloatingActionButton { }

@@ -26,7 +26,7 @@ struct ClarificationCard: View {
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(AppColors.textSecondary)
                             .padding(6)
-                            .background(Color(hex: "F4F6F8"))
+                            .background(AppColors.agentBubble)
                             .clipShape(Circle())
                     }
                     .accessibilityLabel("Dismiss question")
@@ -97,7 +97,7 @@ struct ClarificationCard: View {
             .background(
                 isSelected
                     ? AppColors.teal.opacity(0.1)
-                    : Color(hex: "F4F6F8")
+                    : AppColors.agentBubble
             )
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }

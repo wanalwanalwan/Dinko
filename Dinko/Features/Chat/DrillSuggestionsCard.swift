@@ -92,7 +92,7 @@ struct DrillSuggestionsCard: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(AppSpacing.xs)
-        .background(Color(hex: "F4F6F8"))
+        .background(AppColors.agentBubble)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
