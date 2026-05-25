@@ -212,7 +212,7 @@ struct DrillDetailView: View {
         HStack(spacing: AppSpacing.xxs) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundStyle(AppColors.teal)
+                .foregroundStyle(AppColors.primary)
                 .frame(width: 22)
 
             Text(label)
@@ -258,7 +258,7 @@ struct DrillDetailView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, AppSpacing.sm)
-                    .background(AppColors.teal)
+                    .background(AppColors.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
             }
 

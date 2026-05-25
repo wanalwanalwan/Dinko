@@ -3,7 +3,7 @@ import SwiftUI
 struct RatingBadge: View {
     let rating: Int
     var size: CGFloat = 60
-    var ringColor: Color = AppColors.teal
+    var ringColor: Color = AppColors.primary
     var showCheckmark: Bool = false
     var showLabel: Bool = true
 
@@ -53,8 +53,8 @@ struct RatingBadge: View {
         HStack(spacing: 16) {
             RatingBadge(rating: 0)
             RatingBadge(rating: 45, ringColor: AppColors.drillOrange)
-            RatingBadge(rating: 75, ringColor: AppColors.teal)
-            RatingBadge(rating: 100, ringColor: AppColors.teal, showCheckmark: true)
+            RatingBadge(rating: 75, ringColor: AppColors.primary)
+            RatingBadge(rating: 100, ringColor: AppColors.primary, showCheckmark: true)
         }
         RatingBadge(rating: 82, size: 160)
     }

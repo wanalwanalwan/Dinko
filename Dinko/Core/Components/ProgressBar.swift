@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ProgressBar: View {
     let progress: Double
-    var tint: Color = AppColors.teal
+    var tint: Color = AppColors.primary
 
     @State private var animatedProgress: Double = 0
 

@@ -17,7 +17,7 @@ struct SectionHeaderView: View {
                 Button(action: action) {
                     Text(actionTitle.uppercased())
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
             }
         }

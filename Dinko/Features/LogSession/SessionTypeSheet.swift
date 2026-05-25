@@ -41,7 +41,7 @@ private struct SessionTypeCard: View {
             VStack(spacing: AppSpacing.xs) {
                 Image(systemName: type.iconName)
                     .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
 
                 Text(type.displayName)
                     .font(AppTypography.headline)
@@ -60,7 +60,7 @@ private struct SessionTypeCard: View {
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
-                    .stroke(AppColors.teal.opacity(isPressed ? 1 : 0.15), lineWidth: isPressed ? 2 : 1)
+                    .stroke(AppColors.primary.opacity(isPressed ? 1 : 0.15), lineWidth: isPressed ? 2 : 1)
             )
             .scaleEffect(isPressed ? 0.96 : 1)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)

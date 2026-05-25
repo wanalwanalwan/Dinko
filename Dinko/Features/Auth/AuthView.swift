@@ -105,7 +105,7 @@ struct AuthView: View {
                         .padding(.vertical, AppSpacing.xs)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(AppColors.teal)
+                    .tint(AppColors.primary)
                     .disabled(viewModel.isLoading)
 
                     Button {
@@ -119,7 +119,7 @@ struct AuthView: View {
                              ? "Already have an account? Sign In"
                              : "Don't have an account? Sign Up")
                             .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                     }
 
                     if !viewModel.isSignUp {
@@ -169,7 +169,7 @@ struct AuthView: View {
                     HStack(spacing: 4) {
                         Link("Privacy Policy", destination: AppURLs.privacyPolicy)
                             .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
 
                         Text("and")
                             .font(.system(size: 11, design: .rounded))
@@ -177,7 +177,7 @@ struct AuthView: View {
 
                         Link("Terms of Service", destination: AppURLs.termsOfService)
                             .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                     }
                 }
                 .padding(.top, AppSpacing.xs)
@@ -209,7 +209,7 @@ struct AuthView: View {
                     Text(viewModel.resetPasswordEmail)
                         .font(AppTypography.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
 
                 Text("Tap the link in the email to reset your password, then come back and sign in.")
@@ -263,7 +263,7 @@ struct AuthView: View {
                         .padding(.vertical, AppSpacing.xs)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(AppColors.teal)
+                    .tint(AppColors.primary)
                     .disabled(viewModel.isLoading)
                 }
                 .padding(.horizontal, AppSpacing.lg)
@@ -278,7 +278,7 @@ struct AuthView: View {
                     .padding(.vertical, AppSpacing.xs)
             }
             .buttonStyle(.bordered)
-            .tint(AppColors.teal)
+            .tint(AppColors.primary)
             .padding(.horizontal, AppSpacing.lg)
 
             Spacer()

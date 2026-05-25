@@ -116,12 +116,12 @@ struct SkillListView: View {
             // Progress ring
             ZStack {
                 Circle()
-                    .stroke(AppColors.teal.opacity(0.1), lineWidth: 7)
+                    .stroke(AppColors.primary.opacity(0.1), lineWidth: 7)
                     .frame(width: 72, height: 72)
 
                 Circle()
                     .trim(from: 0, to: CGFloat(avgRating) / 100.0)
-                    .stroke(AppColors.teal, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                    .stroke(AppColors.primary, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                     .frame(width: 72, height: 72)
                     .rotationEffect(.degrees(-90))
 

@@ -11,7 +11,7 @@ struct HeroDrillCard: View {
             HStack {
                 Text("UP NEXT")
                     .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
                     .tracking(0.5)
 
                 Spacer()
@@ -25,10 +25,10 @@ struct HeroDrillCard: View {
                         .frame(width: 16, height: 16)
                 }
                     .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(AppColors.teal.opacity(0.12))
+                    .background(AppColors.primary.opacity(0.12))
                     .clipShape(Capsule())
             }
 
@@ -83,7 +83,7 @@ struct HeroDrillCard: View {
             }
             .foregroundStyle(.white)
             .padding(.vertical, AppSpacing.xs)
-            .background(AppColors.teal)
+            .background(AppColors.primary)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .padding(AppSpacing.md)
@@ -95,10 +95,10 @@ struct HeroDrillCard: View {
     private func skillPill(_ name: String) -> some View {
         Text(name)
             .font(.system(size: 12, weight: .medium, design: .rounded))
-            .foregroundStyle(AppColors.teal)
+            .foregroundStyle(AppColors.primary)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(AppColors.teal.opacity(0.12))
+            .background(AppColors.primary.opacity(0.12))
             .clipShape(Capsule())
     }
 }

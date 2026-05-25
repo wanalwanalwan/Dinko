@@ -14,7 +14,7 @@ struct MessageBubbleView: View {
                 .foregroundStyle(isFromCurrentUser ? .white : AppColors.textPrimary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(isFromCurrentUser ? AppColors.teal : AppColors.agentBubble)
+                .background(isFromCurrentUser ? AppColors.primary : AppColors.agentBubble)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
 
             if !isFromCurrentUser { Spacer(minLength: 60) }

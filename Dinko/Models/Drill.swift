@@ -73,7 +73,7 @@ extension Drill {
     var priorityColor: Color {
         switch priority {
         case "high": AppColors.coral
-        case "medium": AppColors.teal
+        case "medium": AppColors.primary
         default: AppColors.textSecondary
         }
     }

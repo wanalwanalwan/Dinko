@@ -21,7 +21,7 @@ struct EmailVerificationView: View {
                 Text(viewModel.verificationEmail)
                     .font(AppTypography.body)
                     .fontWeight(.semibold)
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
             }
 
             Text("Tap the link in the email to confirm your account, then come back and sign in.")
@@ -44,7 +44,7 @@ struct EmailVerificationView: View {
                     Group {
                         if viewModel.isLoading {
                             ProgressView()
-                                .tint(AppColors.teal)
+                                .tint(AppColors.primary)
                         } else if viewModel.resendCooldown > 0 {
                             Text("Resend in \(viewModel.resendCooldown)s")
                                 .font(AppTypography.headline)
@@ -57,7 +57,7 @@ struct EmailVerificationView: View {
                     .padding(.vertical, AppSpacing.xs)
                 }
                 .buttonStyle(.bordered)
-                .tint(AppColors.teal)
+                .tint(AppColors.primary)
                 .disabled(viewModel.isLoading || viewModel.resendCooldown > 0)
 
                 Button {
@@ -69,7 +69,7 @@ struct EmailVerificationView: View {
                         .padding(.vertical, AppSpacing.xs)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(AppColors.teal)
+                .tint(AppColors.primary)
             }
             .padding(.horizontal, AppSpacing.lg)
 

@@ -132,19 +132,19 @@ struct TimelineView: View {
             ZStack {
                 if selected {
                     Circle()
-                        .fill(AppColors.teal)
+                        .fill(AppColors.primary)
                         .frame(width: 36, height: 36)
-                        .shadow(color: AppColors.teal.opacity(0.35), radius: 6, y: 2)
+                        .shadow(color: AppColors.primary.opacity(0.35), radius: 6, y: 2)
                 } else if hasSession {
                     Circle()
-                        .fill(AppColors.teal)
+                        .fill(AppColors.primary)
                         .frame(width: 36, height: 36)
                 }
 
                 Text("\(day)")
                     .font(.system(size: 15, weight: selected || hasSession || today ? .bold : .regular, design: .rounded))
                     .foregroundStyle(
-                        selected || hasSession ? .white : (today ? AppColors.teal : AppColors.textPrimary)
+                        selected || hasSession ? .white : (today ? AppColors.primary : AppColors.textPrimary)
                     )
             }
             .frame(height: 44)
@@ -207,7 +207,7 @@ struct TimelineView: View {
             HStack(spacing: AppSpacing.xxs) {
                 Image(systemName: session.sessionType.iconName)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
 
                 Text(session.sessionType.displayName)
                     .font(AppTypography.headline)
@@ -237,7 +237,7 @@ struct TimelineView: View {
                     ForEach(skillNames, id: \.self) { name in
                         Text(name)
                             .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                             .padding(.horizontal, AppSpacing.xxs)
                             .padding(.vertical, 3)
                             .background(AppColors.primaryTint)

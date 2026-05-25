@@ -7,14 +7,18 @@ struct OnboardingView: View {
 
     var onComplete: () -> Void
 
-    private let totalSteps = 3
+    private let totalSteps = 7
 
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentStep) {
                 duprStep.tag(0)
-                frequencyStep.tag(1)
-                drillPreferencesStep.tag(2)
+                playStyleStep.tag(1)
+                gameFormatStep.tag(2)
+                primaryGoalStep.tag(3)
+                frequencyStep.tag(4)
+                ageRangeStep.tag(5)
+                drillPreferencesStep.tag(6)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: currentStep)
@@ -31,7 +35,7 @@ struct OnboardingView: View {
         HStack(spacing: AppSpacing.xxs) {
             ForEach(0..<totalSteps, id: \.self) { index in
                 Circle()
-                    .fill(index == currentStep ? AppColors.teal : AppColors.teal.opacity(0.25))
+                    .fill(index == currentStep ? AppColors.primary : AppColors.primary.opacity(0.25))
                     .frame(width: index == currentStep ? 10 : 8, height: index == currentStep ? 10 : 8)
                     .animation(.easeInOut(duration: 0.2), value: currentStep)
             }
@@ -66,7 +70,87 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 2: Training Frequency
+    // MARK: - Step 2: Play Style
+
+    private var playStyleStep: some View {
+        stepContainer(
+            title: "What's your play style?",
+            subtitle: "We'll tailor coaching to complement your strengths."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Banger", icon: "bolt.fill", isSelected: viewModel.playStyle == "Banger") {
+                    viewModel.playStyle = "Banger"
+                    advanceAfterDelay()
+                }
+                selectionCard("Dinker", icon: "hand.raised.fill", isSelected: viewModel.playStyle == "Dinker") {
+                    viewModel.playStyle = "Dinker"
+                    advanceAfterDelay()
+                }
+                selectionCard("All-Court", icon: "arrow.left.and.right", isSelected: viewModel.playStyle == "All-Court") {
+                    viewModel.playStyle = "All-Court"
+                    advanceAfterDelay()
+                }
+                selectionCard("Counter-Puncher", icon: "shield.fill", isSelected: viewModel.playStyle == "Counter-Puncher") {
+                    viewModel.playStyle = "Counter-Puncher"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 3: Game Format
+
+    private var gameFormatStep: some View {
+        stepContainer(
+            title: "Singles or doubles?",
+            subtitle: "We'll focus drills on your preferred format."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Singles", icon: "person.fill", isSelected: viewModel.gameFormat == "Singles") {
+                    viewModel.gameFormat = "Singles"
+                    advanceAfterDelay()
+                }
+                selectionCard("Doubles", icon: "person.2.fill", isSelected: viewModel.gameFormat == "Doubles") {
+                    viewModel.gameFormat = "Doubles"
+                    advanceAfterDelay()
+                }
+                selectionCard("Both", icon: "person.3.fill", isSelected: viewModel.gameFormat == "Both") {
+                    viewModel.gameFormat = "Both"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 4: Primary Goal
+
+    private var primaryGoalStep: some View {
+        stepContainer(
+            title: "What's your #1 goal?",
+            subtitle: "This helps us prioritize what matters most to you."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Compete in tournaments", icon: "trophy.fill", isSelected: viewModel.primaryGoal == "Compete in tournaments") {
+                    viewModel.primaryGoal = "Compete in tournaments"
+                    advanceAfterDelay()
+                }
+                selectionCard("Improve DUPR", icon: "chart.line.uptrend.xyaxis", isSelected: viewModel.primaryGoal == "Improve DUPR") {
+                    viewModel.primaryGoal = "Improve DUPR"
+                    advanceAfterDelay()
+                }
+                selectionCard("Stay active", icon: "heart.fill", isSelected: viewModel.primaryGoal == "Stay active") {
+                    viewModel.primaryGoal = "Stay active"
+                    advanceAfterDelay()
+                }
+                selectionCard("Beat my friends", icon: "figure.pickleball", isSelected: viewModel.primaryGoal == "Beat my friends") {
+                    viewModel.primaryGoal = "Beat my friends"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 5: Training Frequency
 
     private var frequencyStep: some View {
         stepContainer(
@@ -90,7 +174,31 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 3: Drill Preferences (Multi-select)
+    // MARK: - Step 6: Age Range
+
+    private var ageRangeStep: some View {
+        stepContainer(
+            title: "What's your age range?",
+            subtitle: "We'll adjust drill intensity and recovery recommendations."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Under 30", icon: "hare.fill", isSelected: viewModel.ageRange == "Under 30") {
+                    viewModel.ageRange = "Under 30"
+                    advanceAfterDelay()
+                }
+                selectionCard("30-50", icon: "figure.walk", isSelected: viewModel.ageRange == "30-50") {
+                    viewModel.ageRange = "30-50"
+                    advanceAfterDelay()
+                }
+                selectionCard("50+", icon: "figure.and.child.holdinghands", isSelected: viewModel.ageRange == "50+") {
+                    viewModel.ageRange = "50+"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 7: Drill Preferences (Multi-select)
 
     private var drillPreferencesStep: some View {
         stepContainer(
@@ -122,7 +230,7 @@ struct OnboardingView: View {
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, AppSpacing.sm)
-                                .background(AppColors.teal)
+                                .background(AppColors.primary)
                                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
                         }
                         .disabled(isCompleting)
@@ -189,7 +297,7 @@ struct OnboardingView: View {
             HStack(spacing: AppSpacing.xs) {
                 Image(systemName: icon)
                     .font(.system(size: 20))
-                    .foregroundStyle(isSelected ? .white : AppColors.teal)
+                    .foregroundStyle(isSelected ? .white : AppColors.primary)
                     .frame(width: 28)
 
                 Text(label)
@@ -204,11 +312,11 @@ struct OnboardingView: View {
                 }
             }
             .padding(AppSpacing.sm)
-            .background(isSelected ? AppColors.teal : AppColors.cardBackground)
+            .background(isSelected ? AppColors.primary : AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
             .overlay(
                 RoundedRectangle(cornerRadius: AppSpacing.xs)
-                    .strokeBorder(isSelected ? AppColors.teal : Color.clear, lineWidth: 2)
+                    .strokeBorder(isSelected ? AppColors.primary : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)
@@ -221,11 +329,11 @@ struct OnboardingView: View {
                 .foregroundStyle(isSelected ? .white : AppColors.textPrimary)
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.vertical, AppSpacing.xxs)
-                .background(isSelected ? AppColors.teal : AppColors.cardBackground)
+                .background(isSelected ? AppColors.primary : AppColors.cardBackground)
                 .clipShape(Capsule())
                 .overlay(
                     Capsule()
-                        .strokeBorder(isSelected ? AppColors.teal : AppColors.separator, lineWidth: 1)
+                        .strokeBorder(isSelected ? AppColors.primary : AppColors.separator, lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)

@@ -24,7 +24,7 @@ struct RateSkillView: View {
 
                 Text("\(Int(rating))%")
                     .font(AppTypography.ratingLarge)
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
 
                 VStack(spacing: AppSpacing.xxxs) {
                     HStack {
@@ -38,7 +38,7 @@ struct RateSkillView: View {
                     }
 
                     Slider(value: $rating, in: 0...100, step: 1)
-                        .tint(AppColors.teal)
+                        .tint(AppColors.primary)
                 }
 
                 VStack(alignment: .leading, spacing: AppSpacing.xxs) {
@@ -51,7 +51,7 @@ struct RateSkillView: View {
 
                     Text("Record what went well or what you'd like to improve")
                         .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
 
                 Spacer()

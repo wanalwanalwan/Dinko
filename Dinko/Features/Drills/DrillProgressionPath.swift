@@ -53,7 +53,7 @@ struct DrillProgressionPath: View {
     private func connectorLine(isActive: Bool) -> some View {
         HStack {
             Rectangle()
-                .fill(isActive ? AppColors.teal : AppColors.separator)
+                .fill(isActive ? AppColors.primary : AppColors.separator)
                 .frame(width: 3, height: 24)
                 .clipShape(Capsule())
                 .frame(width: 60)

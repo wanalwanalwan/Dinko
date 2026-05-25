@@ -31,9 +31,9 @@ enum DrillNodeState {
 
     var backgroundColor: Color {
         switch self {
-        case .next: AppColors.teal
+        case .next: AppColors.primary
         case .completed: AppColors.successGreenDark
-        case .upcoming: AppColors.teal
+        case .upcoming: AppColors.primary
         }
     }
 }
@@ -87,7 +87,7 @@ struct DrillNodeView: View {
                             .foregroundStyle(AppColors.textSecondary)
                         Text(skillName)
                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                             .lineLimit(1)
                     }
                 }
@@ -99,18 +99,18 @@ struct DrillNodeView: View {
             if drill.targetReps > 1 {
                 Text("Rep \(drill.completedReps)/\(drill.targetReps)")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(AppColors.teal.opacity(0.12))
+                    .background(AppColors.primary.opacity(0.12))
                     .clipShape(Capsule())
             } else {
                 Text("\(drill.durationMinutes) min")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(AppColors.teal.opacity(0.12))
+                    .background(AppColors.primary.opacity(0.12))
                     .clipShape(Capsule())
             }
         }

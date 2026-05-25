@@ -179,7 +179,7 @@ struct SkillDetailView: View {
 
                     Text("100%")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
 
                 Text("You've mastered this skill!")
@@ -195,7 +195,7 @@ struct SkillDetailView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, AppSpacing.xl)
                         .padding(.vertical, AppSpacing.sm)
-                        .background(AppColors.teal)
+                        .background(AppColors.primary)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.pressable)
@@ -243,11 +243,11 @@ struct SkillDetailView: View {
 
                     Image(systemName: delta > 0 ? "arrow.up.right" : "arrow.down.right")
                         .font(.system(size: 10))
-                        .foregroundStyle(delta > 0 ? AppColors.teal : AppColors.coral)
+                        .foregroundStyle(delta > 0 ? AppColors.primary : AppColors.coral)
 
                     Text(delta > 0 ? "+\(delta)% this week" : "\(delta)% this week")
                         .font(AppTypography.caption)
-                        .foregroundStyle(delta > 0 ? AppColors.teal : AppColors.coral)
+                        .foregroundStyle(delta > 0 ? AppColors.primary : AppColors.coral)
                 }
             }
 
@@ -260,7 +260,7 @@ struct SkillDetailView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.vertical, AppSpacing.xxs)
-                        .background(AppColors.teal)
+                        .background(AppColors.primary)
                         .clipShape(Capsule())
                 }
                 .padding(.top, AppSpacing.xxs)
@@ -288,7 +288,7 @@ struct SkillDetailView: View {
                         showingAddSubskill = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                     }
                     .accessibilityLabel("Add Subskill")
                 }
@@ -348,14 +348,14 @@ struct SkillDetailView: View {
             HStack(spacing: 0) {
                 // Teal accent bar
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(AppColors.teal.opacity(0.4))
+                    .fill(AppColors.primary.opacity(0.4))
                     .frame(width: 3)
 
                 VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
                     HStack {
                         Text("MY NOTES")
                             .font(.system(size: 11, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
 
                         Spacer()
 
@@ -368,7 +368,7 @@ struct SkillDetailView: View {
                         HStack(spacing: AppSpacing.xxs) {
                             Image(systemName: "square.and.pencil")
                                 .font(.system(size: 13))
-                                .foregroundStyle(AppColors.teal.opacity(0.6))
+                                .foregroundStyle(AppColors.primary.opacity(0.6))
 
                             Text("Tap to add notes about this skill...")
                                 .font(AppTypography.caption)
@@ -409,15 +409,15 @@ struct SkillDetailView: View {
                     HStack(spacing: AppSpacing.xxs) {
                         Image(systemName: "sparkles")
                             .font(.caption)
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
 
                         Text("Get More Coaching")
                             .font(AppTypography.callout)
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, AppSpacing.xs)
-                    .background(AppColors.teal.opacity(0.1))
+                    .background(AppColors.primary.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
                 }
                 .buttonStyle(.pressable)
@@ -448,7 +448,7 @@ struct SkillDetailView: View {
                             .foregroundStyle(.white.opacity(0.6))
                     }
                     .padding(AppSpacing.sm)
-                    .background(AppColors.teal)
+                    .background(AppColors.primary)
                     .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
                 }
                 .buttonStyle(.pressable)
@@ -469,7 +469,7 @@ struct SkillDetailView: View {
                 HStack {
                     Image(systemName: "figure.run")
                         .font(.caption)
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
 
                     Text("DRILLS")
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
@@ -526,7 +526,7 @@ struct SkillDetailView: View {
                                     .foregroundStyle(AppColors.textSecondary)
                                 Text(subskill.replacingOccurrences(of: "_", with: " ").capitalized)
                                     .font(AppTypography.caption)
-                                    .foregroundStyle(AppColors.teal)
+                                    .foregroundStyle(AppColors.primary)
                             }
                         }
                     }
@@ -598,7 +598,7 @@ struct SkillDetailView: View {
                     HStack {
                         Image(systemName: "text.bubble")
                             .font(.caption)
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
 
                         Text("Rating Notes")
                             .font(AppTypography.headline)
@@ -625,7 +625,7 @@ struct SkillDetailView: View {
                                     Text("\(rating.rating)%")
                                         .font(AppTypography.callout)
                                         .fontWeight(.semibold)
-                                        .foregroundStyle(AppColors.teal)
+                                        .foregroundStyle(AppColors.primary)
 
                                     Spacer()
 
@@ -665,7 +665,7 @@ struct SkillDetailView: View {
                 HStack {
                     Image(systemName: "checklist")
                         .font(.caption)
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
 
                     Text("PROGRESS")
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
@@ -701,7 +701,7 @@ struct SkillDetailView: View {
                 if viewModel.progressCheckers.count > 2 {
                     Text("+ \(viewModel.progressCheckers.count - 2) more")
                         .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
             }
             .padding(AppSpacing.sm)
@@ -771,7 +771,7 @@ struct SkillDetailView: View {
                     RatingBadge(
                         rating: Int(viewModel.checkerProgress * 100),
                         size: 48,
-                        ringColor: AppColors.teal
+                        ringColor: AppColors.primary
                     )
                 }
                 .padding(.horizontal, AppSpacing.lg)
@@ -801,12 +801,12 @@ struct SkillDetailView: View {
                                 HStack(spacing: AppSpacing.xs) {
                                     ZStack {
                                         Circle()
-                                            .fill(checker.isCompleted ? AppColors.teal.opacity(0.12) : AppColors.separator.opacity(0.5))
+                                            .fill(checker.isCompleted ? AppColors.primary.opacity(0.12) : AppColors.separator.opacity(0.5))
                                             .frame(width: 36, height: 36)
 
                                         Image(systemName: checker.isCompleted ? "checkmark" : "circle")
                                             .font(.system(size: checker.isCompleted ? 14 : 18, weight: .semibold))
-                                            .foregroundStyle(checker.isCompleted ? AppColors.teal : AppColors.lockedGray)
+                                            .foregroundStyle(checker.isCompleted ? AppColors.primary : AppColors.lockedGray)
                                     }
 
                                     VStack(alignment: .leading, spacing: 2) {

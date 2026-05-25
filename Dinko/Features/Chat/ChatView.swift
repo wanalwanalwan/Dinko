@@ -15,6 +15,7 @@ struct ChatView: View {
                 ProgressView()
             }
         }
+        .background(AppColors.background)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             if viewModel == nil {
@@ -33,46 +34,38 @@ struct ChatView: View {
 
     @ViewBuilder
     private func chatContent(_ viewModel: ChatViewModel) -> some View {
-        ZStack(alignment: .bottom) {
-            // Messages
-            ScrollViewReader { proxy in
-                VStack(spacing: 0) {
-                if !networkMonitor.isConnected {
-                    HStack(spacing: AppSpacing.xxs) {
-                        Image(systemName: "wifi.slash")
-                            .font(.system(size: 12, weight: .semibold))
-                        Text("You're offline. Messages will send when reconnected.")
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, AppSpacing.xxs)
-                    .padding(.horizontal, AppSpacing.sm)
-                    .frame(maxWidth: .infinity)
-                    .background(AppColors.coral.opacity(0.9))
+        VStack(spacing: 0) {
+            if !networkMonitor.isConnected {
+                HStack(spacing: AppSpacing.xxs) {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("You're offline. Messages will send when reconnected.")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
                 }
+                .foregroundStyle(.white)
+                .padding(.vertical, AppSpacing.xxs)
+                .padding(.horizontal, AppSpacing.sm)
+                .frame(maxWidth: .infinity)
+                .background(AppColors.coral.opacity(0.9))
+            }
 
+            ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: AppSpacing.xs) {
+                    LazyVStack(spacing: 0) {
                         if viewModel.messages.isEmpty {
                             emptyState
                         }
 
                         ForEach(viewModel.messages) { message in
-                            messageBubble(message, viewModel: viewModel)
+                            messageRow(message, viewModel: viewModel)
                                 .id(message.id)
-                                .transition(.asymmetric(
-                                    insertion: .opacity.combined(with: .scale(scale: 0.95)),
-                                    removal: .opacity
-                                ))
+                                .transition(.opacity.combined(with: .move(edge: .bottom)))
                         }
 
-                        // Bottom spacer so content doesn't hide behind floating input
                         Spacer()
-                            .frame(height: 80)
+                            .frame(height: 100)
                     }
-                    .padding(.horizontal, AppSpacing.sm)
-                    .padding(.top, AppSpacing.lg)
-                    .padding(.bottom, AppSpacing.xs)
+                    .padding(.top, AppSpacing.sm)
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .onTapGesture {
@@ -85,10 +78,9 @@ struct ChatView: View {
                         }
                     }
                 }
-                } // VStack
             }
 
-            // Floating input bar
+            // Input bar pinned to bottom
             inputBar(viewModel)
         }
         .contentLoadTransition(isLoaded: contentReady)
@@ -99,9 +91,9 @@ struct ChatView: View {
     private var emptyState: some View {
         VStack(spacing: AppSpacing.sm) {
             Spacer()
-                .frame(height: 60)
+                .frame(height: 80)
 
-            CoachMascot(state: .idle, size: 88)
+            CoachMascot(state: .idle, size: 72)
 
             Text("How was your session?")
                 .font(AppTypography.title)
@@ -111,108 +103,104 @@ struct ChatView: View {
                 .font(AppTypography.callout)
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, AppSpacing.lg)
+                .padding(.horizontal, AppSpacing.xl)
         }
         .frame(maxWidth: .infinity)
+        .padding(.bottom, AppSpacing.xl)
     }
 
-    // MARK: - Message Bubbles
+    // MARK: - Message Row
 
     @ViewBuilder
-    private func messageBubble(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
+    private func messageRow(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
         switch message.role {
         case .user:
-            HStack {
-                Spacer(minLength: UIScreen.main.bounds.width * 0.3)
-                userBubbleContent(message)
-            }
+            userRow(message)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.top, AppSpacing.lg)
+                .padding(.bottom, AppSpacing.xxs)
 
         case .agent:
-            agentMessageRow(message, viewModel: viewModel)
+            agentRow(message, viewModel: viewModel)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.sm)
         }
     }
 
-    // MARK: - Agent Message Row
+    // MARK: - User Row
 
-    @ViewBuilder
-    private func agentMessageRow(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
-        if case .text(let text) = message.content {
-            // Split long text into conversational chunks
-            let chunks = splitIntoChunks(text)
-            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                ForEach(Array(chunks.enumerated()), id: \.offset) { index, chunk in
-                    HStack(alignment: .top, spacing: 8) {
-                        if index == 0 {
-                            CoachMascot(state: .talking, size: 40)
-                        } else {
-                            Spacer().frame(width: 40)
-                        }
+    private func userRow(_ message: ChatMessage) -> some View {
+        HStack(alignment: .bottom) {
+            Spacer(minLength: 60)
 
-                        Text(chunk)
-                            .font(AppTypography.body)
-                            .lineSpacing(4)
-                            .foregroundStyle(AppColors.textPrimary)
-                            .padding(14)
-                            .frame(maxWidth: 270, alignment: .leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .background(AppColors.agentBubble)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-
-                        Spacer()
-                    }
-                }
-            }
-        } else {
-            // Non-text content (loading, session preview, cards, errors)
-            HStack(alignment: .top, spacing: 8) {
-                CoachMascot(state: mascotState(for: message), size: 40)
-                    .padding(.top, 12) // align with content inside padded bubble
-                agentBubbleContent(message, viewModel: viewModel)
-                Spacer(minLength: 0)
-            }
-        }
-    }
-
-    // MARK: - User Bubble
-
-    private func userBubbleContent(_ message: ChatMessage) -> some View {
-        Group {
             if case .text(let text) = message.content {
                 Text(text)
-                    .font(AppTypography.body)
-                    .lineSpacing(4)
-                    .foregroundStyle(.white)
-                    .padding(14)
-                    .background(AppColors.teal)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .font(.system(size: 16, design: .rounded))
+                    .lineSpacing(3)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(AppColors.agentBubble)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
             }
         }
     }
 
-    // MARK: - Agent Bubble Content (non-text types)
+    // MARK: - Agent Row
 
     @ViewBuilder
-    private func agentBubbleContent(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
+    private func agentRow(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
+        if case .text(let text) = message.content {
+            // Text messages — clean, no bubble, like Claude
+            HStack(alignment: .top, spacing: 12) {
+                CoachMascot(state: .talking, size: 28)
+                    .padding(.top, 2)
+
+                Text(text)
+                    .font(.system(size: 16, design: .rounded))
+                    .lineSpacing(5)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 0)
+            }
+        } else {
+            // Non-text content (loading, cards, errors)
+            HStack(alignment: .top, spacing: 12) {
+                CoachMascot(state: mascotState(for: message), size: 28)
+                    .padding(.top, 2)
+
+                agentContent(message, viewModel: viewModel)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    // MARK: - Agent Content (non-text types)
+
+    @ViewBuilder
+    private func agentContent(_ message: ChatMessage, viewModel: ChatViewModel) -> some View {
         switch message.content {
         case .text:
-            EmptyView() // Handled by agentMessageRow
+            EmptyView()
 
         case .loading:
             HStack(spacing: AppSpacing.xxs) {
-                ProgressView()
-                Text("Analyzing your session...")
-                    .font(AppTypography.callout)
+                typingIndicator
+                Text("Thinking...")
+                    .font(.system(size: 14, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
+                Spacer()
                 Button { viewModel.cancelSending() } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(AppColors.textSecondary.opacity(0.6))
+                        .font(.system(size: 16))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.4))
                 }
                 .accessibilityLabel("Cancel analysis")
             }
-            .padding(14)
-            .background(AppColors.agentBubble)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.top, 4)
 
         case .sessionPreview(let preview):
             SessionPreviewCard(
@@ -285,17 +273,16 @@ struct ChatView: View {
                     isOffline ? "No Connection" : "Something went wrong",
                     systemImage: isOffline ? "wifi.slash" : "exclamationmark.triangle.fill"
                 )
-                    .font(AppTypography.callout)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.coral)
                 Text(errorText)
-                    .font(AppTypography.caption)
+                    .font(.system(size: 13, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                 Button {
                     viewModel.retrySession(messageId: message.id)
                 } label: {
                     Label("Try Again", systemImage: "arrow.counterclockwise")
-                        .font(AppTypography.callout)
-                        .fontWeight(.medium)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
                         .padding(.horizontal, AppSpacing.xs)
                         .padding(.vertical, AppSpacing.xxxs)
                 }
@@ -303,34 +290,13 @@ struct ChatView: View {
                 .tint(AppColors.coral)
                 .accessibilityLabel("Retry sending message")
             }
-            .padding(14)
-            .background(AppColors.coral.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
     }
 
-    // MARK: - Text Splitting
+    // MARK: - Typing Indicator
 
-    /// Splits a long AI message into conversational chunks (1 sentence each).
-    private func splitIntoChunks(_ text: String) -> [String] {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return [trimmed] }
-
-        // Split into sentences
-        var sentences: [String] = []
-        trimmed.enumerateSubstrings(in: trimmed.startIndex..., options: .bySentences) { substring, _, _, _ in
-            if let s = substring {
-                let cleaned = s.trimmingCharacters(in: .whitespaces)
-                if !cleaned.isEmpty {
-                    sentences.append(cleaned)
-                }
-            }
-        }
-
-        // Only split if there are multiple sentences
-        guard sentences.count > 1 else { return [trimmed] }
-
-        return sentences
+    private var typingIndicator: some View {
+        TypingDotsView()
     }
 
     // MARK: - Mascot State Mapping
@@ -355,48 +321,69 @@ struct ChatView: View {
     // MARK: - Input Bar
 
     private func inputBar(_ viewModel: ChatViewModel) -> some View {
-        VStack(spacing: 0) {
+        let canSend = !viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !viewModel.isSending
+            && networkMonitor.isConnected
+
+        return HStack(alignment: .bottom, spacing: 8) {
             TextField("How was your session?", text: Binding(
                 get: { viewModel.inputText },
                 set: { viewModel.inputText = $0 }
             ), axis: .vertical)
-                .font(AppTypography.body)
-                .lineLimit(1...5)
+                .font(.system(size: 16, design: .rounded))
+                .lineLimit(1...6)
                 .textFieldStyle(.plain)
                 .focused($isInputFocused)
-                .padding(.horizontal, AppSpacing.sm)
-                .padding(.top, AppSpacing.xs)
-                .padding(.bottom, AppSpacing.xxs)
                 .onSubmit {
-                    viewModel.send()
+                    if canSend { viewModel.send() }
                 }
 
-            HStack {
-                Spacer()
-
-                Button {
-                    viewModel.send()
-                } label: {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundStyle(
-                            viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending || !networkMonitor.isConnected
-                                ? AppColors.textSecondary.opacity(0.3)
-                                : AppColors.teal
-                        )
-                }
-                .disabled(
-                    viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending || !networkMonitor.isConnected
-                )
-                .accessibilityLabel("Send message")
+            Button {
+                viewModel.send()
+            } label: {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 30)
+                    .background(canSend ? AppColors.primary : AppColors.textSecondary.opacity(0.2))
+                    .clipShape(Circle())
             }
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.bottom, AppSpacing.xs)
+            .disabled(!canSend)
+            .accessibilityLabel("Send message")
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: -2)
+        .clipShape(RoundedRectangle(cornerRadius: 22))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(AppColors.separator, lineWidth: 1)
+        )
         .padding(.horizontal, AppSpacing.sm)
         .padding(.bottom, AppSpacing.xxs)
+    }
+}
+
+// MARK: - Typing Dots
+
+private struct TypingDotsView: View {
+    @State private var animating = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3, id: \.self) { index in
+                Circle()
+                    .fill(AppColors.primary.opacity(0.6))
+                    .frame(width: 6, height: 6)
+                    .offset(y: animating ? -3 : 3)
+                    .animation(
+                        .easeInOut(duration: 0.45)
+                            .repeatForever(autoreverses: true)
+                            .delay(Double(index) * 0.15),
+                        value: animating
+                    )
+            }
+        }
+        .onAppear { animating = true }
     }
 }

@@ -5,17 +5,21 @@ enum AppColors {
     static let background = Color(light: "F7F8FA", dark: "11151A")
     static let cardBackground = Color(light: "FFFFFF", dark: "1A2027")
 
-    // MARK: - Primary
-    static let teal = Color(hex: "29C7D8")
-    static let tealDark = Color(hex: "1FADB8")
-    static let tealLight = Color(hex: "5DD8E8")
-    static let primaryTint = Color(light: "E5F6FA", dark: "0F2A30")
+    // MARK: - Primary (Athletic Green — CTA / Interactive)
+    static let primary = Color(hex: "2F8F4E")
+    static let primaryDark = Color(hex: "247A3E")
+    static let primaryLight = Color(hex: "4CAF68")
+    static let primaryTint = Color(light: "E8F5EC", dark: "162E1C")
+
+    // MARK: - Accent (Charts / Trends / Destructive)
     static let coral = Color(hex: "F07167")
 
-    // MARK: - Semantic
-    static let successGreen = Color(hex: "2F9E44")
-    static let successGreenLight = Color(hex: "5EC269")
-    static let successGreenDark = Color(hex: "1B7A33")
+    // MARK: - Success / Improvement (Bright Progress Green)
+    static let successGreen = Color(hex: "8EDB3A")
+    static let successGreenLight = Color(hex: "A8E86A")
+    static let successGreenDark = Color(hex: "6FB82E")
+
+    // MARK: - Warning
     static let warningOrange = Color(hex: "F59E0B")
 
     // MARK: - Text
@@ -33,7 +37,7 @@ enum AppColors {
     static let tierBlue = Color(hex: "5B9BD5")
     static let tierGold = Color(hex: "F5A623")
 
-    // MARK: - Celebration
+    // MARK: - Achievement / Rewards (Yellow)
     static let trophyGold = Color(hex: "FFD84D")
 
     // MARK: - Drill Type Pills
@@ -46,11 +50,11 @@ enum AppColors {
     static let achievementYellow = Color(light: "FFF6D6", dark: "3D3520")
 
     // MARK: - Banner
-    static let bannerBackground = Color(light: "E5F7FA", dark: "142D32")
+    static let bannerBackground = Color(light: "E8F5EC", dark: "162E1C")
 
     // MARK: - Splash Gradient
-    static let splashGradientStart = Color(hex: "29C7D8")
-    static let splashGradientEnd = Color(hex: "1FADB8")
+    static let splashGradientStart = Color(hex: "2F8F4E")
+    static let splashGradientEnd = Color(hex: "247A3E")
 
     // MARK: - Overlay
     static let overlayScrim = Color.black

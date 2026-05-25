@@ -11,7 +11,7 @@ struct SkillCreationCard: View {
             // Header
             Label("New Skill", systemImage: "plus.circle.fill")
                 .font(AppTypography.headline)
-                .foregroundStyle(AppColors.teal)
+                .foregroundStyle(AppColors.primary)
 
             Divider()
 
@@ -40,7 +40,7 @@ struct SkillCreationCard: View {
                                 .tag(category)
                         }
                     }
-                    .tint(AppColors.teal)
+                    .tint(AppColors.primary)
                 }
             } else {
                 HStack(spacing: AppSpacing.xxs) {
@@ -77,7 +77,7 @@ struct SkillCreationCard: View {
                         .padding(.vertical, AppSpacing.xs)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(AppColors.teal)
+                .tint(AppColors.primary)
 
                 Button(action: onCancel) {
                     Text("Cancel")

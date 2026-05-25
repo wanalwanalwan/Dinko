@@ -29,7 +29,7 @@ struct SkillCoachingView: View {
                             Task { await viewModel.generateCoaching() }
                         } label: {
                             Image(systemName: "sparkles")
-                                .foregroundStyle(AppColors.teal)
+                                .foregroundStyle(AppColors.primary)
                         }
                         .accessibilityLabel("Regenerate coaching")
                     }
@@ -58,7 +58,7 @@ struct SkillCoachingView: View {
                 .foregroundStyle(AppColors.textSecondary)
 
             ProgressView()
-                .tint(AppColors.teal)
+                .tint(AppColors.primary)
 
             Spacer()
         }
@@ -93,7 +93,7 @@ struct SkillCoachingView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, AppSpacing.xl)
                     .padding(.vertical, AppSpacing.xs)
-                    .background(AppColors.teal)
+                    .background(AppColors.primary)
                     .clipShape(Capsule())
             }
             .buttonStyle(.pressable)
@@ -176,7 +176,7 @@ struct SkillCoachingView: View {
             HStack(spacing: AppSpacing.xxs) {
                 Image(systemName: "figure.run")
                     .font(.caption)
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
 
                 Text("DRILL SUGGESTIONS")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
@@ -211,7 +211,7 @@ struct SkillCoachingView: View {
                                 .foregroundStyle(AppColors.textSecondary)
                             Text(subskill)
                                 .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.teal)
+                                .foregroundStyle(AppColors.primary)
                         }
                     }
                 }
@@ -228,7 +228,7 @@ struct SkillCoachingView: View {
                     } else {
                         Label("Add", systemImage: "plus.circle.fill")
                             .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                     }
                 }
                 .disabled(isAdded)

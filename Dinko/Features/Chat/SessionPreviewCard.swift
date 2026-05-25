@@ -13,7 +13,7 @@ struct SessionPreviewCard: View {
             // Header
             Label("Session Analysis", systemImage: "sparkles")
                 .font(AppTypography.headline)
-                .foregroundStyle(AppColors.teal)
+                .foregroundStyle(AppColors.primary)
 
             // Coach Insight
             if let insight = preview.coachInsight, !insight.isEmpty {
@@ -22,7 +22,7 @@ struct SessionPreviewCard: View {
                     .foregroundStyle(AppColors.textPrimary)
                     .padding(AppSpacing.xs)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(AppColors.teal.opacity(0.06))
+                    .background(AppColors.primary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
 
@@ -90,7 +90,7 @@ struct SessionPreviewCard: View {
                         }
                     } label: {
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(isSelected ? AppColors.teal : AppColors.textSecondary)
+                            .foregroundStyle(isSelected ? AppColors.primary : AppColors.textSecondary)
                             .font(.system(size: 18))
                             .frame(width: 24)
                     }
@@ -130,7 +130,7 @@ struct SessionPreviewCard: View {
                                 }
                             } label: {
                                 Image(systemName: isSubSelected ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(isSubSelected ? AppColors.teal : AppColors.textSecondary)
+                                    .foregroundStyle(isSubSelected ? AppColors.primary : AppColors.textSecondary)
                                     .font(.system(size: 14))
                                     .frame(width: 20)
                             }
@@ -186,7 +186,7 @@ struct SessionPreviewCard: View {
                         }
                     } label: {
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(isSelected ? AppColors.teal : AppColors.textSecondary)
+                            .foregroundStyle(isSelected ? AppColors.primary : AppColors.textSecondary)
                             .font(.system(size: 18))
                             .frame(width: 24)
                     }
@@ -221,7 +221,7 @@ struct SessionPreviewCard: View {
             ForEach(suggestions, id: \.name) { suggestion in
                 HStack(alignment: .top, spacing: AppSpacing.xxs) {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                         .font(.system(size: 14))
                         .frame(width: 20)
 
@@ -237,7 +237,7 @@ struct SessionPreviewCard: View {
                         if suggestion.suggestedRating > 0 {
                             Text("Starting at \(suggestion.suggestedRating)%")
                                 .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.teal)
+                                .foregroundStyle(AppColors.primary)
                         }
                     }
 
@@ -259,7 +259,7 @@ struct SessionPreviewCard: View {
             ForEach(suggestions, id: \.name) { suggestion in
                 HStack(alignment: .top, spacing: AppSpacing.xxs) {
                     Image(systemName: "star.circle.fill")
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                         .font(.system(size: 14))
                         .frame(width: 20)
 
@@ -275,7 +275,7 @@ struct SessionPreviewCard: View {
                         if suggestion.suggestedRating > 0 {
                             Text("Starting at \(suggestion.suggestedRating)%")
                                 .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.teal)
+                                .foregroundStyle(AppColors.primary)
                         }
                     }
 
@@ -315,7 +315,7 @@ struct SessionPreviewCard: View {
             if let focus = roadmap.weeklyFocus {
                 HStack(spacing: AppSpacing.xxs) {
                     Image(systemName: "target")
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                     VStack(alignment: .leading) {
                         Text("Weekly Focus")
                             .font(AppTypography.caption)
@@ -352,7 +352,7 @@ struct SessionPreviewCard: View {
                         .padding(.vertical, AppSpacing.xs)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(AppColors.teal)
+                .tint(AppColors.primary)
 
                 Button(action: onRetry) {
                     Label("Redo", systemImage: "arrow.counterclockwise")

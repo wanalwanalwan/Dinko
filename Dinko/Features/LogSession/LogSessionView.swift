@@ -58,7 +58,7 @@ struct LogSessionView: View {
             Text(viewModel.sessionType.displayName)
                 .font(AppTypography.headline)
         }
-        .foregroundStyle(AppColors.teal)
+        .foregroundStyle(AppColors.primary)
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.xs)
         .background(AppColors.primaryTint)
@@ -85,7 +85,7 @@ struct LogSessionView: View {
                                 .foregroundStyle(isSelected ? .white : AppColors.textPrimary)
                                 .padding(.horizontal, AppSpacing.sm)
                                 .padding(.vertical, AppSpacing.xxs)
-                                .background(isSelected ? AppColors.teal : AppColors.cardBackground)
+                                .background(isSelected ? AppColors.primary : AppColors.cardBackground)
                                 .clipShape(Capsule())
                                 .overlay(
                                     Capsule()
@@ -190,7 +190,7 @@ struct LogSessionView: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, AppSpacing.sm)
-            .background(viewModel.canSave ? AppColors.teal : AppColors.lockedGray)
+            .background(viewModel.canSave ? AppColors.primary : AppColors.lockedGray)
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -216,7 +216,7 @@ private struct SkillSelectionRow: View {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 20))
-                        .foregroundStyle(isSelected ? AppColors.teal : AppColors.lockedGray)
+                        .foregroundStyle(isSelected ? AppColors.primary : AppColors.lockedGray)
 
                     Text(skill.category.iconName)
                         .font(.system(size: 16))
@@ -236,11 +236,11 @@ private struct SkillSelectionRow: View {
                 VStack(spacing: AppSpacing.xxs) {
                     HStack(spacing: AppSpacing.xxs) {
                         Slider(value: $rating, in: 0...100, step: 1)
-                            .tint(AppColors.teal)
+                            .tint(AppColors.primary)
 
                         Text("\(Int(rating))%")
                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                             .frame(width: 40, alignment: .trailing)
                     }
 

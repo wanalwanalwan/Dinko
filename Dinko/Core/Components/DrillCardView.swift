@@ -56,7 +56,7 @@ struct DrillCardView: View {
             return ("⚡", "Reflex", AppColors.drillOrange)
         }
         if lower.contains("placement") || lower.contains("target") || lower.contains("accuracy") {
-            return ("🎯", "Placement", AppColors.teal)
+            return ("🎯", "Placement", AppColors.primary)
         }
         if lower.contains("power") || lower.contains("smash") || lower.contains("speed") {
             return ("🔥", "Power", AppColors.coral)
@@ -68,7 +68,7 @@ struct DrillCardView: View {
             return ("🧠", "Strategy", AppColors.drillPurple)
         }
         if lower.contains("serve") || lower.contains("return") {
-            return ("🎯", "Serve", AppColors.teal)
+            return ("🎯", "Serve", AppColors.primary)
         }
         if lower.contains("drive") || lower.contains("attack") {
             return ("🔥", "Attack", AppColors.coral)
@@ -76,7 +76,7 @@ struct DrillCardView: View {
         if lower.contains("counter") {
             return ("⚡", "Counter", AppColors.drillOrange)
         }
-        return ("🏸", "Drill", AppColors.teal)
+        return ("🏸", "Drill", AppColors.primary)
     }
 
     private var difficultyLabel: String {

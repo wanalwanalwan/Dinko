@@ -14,7 +14,7 @@ struct CheckerItem: View {
 
                 Text(name)
                     .font(AppTypography.body)
-                    .foregroundStyle(isCompleted ? AppColors.teal : AppColors.textPrimary)
+                    .foregroundStyle(isCompleted ? AppColors.primary : AppColors.textPrimary)
                     .italic(isCompleted)
 
                 Spacer()

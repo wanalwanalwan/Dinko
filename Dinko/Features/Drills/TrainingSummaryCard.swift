@@ -19,7 +19,7 @@ struct TrainingSummaryCard: View {
             // Stats row
             HStack(spacing: AppSpacing.sm) {
                 statItem(icon: "flame.fill", value: "\(totalCount)", label: "Drills", color: AppColors.coral)
-                statItem(icon: "clock", value: "\(totalMinutes)", label: "min", color: AppColors.teal)
+                statItem(icon: "clock", value: "\(totalMinutes)", label: "min", color: AppColors.primary)
                 mascotStatItem(value: "\(totalCompleted)", label: "Total")
                 if let focusSkill {
                     statItem(icon: "target", value: focusSkill, label: "Focus", color: AppColors.drillPurple)

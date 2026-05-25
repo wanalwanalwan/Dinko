@@ -59,12 +59,12 @@ struct CoachChatListView: View {
         HStack(spacing: AppSpacing.sm) {
             // Avatar circle
             Circle()
-                .fill(AppColors.teal.opacity(0.15))
+                .fill(AppColors.primary.opacity(0.15))
                 .frame(width: 44, height: 44)
                 .overlay(
                     Text(playerInitial(for: conversation.playerId))
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 )
 
             VStack(alignment: .leading, spacing: 2) {

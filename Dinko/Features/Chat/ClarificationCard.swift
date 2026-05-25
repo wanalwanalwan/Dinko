@@ -16,7 +16,7 @@ struct ClarificationCard: View {
             HStack {
                 Label("Quick Question", systemImage: "questionmark.circle.fill")
                     .font(AppTypography.headline)
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
                 Spacer()
                 if isPending {
                     Button {
@@ -79,12 +79,12 @@ struct ClarificationCard: View {
             HStack {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
                 Text(option.label)
                     .font(AppTypography.callout)
                     .fontWeight(.medium)
-                    .foregroundStyle(isSelected ? AppColors.teal : AppColors.textPrimary)
+                    .foregroundStyle(isSelected ? AppColors.primary : AppColors.textPrimary)
                 Spacer()
                 if !isDisabled && !isSelected {
                     Image(systemName: "chevron.right")
@@ -96,7 +96,7 @@ struct ClarificationCard: View {
             .padding(.vertical, AppSpacing.xs)
             .background(
                 isSelected
-                    ? AppColors.teal.opacity(0.1)
+                    ? AppColors.primary.opacity(0.1)
                     : AppColors.agentBubble
             )
             .clipShape(RoundedRectangle(cornerRadius: 12))

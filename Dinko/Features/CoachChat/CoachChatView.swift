@@ -39,7 +39,7 @@ struct CoachChatView: View {
                             Task { await viewModel.loadMoreMessages() }
                         }
                         .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                         .padding(.top, AppSpacing.sm)
                     }
 
@@ -96,7 +96,7 @@ struct CoachChatView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 30, height: 30)
-                    .background(canSend ? AppColors.teal : AppColors.textSecondary.opacity(0.2))
+                    .background(canSend ? AppColors.primary : AppColors.textSecondary.opacity(0.2))
                     .clipShape(Circle())
             }
             .disabled(!canSend)

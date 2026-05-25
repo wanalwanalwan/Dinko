@@ -23,7 +23,7 @@ struct ProfileView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                         .font(AppTypography.headline)
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
             }
         }
@@ -137,11 +137,11 @@ struct ProfileView: View {
                             .foregroundStyle(viewModel.drillPreferences.contains(type) ? .white : AppColors.textPrimary)
                             .padding(.horizontal, AppSpacing.sm)
                             .padding(.vertical, AppSpacing.xxxs)
-                            .background(viewModel.drillPreferences.contains(type) ? AppColors.teal : AppColors.background)
+                            .background(viewModel.drillPreferences.contains(type) ? AppColors.primary : AppColors.background)
                             .clipShape(Capsule())
                             .overlay(
                                 Capsule()
-                                    .strokeBorder(viewModel.drillPreferences.contains(type) ? AppColors.teal : AppColors.separator, lineWidth: 1)
+                                    .strokeBorder(viewModel.drillPreferences.contains(type) ? AppColors.primary : AppColors.separator, lineWidth: 1)
                             )
                     }
                     .buttonStyle(.plain)
@@ -256,7 +256,7 @@ struct ProfileView: View {
                 Spacer()
                 Text(value ?? "Not set")
                     .font(.system(size: 14, design: .rounded))
-                    .foregroundStyle(value != nil ? AppColors.teal : AppColors.textSecondary)
+                    .foregroundStyle(value != nil ? AppColors.primary : AppColors.textSecondary)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(AppColors.textSecondary)

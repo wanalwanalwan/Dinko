@@ -21,14 +21,14 @@ struct ContentView: View {
         ]
         let selectedAttributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 10, weight: .semibold),
-            .foregroundColor: UIColor(AppColors.teal)
+            .foregroundColor: UIColor(AppColors.primary)
         ]
 
         let itemAppearance = UITabBarItemAppearance()
         itemAppearance.normal.titleTextAttributes = normalAttributes
         itemAppearance.normal.iconColor = UIColor(AppColors.textSecondary)
         itemAppearance.selected.titleTextAttributes = selectedAttributes
-        itemAppearance.selected.iconColor = UIColor(AppColors.teal)
+        itemAppearance.selected.iconColor = UIColor(AppColors.primary)
 
         appearance.stackedLayoutAppearance = itemAppearance
         appearance.inlineLayoutAppearance = itemAppearance
@@ -86,7 +86,7 @@ struct ContentView: View {
                     Text("Timeline")
                 }
             }
-            .tint(AppColors.teal)
+            .tint(AppColors.primary)
 
             if selectedTab == 0 {
                 FloatingActionButton {

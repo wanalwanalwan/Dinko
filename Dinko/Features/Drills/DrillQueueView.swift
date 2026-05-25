@@ -127,7 +127,7 @@ struct DrillQueueView: View {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
 
                     Text("History")
                         .font(.system(size: 17, weight: .semibold, design: .rounded))

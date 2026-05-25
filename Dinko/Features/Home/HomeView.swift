@@ -136,7 +136,7 @@ struct HomeView: View {
 
                 Text(viewModel.playerName)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
             }
 
             Spacer()
@@ -167,7 +167,7 @@ struct HomeView: View {
         HStack(spacing: AppSpacing.xs) {
             Image(systemName: "person.crop.circle.badge.exclamationmark")
                 .font(.system(size: 20))
-                .foregroundStyle(AppColors.teal)
+                .foregroundStyle(AppColors.primary)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Complete your profile")
@@ -188,7 +188,7 @@ struct HomeView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(AppColors.teal)
+                    .background(AppColors.primary)
                     .clipShape(Capsule())
             }
 
@@ -223,9 +223,9 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                         .frame(width: 28, height: 28)
-                        .background(AppColors.teal.opacity(0.12))
+                        .background(AppColors.primary.opacity(0.12))
                         .clipShape(Circle())
                 }
             }
@@ -253,7 +253,7 @@ struct HomeView: View {
                             .foregroundStyle(.white)
                             .padding(.horizontal, AppSpacing.md)
                             .padding(.vertical, AppSpacing.xxs)
-                            .background(AppColors.teal)
+                            .background(AppColors.primary)
                             .clipShape(Capsule())
                     }
                     .padding(.top, AppSpacing.xxs)
@@ -345,11 +345,11 @@ struct HomeView: View {
             if isOpen {
                 HStack(spacing: AppSpacing.xs) {
                     Slider(value: $sliderValue, in: 0...100, step: 1)
-                        .tint(AppColors.teal)
+                        .tint(AppColors.primary)
 
                     Text("\(Int(sliderValue))%")
                         .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                         .frame(width: 38, alignment: .trailing)
                         .contentTransition(.numericText())
 
@@ -369,7 +369,7 @@ struct HomeView: View {
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(AppColors.teal)
+                                .background(AppColors.primary)
                                 .clipShape(Capsule())
                         }
                         .disabled(isSavingRating)
@@ -454,7 +454,7 @@ struct HomeView: View {
                 ZStack {
                     // Track
                     Circle()
-                        .stroke(AppColors.teal.opacity(0.1), lineWidth: 8)
+                        .stroke(AppColors.primary.opacity(0.1), lineWidth: 8)
                         .frame(width: 88, height: 88)
 
                     // Progress arc
@@ -462,7 +462,7 @@ struct HomeView: View {
                         .trim(from: 0, to: CGFloat(viewModel.averageRating) / 100.0)
                         .stroke(
                             AngularGradient(
-                                colors: [AppColors.teal.opacity(0.6), AppColors.teal],
+                                colors: [AppColors.primary.opacity(0.6), AppColors.primary],
                                 center: .center,
                                 startAngle: .degrees(-90),
                                 endAngle: .degrees(270)
@@ -542,7 +542,7 @@ struct HomeView: View {
         HStack(spacing: AppSpacing.xs) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 24))
-                .foregroundStyle(AppColors.teal)
+                .foregroundStyle(AppColors.primary)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Completed Skills")
@@ -552,7 +552,7 @@ struct HomeView: View {
                 HStack(spacing: 4) {
                     Text("\(viewModel.completedSkills.count)")
                         .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                     Text("of \(viewModel.totalSkillsIncludingCompleted) mastered")
                         .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
@@ -581,7 +581,7 @@ struct HomeView: View {
                 if viewModel.thisWeekSessionCount > 0 {
                     Text("\(viewModel.thisWeekSessionCount) session\(viewModel.thisWeekSessionCount == 1 ? "" : "s")")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
                 }
             }
 
@@ -600,17 +600,17 @@ struct HomeView: View {
                             ZStack {
                                 if day.hasSession {
                                     Circle()
-                                        .fill(AppColors.teal)
+                                        .fill(AppColors.primary)
                                         .frame(width: 32, height: 32)
                                 } else if day.isToday {
                                     Circle()
-                                        .strokeBorder(AppColors.teal, lineWidth: 1.5)
+                                        .strokeBorder(AppColors.primary, lineWidth: 1.5)
                                         .frame(width: 32, height: 32)
                                 }
 
                                 Text("\(day.dayNumber)")
                                     .font(.system(size: 14, weight: day.hasSession || day.isToday ? .bold : .medium, design: .rounded))
-                                    .foregroundStyle(day.hasSession ? .white : (day.isToday ? AppColors.teal : AppColors.textPrimary))
+                                    .foregroundStyle(day.hasSession ? .white : (day.isToday ? AppColors.primary : AppColors.textPrimary))
                             }
                         }
                         .frame(maxWidth: .infinity)

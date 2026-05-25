@@ -127,7 +127,7 @@ struct AddEditSkillView: View {
                 Text("\(displayRating)%")
                     .font(AppTypography.callout)
                     .fontWeight(.bold)
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
             }
 
             if isAutoCalculated {
@@ -143,7 +143,7 @@ struct AddEditSkillView: View {
                     in: 0...100,
                     step: 1
                 )
-                .tint(AppColors.teal)
+                .tint(AppColors.primary)
             }
         }
         .padding(AppSpacing.xs)
@@ -190,7 +190,7 @@ struct AddEditSkillView: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, AppSpacing.xs)
-            .background(viewModel.isValid ? AppColors.teal : AppColors.lockedGray)
+            .background(viewModel.isValid ? AppColors.primary : AppColors.lockedGray)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
         }
         .disabled(!viewModel.isValid || viewModel.isSaving)
@@ -244,7 +244,7 @@ struct AddEditSkillView: View {
                             .foregroundStyle(.white)
                             .padding(.horizontal, AppSpacing.sm)
                             .padding(.vertical, AppSpacing.xxs)
-                            .background(viewModel.isValid ? AppColors.teal : AppColors.lockedGray)
+                            .background(viewModel.isValid ? AppColors.primary : AppColors.lockedGray)
                             .clipShape(Capsule())
                     }
                     .disabled(!viewModel.isValid || viewModel.isSaving)
@@ -268,7 +268,7 @@ struct AddEditSkillView: View {
                 Text("Skill Name")
                     .font(AppTypography.caption)
                     .fontWeight(.semibold)
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
 
                 TextField("e.g., Backhand Dink Control", text: Binding(
                     get: { viewModel.name },
@@ -284,7 +284,7 @@ struct AddEditSkillView: View {
                 Text("Category")
                     .font(AppTypography.caption)
                     .fontWeight(.semibold)
-                    .foregroundStyle(AppColors.teal)
+                    .foregroundStyle(AppColors.primary)
 
                 Menu {
                     Picker("", selection: Binding(
@@ -320,7 +320,7 @@ struct AddEditSkillView: View {
                     Text("Notes")
                         .font(AppTypography.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(AppColors.teal)
+                        .foregroundStyle(AppColors.primary)
 
                     Text("(optional)")
                         .font(AppTypography.caption)
@@ -364,7 +364,7 @@ struct AddEditSkillView: View {
             ForEach(viewModel.subskills) { subskill in
                 HStack(spacing: 0) {
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(AppColors.teal)
+                        .fill(AppColors.primary)
                         .frame(width: 4)
 
                     Text(subskill.name)
@@ -388,7 +388,7 @@ struct AddEditSkillView: View {
                     Text("Add Subskill")
                 }
                 .font(AppTypography.callout)
-                .foregroundStyle(AppColors.teal)
+                .foregroundStyle(AppColors.primary)
             }
             .padding(.top, AppSpacing.xxxs)
         }

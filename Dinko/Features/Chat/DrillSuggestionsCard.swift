@@ -9,7 +9,7 @@ struct DrillSuggestionsCard: View {
             // Header
             Label("Drill Recommendations", systemImage: "figure.pickleball")
                 .font(AppTypography.headline)
-                .foregroundStyle(AppColors.teal)
+                .foregroundStyle(AppColors.primary)
 
             // Chat text
             if !preview.chatText.isEmpty {
@@ -76,10 +76,10 @@ struct DrillSuggestionsCard: View {
                         Label("Add", systemImage: "plus")
                             .font(AppTypography.caption)
                             .fontWeight(.semibold)
-                            .foregroundStyle(AppColors.teal)
+                            .foregroundStyle(AppColors.primary)
                             .padding(.horizontal, AppSpacing.xs)
                             .padding(.vertical, AppSpacing.xxxs)
-                            .background(AppColors.teal.opacity(0.12))
+                            .background(AppColors.primary.opacity(0.12))
                             .clipShape(Capsule())
                     }
                 }

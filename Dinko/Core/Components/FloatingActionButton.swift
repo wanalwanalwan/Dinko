@@ -14,9 +14,9 @@ struct FloatingActionButton: View {
             .foregroundStyle(.white)
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.xs)
-            .background(AppColors.teal)
+            .background(AppColors.primary)
             .clipShape(Capsule())
-            .shadow(color: AppColors.teal.opacity(0.4), radius: 8, x: 0, y: 4)
+            .shadow(color: AppColors.primary.opacity(0.4), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(.plain)
     }
