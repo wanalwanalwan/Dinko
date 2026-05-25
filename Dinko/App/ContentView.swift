@@ -36,6 +36,7 @@ struct ContentView: View {
 
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
+        UITabBar.appearance().isTranslucent = false
     }
 
     var body: some View {
@@ -46,7 +47,7 @@ struct ContentView: View {
                 }
                 .tag(0)
                 .tabItem {
-                    Image(systemName: selectedTab == 0 ? "house.fill" : "house")
+                    Image(systemName: "house")
                     Text("Home")
                 }
 
@@ -55,7 +56,7 @@ struct ContentView: View {
                 }
                 .tag(1)
                 .tabItem {
-                    Image(systemName: selectedTab == 1 ? "bubble.left.fill" : "bubble.left")
+                    Image(systemName: "bubble.left")
                     Text("Coach")
                 }
 
@@ -64,7 +65,7 @@ struct ContentView: View {
                 }
                 .tag(2)
                 .tabItem {
-                    Image(systemName: selectedTab == 2 ? "doc.text.fill" : "doc.text")
+                    Image(systemName: "doc.text")
                     Text("Progress")
                 }
 
@@ -73,7 +74,7 @@ struct ContentView: View {
                 }
                 .tag(3)
                 .tabItem {
-                    Image(systemName: selectedTab == 3 ? "list.bullet.clipboard.fill" : "list.bullet.clipboard")
+                    Image(systemName: "list.bullet.clipboard")
                     Text("Drills")
                 }
 
@@ -82,11 +83,12 @@ struct ContentView: View {
                 }
                 .tag(4)
                 .tabItem {
-                    Image(systemName: selectedTab == 4 ? "book.fill" : "book")
+                    Image(systemName: "book")
                     Text("Timeline")
                 }
             }
             .tint(AppColors.primary)
+            .environment(\.symbolVariants, .none)
 
             if selectedTab == 0 {
                 FloatingActionButton {
