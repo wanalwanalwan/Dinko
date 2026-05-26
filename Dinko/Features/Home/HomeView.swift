@@ -12,6 +12,7 @@ struct HomeView: View {
     @State private var isSavingRating = false
     @State private var showAddSkill = false
     @State private var showProfile = false
+    @State private var showNameDropdown = false
     @AppStorage("pkkl_has_seen_profile_prompt") private var hasSeenProfilePrompt = false
 
     var body: some View {
@@ -112,6 +113,13 @@ struct HomeView: View {
             .contentLoadTransition(isLoaded: contentReady)
         }
         .background(AppColors.backgroundGradient)
+        .onTapGesture {
+            if showNameDropdown {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    showNameDropdown = false
+                }
+            }
+        }
         .refreshable {
             await viewModel.loadDashboard()
         }
@@ -120,42 +128,92 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Greeting Header
+    // MARK: - Name Header
 
     private func greetingHeader(_ viewModel: HomeViewModel) -> some View {
-        HStack(alignment: .center, spacing: AppSpacing.xs) {
-            CoachMascot(state: .idle, size: 32)
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text("\(viewModel.greetingText) \u{1F44B}")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-
-                Text(viewModel.playerName)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-            }
-
-            Spacer()
-
+        VStack(alignment: .leading, spacing: 0) {
             Button {
-                showProfile = true
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    showNameDropdown.toggle()
+                }
             } label: {
-                Image(systemName: "person.fill")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(AppColors.textPrimary)
-                    .frame(width: 44, height: 44)
-                    .background(AppColors.cardBackground)
-                    .clipShape(Circle())
-                    .overlay(
-                        Circle()
-                            .strokeBorder(AppColors.separator, lineWidth: 1.5)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(viewModel.playerName)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .rotationEffect(.degrees(showNameDropdown ? 180 : 0))
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Menu")
+            .accessibilityHint("Opens profile menu")
+
+            if showNameDropdown {
+                nameDropdownMenu
+                    .transition(
+                        .asymmetric(
+                            insertion: .opacity
+                                .combined(with: .scale(scale: 0.95, anchor: .topLeading))
+                                .combined(with: .offset(y: -4)),
+                            removal: .opacity
+                                .combined(with: .scale(scale: 0.98, anchor: .topLeading))
+                        )
                     )
             }
-            .accessibilityLabel("Profile")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, AppSpacing.xs)
+    }
+
+    private var nameDropdownMenu: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            dropdownRow(icon: "person.fill", label: "Profile") {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    showNameDropdown = false
+                }
+                showProfile = true
+            }
+
+            Divider()
+                .padding(.leading, 36)
+
+            dropdownRow(icon: "gearshape", label: "Settings") {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    showNameDropdown = false
+                }
+                showProfile = true
+            }
+        }
+        .padding(.vertical, 4)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+        .padding(.top, AppSpacing.xxs)
+    }
+
+    private func dropdownRow(icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: AppSpacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .frame(width: 20)
+
+                Text(label)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, AppSpacing.xs)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Complete Profile Banner
