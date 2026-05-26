@@ -13,7 +13,7 @@ struct TimelineView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("Timeline")
+        .navigationTitle("Sessions")
         .navigationBarTitleDisplayMode(.large)
         .task {
             if viewModel == nil {

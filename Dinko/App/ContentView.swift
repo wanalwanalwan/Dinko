@@ -93,7 +93,7 @@ struct ContentView: View {
                 tabButton("bubble.left", label: "Coach", tag: 1)
                 tabButton("doc.text", label: "Progress", tag: 2)
                 tabButton("list.bullet.clipboard", label: "Drills", tag: 3)
-                tabButton("book", label: "Timeline", tag: 4)
+                tabButton("book", label: "Sessions", tag: 4)
             }
             .padding(.top, 8)
             .padding(.bottom, 4)
