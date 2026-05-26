@@ -357,11 +357,12 @@ struct HomeView: View {
     // MARK: - Skills Section
 
     private func skillsSection(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            HStack {
-                Text("MY SKILLS")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            // Section header — outside the card
+            HStack(alignment: .firstTextBaseline) {
+                Text("My Skills")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
 
                 Spacer()
 
@@ -407,6 +408,7 @@ struct HomeView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.lg)
+                .infoCard()
             } else {
                 VStack(spacing: 0) {
                     ForEach(viewModel.skillsWithRatings, id: \.skill.id) { item in
@@ -418,9 +420,9 @@ struct HomeView: View {
                         }
                     }
                 }
+                .infoCard()
             }
         }
-        .infoCard()
         .sheet(isPresented: $showAddSkill) {
             AddEditSkillView()
                 .presentationDetents([.medium])

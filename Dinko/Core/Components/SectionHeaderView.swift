@@ -6,18 +6,18 @@ struct SectionHeaderView: View {
     var action: (() -> Void)?
 
     var body: some View {
-        HStack {
-            Text(title.uppercased())
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
 
             Spacer()
 
             if let actionTitle, let action {
                 Button(action: action) {
-                    Text(actionTitle.uppercased())
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.primary)
+                    Text(actionTitle)
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
                 }
             }
         }
