@@ -30,9 +30,7 @@ struct DrillCardView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(AppColors.textSecondary.opacity(0.4))
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .coachCard()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(drill.drillName), \(drill.durationMinutes) minutes, \(difficultyLabel), Focus: \(drill.targetSubskill ?? drill.skillName)")
     }

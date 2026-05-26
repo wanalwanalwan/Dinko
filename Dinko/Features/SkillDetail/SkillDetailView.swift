@@ -350,7 +350,7 @@ struct SkillDetailView: View {
                 .buttonStyle(.pressable)
             }
         }
-        .padding(AppSpacing.sm)
+        .infoCard()
     }
 
     // MARK: - Notes Section
@@ -439,8 +439,12 @@ struct SkillDetailView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, AppSpacing.xs)
-                    .background(AppColors.primary.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                    .background(AppColors.coachCardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
+                            .stroke(AppColors.coachCardBorder, lineWidth: 1)
+                    )
                 }
                 .buttonStyle(.pressable)
             } else {
@@ -513,9 +517,7 @@ struct SkillDetailView: View {
                     drillRow(drill, viewModel: viewModel)
                 }
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .infoCard()
         }
     }
 
@@ -669,9 +671,7 @@ struct SkillDetailView: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .infoCard()
         }
     }
 
@@ -726,9 +726,7 @@ struct SkillDetailView: View {
                         .foregroundStyle(AppColors.primary)
                 }
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .infoCard()
         }
         .buttonStyle(.pressable)
     }

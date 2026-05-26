@@ -67,7 +67,11 @@ struct ProfileView: View {
                 ]) { viewModel.ageRange = $0; viewModel.save() }
             }
             .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
+                    .stroke(AppColors.cardBorder, lineWidth: 0.5)
+            )
         }
     }
 
@@ -97,7 +101,11 @@ struct ProfileView: View {
                 drillPreferencesRow
             }
             .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
+                    .stroke(AppColors.cardBorder, lineWidth: 0.5)
+            )
         }
     }
 
@@ -223,7 +231,11 @@ struct ProfileView: View {
                 }
             }
             .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
+                    .stroke(AppColors.cardBorder, lineWidth: 0.5)
+            )
         }
     }
 

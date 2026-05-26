@@ -36,6 +36,14 @@ enum AppColors {
     static let textPrimary = Color(light: "16181D", dark: "F4F7FA")
     static let textSecondary = Color(light: "69707D", dark: "A6B0BC")
 
+    // MARK: - Card Variants
+    static let cardBorder = Color(light: "E8EAED", dark: "2A3340")
+    static let heroCardBorder = Color(light: "DEE1E6", dark: "323D4A")
+    static let coachCardBackground = Color(light: "F0F7F2", dark: "141F17")
+    static let coachCardBorder = Color(light: "C8DFD0", dark: "1E3426")
+    static let achievementCardBackground = Color(light: "FFFBF0", dark: "1F1B14")
+    static let achievementCardBorder = Color(light: "F0E4C8", dark: "3D3220")
+
     // MARK: - Surfaces & Borders
     static let agentBubble = Color(light: "F0F2F5", dark: "222A33")
     static let elevatedSurface = Color(light: "FFFFFF", dark: "222A33")

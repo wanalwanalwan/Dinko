@@ -86,10 +86,7 @@ struct HeroDrillCard: View {
             .background(AppColors.primary)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
-        .padding(AppSpacing.md)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 6)
+        .heroCard()
     }
 
     private func skillPill(_ name: String) -> some View {

@@ -114,9 +114,7 @@ struct TimelineView: View {
             }
             .padding(.horizontal, AppSpacing.xxs)
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .infoCard()
     }
 
     private func calendarDayCell(date: Date, viewModel: TimelineViewModel) -> some View {
@@ -191,8 +189,11 @@ struct TimelineView: View {
         .padding(.vertical, AppSpacing.lg)
         .padding(.horizontal, AppSpacing.sm)
         .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
+                .stroke(AppColors.cardBorder, lineWidth: 0.5)
+        )
     }
 
     private func sessionCard(session: Session, viewModel: TimelineViewModel) -> some View {
@@ -255,10 +256,7 @@ struct TimelineView: View {
                     .lineLimit(2)
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .infoCard()
         .contextMenu {
             Button(role: .destructive) {
                 Task { await viewModel.deleteSession(session.id) }

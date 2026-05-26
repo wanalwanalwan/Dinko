@@ -35,10 +35,7 @@ struct TrainingSummaryCard: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .padding(AppSpacing.md)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+        .infoCard()
     }
 
     private func mascotStatItem(value: String, label: String) -> some View {

@@ -256,10 +256,7 @@ struct HomeView: View {
                     .frame(width: 24, height: 24)
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .infoCard()
     }
 
     // MARK: - Overall Skill Card (Hero)
@@ -342,8 +339,12 @@ struct HomeView: View {
             .padding(.horizontal, AppSpacing.sm)
         }
         .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.06), radius: 16, x: 0, y: 6)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius)
+                .stroke(AppColors.heroCardBorder, lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.03), radius: 6, x: 0, y: 2)
     }
 
     private func statItem(text: String) -> some View {
@@ -419,9 +420,7 @@ struct HomeView: View {
                 }
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .infoCard()
         .sheet(isPresented: $showAddSkill) {
             AddEditSkillView()
                 .presentationDetents([.medium])
@@ -605,10 +604,7 @@ struct HomeView: View {
                     .lineLimit(2)
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .coachCard()
     }
 
     private func drillTypePill(for drill: HomeRecommendedDrill) -> some View {

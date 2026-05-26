@@ -164,10 +164,7 @@ struct DrillQueueView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground.opacity(0.7))
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.03), radius: 4, x: 0, y: 1)
+        .infoCard()
     }
 
     private func historyDrillRow(_ drill: Drill) -> some View {

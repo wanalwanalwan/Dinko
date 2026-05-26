@@ -9,6 +9,8 @@ enum AppSpacing {
     static let lg: CGFloat = 24
     static let xl: CGFloat = 32
     static let cardCornerRadius: CGFloat = 16
+    static let heroCornerRadius: CGFloat = 20
+    static let cardCornerRadiusSmall: CGFloat = 14
     static let badgeSize: CGFloat = 44
     static let iconSize: CGFloat = 40
     static let sparklineHeight: CGFloat = 30

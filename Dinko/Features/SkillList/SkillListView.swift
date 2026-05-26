@@ -90,8 +90,11 @@ struct SkillListView: View {
                         }
                     }
                     .background(AppColors.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
+                            .stroke(AppColors.cardBorder, lineWidth: 0.5)
+                    )
                     .staggeredAppearance(index: 1)
                 }
                 .padding(.horizontal, AppSpacing.sm)
@@ -148,10 +151,7 @@ struct SkillListView: View {
 
             Spacer()
         }
-        .padding(AppSpacing.md)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .heroCard()
     }
 
     // MARK: - Empty State
