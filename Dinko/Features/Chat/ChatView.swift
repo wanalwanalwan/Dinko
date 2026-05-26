@@ -6,7 +6,7 @@ struct ChatView: View {
     @State private var viewModel: ChatViewModel?
     @State private var contentReady = false
     @FocusState private var isInputFocused: Bool
-    private var networkMonitor = NetworkMonitor.shared
+    private var networkMonitor: NetworkMonitor { .shared }
 
     var body: some View {
         Group {
