@@ -858,7 +858,8 @@ async function generateDrills(
   skillDeltas: SkillDelta[],
   skills: SkillSnapshot[],
   saturatedSkillNames: Set<string>,
-  apiKey: string
+  apiKey: string,
+  playerProfile?: Record<string, unknown>
 ): Promise<DrillRecommendation[]> {
   // If every mentioned skill is saturated, skip drill generation entirely
   const nonSaturatedDeltas = skillDeltas.filter(
@@ -893,8 +894,11 @@ async function generateDrills(
       ? `\nSATURATED SKILLS (do NOT generate drills for these — their drill queue is full):\n${[...saturatedSkillNames].map((n) => `- ${n}`).join("\n")}\nThese skills already have too many pending drills. Do NOT generate drills for them, and do NOT generate drills for other skills just to fill a quota.\n`
       : "";
 
-  const systemPrompt = `You are an expert pickleball coach generating personalized drills.
+  // Build player profile context if available
+  const profileCtx = playerProfile ? buildProfileContext(playerProfile) : "";
 
+  const systemPrompt = `You are an expert pickleball coach generating personalized drills.
+${profileCtx}
 Current skill ratings:
 ${allSkillsSummary || "(no skills)"}
 
@@ -970,7 +974,8 @@ Generate 0 to 3 drills. Respond ONLY with a valid JSON array (empty array [] is 
 async function generateCoachInsight(
   extraction: ExtractionResult,
   skillDeltas: SkillDelta[],
-  apiKey: string
+  apiKey: string,
+  playerProfile?: Record<string, unknown>
 ): Promise<string> {
   const deltaSummary = skillDeltas
     .map(
@@ -983,9 +988,12 @@ async function generateCoachInsight(
     .map((m) => `${m.skill_name} (${m.sentiment}): "${m.quote}"`)
     .join("\n");
 
+  const profileCtx = playerProfile ? buildProfileContext(playerProfile) : "";
+  const systemMsg = `You are a concise pickleball coach giving quick session feedback. Respond with a short plain text analysis (2-3 sentences max). No JSON, no markdown, no bullet points. Be direct — highlight what went well, what needs attention, and one actionable takeaway. Reference specific skills by name.${profileCtx ? `\n${profileCtx}` : ""}`;
+
   const insight = await callClaude(
     apiKey,
-    `You are a concise pickleball coach giving quick session feedback. Respond with a short plain text analysis (2-3 sentences max). No JSON, no markdown, no bullet points. Be direct — highlight what went well, what needs attention, and one actionable takeaway. Reference specific skills by name.`,
+    systemMsg,
     `Session notes:\n${mentionSummary}\n\nSkill changes: ${deltaSummary || "none"}`,
     200,
     true
@@ -1286,6 +1294,23 @@ async function getSessionsThisWeek(
   return count ?? 0;
 }
 
+// ---------- Player Profile helper ----------
+
+function buildProfileContext(profile: Record<string, unknown>): string {
+  const lines: string[] = [];
+  if (profile.dupr_range) lines.push(`- DUPR Level: ${profile.dupr_range}`);
+  if (profile.play_style) lines.push(`- Play Style: ${profile.play_style}`);
+  if (profile.game_format) lines.push(`- Game Format: ${profile.game_format}`);
+  if (profile.primary_goal) lines.push(`- Primary Goal: ${profile.primary_goal}`);
+  if (profile.age_range) lines.push(`- Age Range: ${profile.age_range}`);
+  if (profile.weekly_goal) lines.push(`- Weekly Training Goal: ${profile.weekly_goal}x/week`);
+  if (profile.drill_preferences && Array.isArray(profile.drill_preferences)) {
+    lines.push(`- Drill Preferences: ${(profile.drill_preferences as string[]).join(", ")}`);
+  }
+  if (lines.length === 0) return "";
+  return `\nPLAYER PROFILE:\n${lines.join("\n")}\n`;
+}
+
 // ---------- Response helper ----------
 
 function jsonResponse(
@@ -1309,7 +1334,8 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const { action, note, skills, session_id, clarification_action,
       skill_name, category, current_rating, skill_description,
-      subskills: coachingSubskills, pending_drills, rating_trend } = body;
+      subskills: coachingSubskills, pending_drills, rating_trend,
+      player_profile } = body;
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -1422,8 +1448,25 @@ Deno.serve(async (req: Request) => {
         ? trend.map((t) => `  ${t.date}: ${t.rating}%`).join("\n")
         : "(no history)";
 
-      const systemPrompt = `You are an expert pickleball coach providing personalized coaching for a specific skill.
+      // Build player profile section
+      const profile = player_profile && typeof player_profile === "object" ? player_profile : {};
+      const profileLines: string[] = [];
+      if (profile.dupr_range) profileLines.push(`- DUPR Level: ${profile.dupr_range}`);
+      if (profile.play_style) profileLines.push(`- Play Style: ${profile.play_style}`);
+      if (profile.game_format) profileLines.push(`- Game Format: ${profile.game_format}`);
+      if (profile.primary_goal) profileLines.push(`- Primary Goal: ${profile.primary_goal}`);
+      if (profile.age_range) profileLines.push(`- Age Range: ${profile.age_range}`);
+      if (profile.weekly_goal) profileLines.push(`- Weekly Training Goal: ${profile.weekly_goal}x/week`);
+      if (profile.drill_preferences && Array.isArray(profile.drill_preferences)) {
+        profileLines.push(`- Drill Preferences: ${profile.drill_preferences.join(", ")}`);
+      }
 
+      const playerProfileSection = profileLines.length > 0
+        ? `\nPLAYER PROFILE:\n${profileLines.join("\n")}\n`
+        : "";
+
+      const systemPrompt = `You are an expert pickleball coach providing personalized coaching for a specific skill.
+${playerProfileSection}
 SKILL PROFILE:
 - Name: ${skill_name}
 - Category: ${cat}
@@ -1460,6 +1503,10 @@ RULES:
 - If subskills exist, prioritize the weakest ones.
 - If the rating trend shows decline, address what might be causing it.
 - Keep drills 5-15 minutes each.
+- If age range is 50+, prioritize lower-impact drills with longer warmups and recovery breaks.
+- If play style is known, address gaps (Banger → work soft game/resets, Dinker → when to speed up/attack).
+- Match the tone to the player's goal (tournament = competitive match scenarios, casual/stay active = fun variety).
+- If game format is Singles, emphasize court coverage, conditioning, and serve/return patterns. If Doubles, emphasize communication, stacking, and partner coordination.
 
 Respond ONLY with a valid JSON object:
 {
@@ -1528,9 +1575,9 @@ Respond ONLY with a valid JSON object:
           const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
           const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
             [
-              generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
+              generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey, player_profile),
               planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
-              generateCoachInsight(extraction, skillDeltas, anthropicKey),
+              generateCoachInsight(extraction, skillDeltas, anthropicKey, player_profile),
             ] as const,
             [[] as DrillRecommendation[], emptyRoadmap, ""],
             ["drills", "roadmap", "coach insight"]
@@ -1572,9 +1619,9 @@ Respond ONLY with a valid JSON object:
           const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
           const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
             [
-              skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
+              skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey, player_profile) : Promise.resolve([]),
               skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve(emptyRoadmap),
-              skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
+              skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey, player_profile) : Promise.resolve(""),
             ] as const,
             [[] as DrillRecommendation[], emptyRoadmap, ""],
             ["drills", "roadmap", "coach insight"]
@@ -1616,9 +1663,9 @@ Respond ONLY with a valid JSON object:
           const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
           const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
             [
-              skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey) : Promise.resolve([]),
+              skillDeltas.length > 0 ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey, player_profile) : Promise.resolve([]),
               skillDeltas.length > 0 ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey) : Promise.resolve(emptyRoadmap),
-              skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey) : Promise.resolve(""),
+              skillDeltas.length > 0 ? generateCoachInsight(extraction, skillDeltas, anthropicKey, player_profile) : Promise.resolve(""),
             ] as const,
             [[] as DrillRecommendation[], emptyRoadmap, ""],
             ["drills", "roadmap", "coach insight"]
@@ -1928,13 +1975,13 @@ Respond ONLY with a valid JSON object:
         const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
           [
             skillDeltas.length > 0
-              ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey)
+              ? generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey, player_profile)
               : Promise.resolve([]),
             skillDeltas.length > 0
               ? planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey)
               : Promise.resolve(emptyRoadmap),
             skillDeltas.length > 0
-              ? generateCoachInsight(extraction, skillDeltas, anthropicKey)
+              ? generateCoachInsight(extraction, skillDeltas, anthropicKey, player_profile)
               : Promise.resolve(""),
           ] as const,
           [[] as DrillRecommendation[], emptyRoadmap, ""],
@@ -2023,9 +2070,9 @@ Respond ONLY with a valid JSON object:
       const emptyRoadmap: RoadmapPlan = { weekly_focus: null, milestones: [], replace_ids: [], complete_filters: [] };
       const [drillRecommendations, roadmapPlan, coachInsight] = await settledAll(
         [
-          generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey),
+          generateDrills(extraction, skillDeltas, userSkills, saturatedSkillNames, anthropicKey, player_profile),
           planRoadmap(skillDeltas, userSkills, supabase, user.id, anthropicKey),
-          generateCoachInsight(extraction, skillDeltas, anthropicKey),
+          generateCoachInsight(extraction, skillDeltas, anthropicKey, player_profile),
         ] as const,
         [[] as DrillRecommendation[], emptyRoadmap, ""],
         ["drills", "roadmap", "coach insight"]

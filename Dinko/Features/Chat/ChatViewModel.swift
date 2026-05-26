@@ -100,11 +100,13 @@ final class ChatViewModel {
                     actionDict["payload"] = payload
                 }
 
+                let profilePayload = PlayerProfile.current().toPayload()
                 let response = try await agentService.logSession(
                     note: preview.originalNote,
                     skills: snapshots,
                     authToken: token,
-                    clarificationAction: actionDict
+                    clarificationAction: actionDict,
+                    playerProfile: profilePayload.isEmpty ? nil : profilePayload
                 )
 
                 // Update clarification card to resolved
@@ -281,10 +283,12 @@ final class ChatViewModel {
 
             // Call the Edge Function
             let token = await getAuthToken()
+            let profilePayload = PlayerProfile.current().toPayload()
             let response = try await agentService.logSession(
                 note: note,
                 skills: snapshots,
-                authToken: token
+                authToken: token,
+                playerProfile: profilePayload.isEmpty ? nil : profilePayload
             )
 
             // Route response by priority

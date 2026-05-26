@@ -113,7 +113,8 @@ final class AgentService {
         note: String,
         skills: [SkillSnapshotPayload],
         authToken: String,
-        clarificationAction: [String: Any]? = nil
+        clarificationAction: [String: Any]? = nil,
+        playerProfile: [String: Any]? = nil
     ) async throws -> LogSessionResponse {
         var body: [String: Any] = [
             "action": "log_session",
@@ -142,6 +143,10 @@ final class AgentService {
 
         if let clarificationAction {
             body["clarification_action"] = clarificationAction
+        }
+
+        if let playerProfile, !playerProfile.isEmpty {
+            body["player_profile"] = playerProfile
         }
 
         return try await post(body: body, authToken: authToken)
@@ -200,9 +205,10 @@ final class AgentService {
         subskills: [CoachingSubskillPayload],
         pendingDrills: [PendingDrillPayload],
         ratingTrend: [RatingTrendPoint],
+        playerProfile: [String: Any]? = nil,
         authToken: String
     ) async throws -> SkillCoachingResponse {
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "action": "skill_coaching",
             "skill_name": skillName,
             "category": category,
@@ -228,6 +234,10 @@ final class AgentService {
                 ] as [String: Any]
             },
         ]
+
+        if let playerProfile, !playerProfile.isEmpty {
+            body["player_profile"] = playerProfile
+        }
 
         return try await post(body: body, authToken: authToken)
     }

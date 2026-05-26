@@ -46,6 +46,7 @@ final class SkillCoachingViewModel {
 
         do {
             let token = await getAuthToken()
+            let profilePayload = PlayerProfile.current().toPayload()
             let response: SkillCoachingResponse = try await agentService.skillCoaching(
                 skillName: skill.name,
                 category: skill.category.rawValue,
@@ -61,6 +62,7 @@ final class SkillCoachingViewModel {
                     .filter { $0.status == .pending }
                     .map { AgentService.PendingDrillPayload(name: $0.name, targetSubskill: $0.targetSubskill) },
                 ratingTrend: buildRatingTrend(),
+                playerProfile: profilePayload.isEmpty ? nil : profilePayload,
                 authToken: token
             )
             gameTips = response.gameTips

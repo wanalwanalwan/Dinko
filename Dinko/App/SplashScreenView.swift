@@ -12,16 +12,8 @@ struct SplashScreenView: View {
 
     var body: some View {
         ZStack {
-            // Gradient background matching the app icon's teal-green palette
-            LinearGradient(
-                colors: [
-                    AppColors.splashGradientStart,
-                    AppColors.splashGradientEnd
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            AppColors.background
+                .ignoresSafeArea()
 
             Image("coach-idle")
                 .resizable()
