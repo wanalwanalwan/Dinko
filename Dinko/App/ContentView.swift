@@ -98,7 +98,7 @@ struct ContentView: View {
             .padding(.top, 8)
             .padding(.bottom, 4)
         }
-        .background(AppColors.background)
+        .background(AppColors.cardBackground)
     }
 
     private func tabButton(_ icon: String, label: String, tag: Int) -> some View {

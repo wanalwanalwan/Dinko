@@ -2,14 +2,17 @@ import SwiftUI
 
 enum AppColors {
     // MARK: - Backgrounds
-    static let background = Color(light: "E4F0E8", dark: "111A14")
-    static let backgroundGray = Color(light: "EDEEF0", dark: "131517")
+    static let background = Color(light: "D6ECDE", dark: "111A14")
+    static let backgroundGray = Color(light: "F0F1F3", dark: "131517")
     static let cardBackground = Color(light: "FFFFFF", dark: "1A2027")
 
-    /// Gradient from light green at top fading to neutral gray at bottom
+    /// Soft green wash at top fading to neutral gray (MFP-style)
     static var backgroundGradient: LinearGradient {
         LinearGradient(
-            colors: [background, backgroundGray],
+            stops: [
+                .init(color: background, location: 0),
+                .init(color: backgroundGray, location: 0.25),
+            ],
             startPoint: .top,
             endPoint: .bottom
         )
