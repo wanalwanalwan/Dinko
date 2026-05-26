@@ -102,10 +102,12 @@ struct HomeView: View {
 
                 overallSkillCard(viewModel)
                     .staggeredAppearance(index: 1)
-                skillsSection(viewModel)
+                sessionsCard(viewModel)
                     .staggeredAppearance(index: 2)
-                todaysFocusSection(viewModel)
+                skillsSection(viewModel)
                     .staggeredAppearance(index: 3)
+                todaysFocusSection(viewModel)
+                    .staggeredAppearance(index: 4)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
@@ -352,6 +354,53 @@ struct HomeView: View {
             .font(.system(size: 12, weight: .medium, design: .rounded))
             .foregroundStyle(AppColors.textSecondary)
             .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Sessions This Week Card
+
+    private func sessionsCard(_ viewModel: HomeViewModel) -> some View {
+        let count = viewModel.thisWeekSessionCount
+        let goal = viewModel.weeklySessionGoal
+        let remaining = max(0, goal - count)
+        let progress = goal > 0 ? Double(count) / Double(goal) : 0
+
+        return VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Text("Sessions")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+
+            HStack(alignment: .firstTextBaseline) {
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text("\(count)")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("/ \(goal)")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+
+                Spacer()
+
+                if count >= goal {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 13))
+                        Text("Goal reached!")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(AppColors.successGreen)
+                } else {
+                    Text("\(remaining) left")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+
+            ProgressBar(progress: min(progress, 1.0))
+                .padding(.top, 2)
+        }
+        .infoCard()
     }
 
     // MARK: - Skills Section

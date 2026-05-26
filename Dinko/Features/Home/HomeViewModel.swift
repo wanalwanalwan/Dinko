@@ -95,6 +95,7 @@ final class HomeViewModel {
     private(set) var sessionDatesThisWeek: Set<Date> = []
     private(set) var thisWeekSessionCount = 0
     private(set) var thisWeekTotalMinutes = 0
+    private(set) var weeklySessionGoal = 3
 
     var totalSkillsIncludingCompleted: Int {
         totalActiveSkills + completedSkills.count
@@ -693,7 +694,8 @@ final class HomeViewModel {
         let calendar = Calendar.current
 
         let savedGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
-        let weeklyGoal = savedGoal > 0 ? savedGoal : 7
+        let weeklyGoal = savedGoal > 0 ? savedGoal : 3
+        weeklySessionGoal = weeklyGoal
 
         var activityDates: Set<Date> = []
 
