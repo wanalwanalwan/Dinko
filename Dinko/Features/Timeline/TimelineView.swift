@@ -122,6 +122,36 @@ struct TimelineView: View {
         let selected = viewModel.isSelected(date)
         let today = viewModel.isToday(date)
         let hasSession = viewModel.hasSession(on: date)
+        let types = viewModel.sessionTypes(on: date)
+
+        // Circle fill color based on state
+        let circleFill: Color? = {
+            if selected {
+                return AppColors.primary
+            } else if today {
+                return AppColors.calendarToday
+            } else if hasSession {
+                if types.contains(.game) && types.contains(.drill) {
+                    return AppColors.calendarGame // both — default to game color
+                } else if types.contains(.drill) {
+                    return AppColors.calendarDrill
+                } else {
+                    return AppColors.calendarGame
+                }
+            }
+            return nil
+        }()
+
+        let textColor: Color = {
+            if selected {
+                return .white
+            } else if today {
+                return .white
+            } else if hasSession {
+                return AppColors.textPrimary
+            }
+            return AppColors.textPrimary
+        }()
 
         return Button {
             withAnimation(AppAnimations.springSnappy) {
@@ -129,22 +159,20 @@ struct TimelineView: View {
             }
         } label: {
             ZStack {
-                if selected {
+                if let fill = circleFill {
                     Circle()
-                        .fill(AppColors.primary)
+                        .fill(fill)
                         .frame(width: 36, height: 36)
-                        .shadow(color: AppColors.primary.opacity(0.35), radius: 6, y: 2)
-                } else if hasSession {
-                    Circle()
-                        .fill(AppColors.primary)
-                        .frame(width: 36, height: 36)
+                        .shadow(
+                            color: selected ? AppColors.primary.opacity(0.35) : .clear,
+                            radius: selected ? 6 : 0,
+                            y: selected ? 2 : 0
+                        )
                 }
 
                 Text("\(day)")
-                    .font(.system(size: 15, weight: selected || hasSession || today ? .bold : .regular, design: .rounded))
-                    .foregroundStyle(
-                        selected || hasSession ? .white : (today ? AppColors.primary : AppColors.textPrimary)
-                    )
+                    .font(.system(size: 15, weight: circleFill != nil ? .bold : .regular, design: .rounded))
+                    .foregroundStyle(textColor)
             }
             .frame(height: 44)
             .frame(maxWidth: .infinity)

@@ -8,6 +8,7 @@ final class TimelineViewModel {
     var selectedDate: Date = Calendar.current.startOfDay(for: Date())
     var currentMonth: Date = Calendar.current.startOfDay(for: Date())
     private(set) var sessionDates: Set<Date> = []
+    private(set) var sessionTypesByDate: [Date: Set<SessionType>] = [:]
     private(set) var skillNameMap: [UUID: String] = [:]
 
     var sessionsForSelectedDate: [Session] {
@@ -34,6 +35,13 @@ final class TimelineViewModel {
             let calendar = Calendar.current
             sessionDates = Set(allSessions.map { calendar.startOfDay(for: $0.date) })
 
+            var typeMap: [Date: Set<SessionType>] = [:]
+            for session in allSessions {
+                let day = calendar.startOfDay(for: session.date)
+                typeMap[day, default: []].insert(session.sessionType)
+            }
+            sessionTypesByDate = typeMap
+
             let skills = try await skillRepository.fetchActive()
             let archived = try await skillRepository.fetchArchived()
             var map: [UUID: String] = [:]
@@ -43,6 +51,7 @@ final class TimelineViewModel {
         } catch {
             sessions = []
             sessionDates = []
+            sessionTypesByDate = [:]
         }
         isLoading = false
     }
@@ -138,6 +147,10 @@ final class TimelineViewModel {
 
     func hasSession(on date: Date) -> Bool {
         sessionDates.contains(Calendar.current.startOfDay(for: date))
+    }
+
+    func sessionTypes(on date: Date) -> Set<SessionType> {
+        sessionTypesByDate[Calendar.current.startOfDay(for: date)] ?? []
     }
 
     func selectedDateDisplayString() -> String {

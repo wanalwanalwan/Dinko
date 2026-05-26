@@ -183,16 +183,6 @@ struct HomeView: View {
                 }
                 showProfile = true
             }
-
-            Divider()
-                .padding(.leading, 36)
-
-            dropdownRow(icon: "gearshape", label: "Settings") {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                    showNameDropdown = false
-                }
-                showProfile = true
-            }
         }
         .padding(.vertical, 4)
         .background(AppColors.cardBackground)

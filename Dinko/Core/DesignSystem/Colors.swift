@@ -77,6 +77,11 @@ enum AppColors {
     static let splashGradientStart = Color(hex: "1E6B3A")
     static let splashGradientEnd = Color(hex: "155A2E")
 
+    // MARK: - Calendar Session Indicators
+    static let calendarGame = Color(light: "FFE0E0", dark: "3D2020")
+    static let calendarDrill = Color(light: "FFF0D6", dark: "3D3220")
+    static let calendarToday = Color(hex: "34C759")
+
     // MARK: - Overlay
     static let overlayScrim = Color.black
 }
