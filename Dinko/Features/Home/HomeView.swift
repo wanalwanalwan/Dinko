@@ -99,22 +99,16 @@ struct HomeView: View {
                         .staggeredAppearance(index: 1)
                 }
 
-                overallSkillLevelSection(viewModel)
+                overallSkillCard(viewModel)
                     .staggeredAppearance(index: 1)
-                activityCalendar(viewModel)
-                    .staggeredAppearance(index: 2)
-                completedSkillsSummary(viewModel)
-                    .staggeredAppearance(index: 3)
                 skillsSection(viewModel)
-                    .staggeredAppearance(index: 4)
-                recommendedDrillsSection(viewModel)
-                    .staggeredAppearance(index: 5)
-                streakBanner(viewModel)
-                    .staggeredAppearance(index: 6)
+                    .staggeredAppearance(index: 2)
+                todaysFocusSection(viewModel)
+                    .staggeredAppearance(index: 3)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
-            .padding(.bottom, AppSpacing.lg)
+            .padding(.bottom, AppSpacing.xl + 60)
             .contentLoadTransition(isLoaded: contentReady)
         }
         .background(AppColors.backgroundGradient)
@@ -129,15 +123,17 @@ struct HomeView: View {
     // MARK: - Greeting Header
 
     private func greetingHeader(_ viewModel: HomeViewModel) -> some View {
-        HStack(alignment: .top, spacing: AppSpacing.sm) {
+        HStack(alignment: .center, spacing: AppSpacing.xs) {
+            CoachMascot(state: .idle, size: 32)
+
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(viewModel.greetingText),")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
+                Text("\(viewModel.greetingText) \u{1F44B}")
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
 
                 Text(viewModel.playerName)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.primary)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
             }
 
             Spacer()
@@ -206,6 +202,97 @@ struct HomeView: View {
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    // MARK: - Overall Skill Card (Hero)
+
+    private func overallSkillCard(_ viewModel: HomeViewModel) -> some View {
+        let tier = SkillTier(rating: viewModel.averageRating)
+
+        return VStack(spacing: 0) {
+            // Centered progress ring
+            ZStack {
+                Circle()
+                    .stroke(AppColors.primary.opacity(0.1), lineWidth: 10)
+                    .frame(width: 100, height: 100)
+
+                Circle()
+                    .trim(from: 0, to: CGFloat(viewModel.averageRating) / 100.0)
+                    .stroke(
+                        AngularGradient(
+                            colors: [AppColors.primary.opacity(0.6), AppColors.primary],
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
+                        ),
+                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                    )
+                    .frame(width: 100, height: 100)
+                    .rotationEffect(.degrees(-90))
+
+                VStack(spacing: -2) {
+                    Text("\(viewModel.averageRating)")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text("%")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .padding(.top, AppSpacing.md)
+            .padding(.bottom, AppSpacing.xs)
+
+            // Tier line
+            HStack(spacing: 4) {
+                Image(systemName: tier.sfSymbol)
+                    .font(.system(size: 12))
+                Text(tier.displayName)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+
+                if let next = tier.nextTier {
+                    let pointsToNext = SkillTier.pointsToNext(for: viewModel.averageRating)
+                    Text("\u{00B7}")
+                        .font(.system(size: 14, weight: .bold))
+                    Text("\(pointsToNext) pts to \(next.displayName)")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                }
+            }
+            .foregroundStyle(tier.color)
+            .padding(.bottom, AppSpacing.sm)
+
+            // Divider
+            Rectangle()
+                .fill(AppColors.separator)
+                .frame(height: 1)
+                .padding(.horizontal, AppSpacing.sm)
+
+            // Stats row
+            HStack(spacing: 0) {
+                if viewModel.streakDays > 0 {
+                    statItem(text: "\u{1F525} \(viewModel.streakDays)-day streak")
+                }
+
+                if viewModel.completedSkills.count > 0 {
+                    statItem(text: "\u{2705} \(viewModel.completedSkills.count) mastered")
+                }
+
+                if let improved = viewModel.mostImprovedSkillName, viewModel.mostImprovedDelta > 0 {
+                    statItem(text: "\u{1F4C8} \(improved) +\(viewModel.mostImprovedDelta)%")
+                }
+            }
+            .padding(.vertical, AppSpacing.xs)
+            .padding(.horizontal, AppSpacing.sm)
+        }
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.06), radius: 16, x: 0, y: 6)
+    }
+
+    private func statItem(text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .medium, design: .rounded))
+            .foregroundStyle(AppColors.textSecondary)
+            .frame(maxWidth: .infinity)
     }
 
     // MARK: - Skills Section
@@ -396,15 +483,24 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Recommended Drills
+    // MARK: - Today's Focus
 
-    private func recommendedDrillsSection(_ viewModel: HomeViewModel) -> some View {
+    private func todaysFocusSection(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            SectionHeaderView(title: "Recommended Drills", actionTitle: "See All") {
+            SectionHeaderView(title: "Today's Focus", actionTitle: "See All") {
                 selectedTab = 3
             }
 
-            if viewModel.recommendedDrills.isEmpty {
+            if let drill = viewModel.topDrill {
+                NavigationLink {
+                    DrillDetailView(drill: drill) {
+                        await viewModel.markDrillDone(drill.id)
+                    }
+                } label: {
+                    todaysFocusCard(drill)
+                }
+                .buttonStyle(.pressable)
+            } else {
                 HStack(spacing: AppSpacing.xxs) {
                     Image(systemName: "figure.run")
                         .foregroundStyle(AppColors.textSecondary.opacity(0.5))
@@ -415,213 +511,40 @@ struct HomeView: View {
                 }
                 .padding(AppSpacing.sm)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-            } else {
-                ForEach(viewModel.recommendedDrills) { drill in
-                    NavigationLink {
-                        DrillDetailView(drill: drill) {
-                            await viewModel.markDrillDone(drill.id)
-                        }
-                    } label: {
-                        DrillCardView(drill: drill)
-                    }
-                    .buttonStyle(.pressable)
-                }
             }
         }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
-    // MARK: - Overall Skill Level
-
-    private func overallSkillLevelSection(_ viewModel: HomeViewModel) -> some View {
-        let tier = SkillTier(rating: viewModel.averageRating)
-        let strongest = viewModel.skillsWithRatings.max(by: { $0.rating < $1.rating })
-
-        return VStack(spacing: 0) {
-            // Heading
-            Text("OVERALL SKILL LEVEL")
-                .font(.system(size: 11, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-                .tracking(0.5)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, AppSpacing.sm)
-                .padding(.top, AppSpacing.sm)
-                .padding(.bottom, AppSpacing.xxxs)
-
-            // Top section: ring + stats
-            HStack(spacing: AppSpacing.md) {
-                // Circular progress ring
-                ZStack {
-                    // Track
-                    Circle()
-                        .stroke(AppColors.primary.opacity(0.1), lineWidth: 8)
-                        .frame(width: 88, height: 88)
-
-                    // Progress arc
-                    Circle()
-                        .trim(from: 0, to: CGFloat(viewModel.averageRating) / 100.0)
-                        .stroke(
-                            AngularGradient(
-                                colors: [AppColors.primary.opacity(0.6), AppColors.primary],
-                                center: .center,
-                                startAngle: .degrees(-90),
-                                endAngle: .degrees(270)
-                            ),
-                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                        )
-                        .frame(width: 88, height: 88)
-                        .rotationEffect(.degrees(-90))
-
-                    // Center value
-                    VStack(spacing: -2) {
-                        Text("\(viewModel.averageRating)")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-                        Text("%")
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                }
-
-                // Right: tier + context stats
-                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                    // Tier badge
-                    HStack(spacing: 4) {
-                        Image(systemName: tier.sfSymbol)
-                            .font(.system(size: 10))
-                        Text(tier.displayName)
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                    }
-                    .foregroundStyle(tier.color)
-
-                    // Tier progress to next
-                    if let next = tier.nextTier {
-                        let pointsToNext = SkillTier.pointsToNext(for: viewModel.averageRating)
-                        Text("\(pointsToNext) pts to \(next.displayName)")
-                            .font(.system(size: 12, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-
-                    // Streak
-                    if viewModel.streakDays > 0 {
-                        HStack(spacing: 3) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 10))
-                                .foregroundStyle(AppColors.coral)
-                            Text("\(viewModel.streakDays)-day streak")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.textPrimary)
-                        }
-                    }
-
-                    // Most improved
-                    if let improved = viewModel.mostImprovedSkillName, viewModel.mostImprovedDelta > 0 {
-                        HStack(spacing: 3) {
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(AppColors.successGreenLight)
-                            Text("\(improved) +\(viewModel.mostImprovedDelta)%")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.successGreenLight)
-                        }
-                    }
-                }
-
-                Spacer()
-            }
-            .padding(AppSpacing.sm)
-        }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.05), radius: 12, x: 0, y: 4)
-    }
-
-    // MARK: - Completed Skills Summary
-
-    private func completedSkillsSummary(_ viewModel: HomeViewModel) -> some View {
-        HStack(spacing: AppSpacing.xs) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 24))
-                .foregroundStyle(AppColors.primary)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Completed Skills")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-
-                HStack(spacing: 4) {
-                    Text("\(viewModel.completedSkills.count)")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.primary)
-                    Text("of \(viewModel.totalSkillsIncludingCompleted) mastered")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                }
-            }
-
-            Spacer()
-        }
-        .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-    }
-
-    // MARK: - Activity Calendar (Week Strip)
-
-    private func activityCalendar(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+    private func todaysFocusCard(_ drill: HomeRecommendedDrill) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            // Row 1: type pill + duration
             HStack {
-                Text("THIS WEEK")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-
+                drillTypePill(for: drill)
                 Spacer()
-
-                if viewModel.thisWeekSessionCount > 0 {
-                    Text("\(viewModel.thisWeekSessionCount) session\(viewModel.thisWeekSessionCount == 1 ? "" : "s")")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.primary)
-                }
+                Text("\(drill.durationMinutes) min")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
             }
 
-            HStack(spacing: 0) {
-                ForEach(viewModel.weekDays) { day in
-                    Button {
-                        if day.hasSession {
-                            selectedTab = 4
-                        }
-                    } label: {
-                        VStack(spacing: AppSpacing.xxxs) {
-                            Text(day.dayLabel)
-                                .font(.system(size: 11, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
+            // Drill name
+            Text(drill.drillName)
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
 
-                            ZStack {
-                                if day.hasSession {
-                                    Circle()
-                                        .fill(AppColors.primary)
-                                        .frame(width: 32, height: 32)
-                                } else if day.isToday {
-                                    Circle()
-                                        .strokeBorder(AppColors.primary, lineWidth: 1.5)
-                                        .frame(width: 32, height: 32)
-                                }
+            // Target skill
+            Text("Targets: \(drill.skillName)")
+                .font(.system(size: 13, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
 
-                                Text("\(day.dayNumber)")
-                                    .font(.system(size: 14, weight: day.hasSession || day.isToday ? .bold : .medium, design: .rounded))
-                                    .foregroundStyle(day.hasSession ? .white : (day.isToday ? AppColors.primary : AppColors.textPrimary))
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.plain)
-                }
+            // Reason (why it was recommended)
+            if !drill.reason.isEmpty {
+                Text(drill.reason)
+                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .italic()
+                    .foregroundStyle(AppColors.textSecondary)
+                    .lineLimit(2)
             }
         }
         .padding(AppSpacing.sm)
@@ -630,31 +553,44 @@ struct HomeView: View {
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
-    // MARK: - Streak Banner
+    private func drillTypePill(for drill: HomeRecommendedDrill) -> some View {
+        let info = drillTypeInfo(for: drill)
+        return Text("\(info.icon) \(info.label)")
+            .font(.system(size: 12, weight: .medium, design: .rounded))
+            .foregroundStyle(info.color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(info.color.opacity(0.12))
+            .clipShape(Capsule())
+    }
 
-    private func streakBanner(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("Keep the streak alive!")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-
-            (Text("You\u{2019}ve practiced for ")
-                .foregroundColor(.white.opacity(0.85))
-            + Text("\(viewModel.streakDays) days")
-                .foregroundColor(.white)
-                .bold()
-            + Text(" in a row. \(viewModel.daysToWeeklyGoal) more to hit your weekly goal.")
-                .foregroundColor(.white.opacity(0.85)))
-                .font(.system(size: 14, design: .rounded))
+    private func drillTypeInfo(for drill: HomeRecommendedDrill) -> (icon: String, label: String, color: Color) {
+        let lower = drill.drillName.lowercased()
+        if lower.contains("reflex") || lower.contains("reaction") {
+            return ("\u{26A1}", "Reflex", AppColors.drillOrange)
         }
-        .padding(AppSpacing.sm)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
-                .fill(AppColors.surfaceDark)
-        )
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Streak: \(viewModel.streakDays) days in a row. \(viewModel.daysToWeeklyGoal) more to hit your weekly goal.")
+        if lower.contains("placement") || lower.contains("target") || lower.contains("accuracy") {
+            return ("\u{1F3AF}", "Placement", AppColors.primary)
+        }
+        if lower.contains("power") || lower.contains("smash") || lower.contains("speed") {
+            return ("\u{1F525}", "Power", AppColors.coral)
+        }
+        if lower.contains("dink") || lower.contains("drop") || lower.contains("touch") || lower.contains("soft") {
+            return ("\u{1F3AF}", "Touch", AppColors.successGreen)
+        }
+        if lower.contains("strategy") || lower.contains("position") || lower.contains("transition") {
+            return ("\u{1F9E0}", "Strategy", AppColors.drillPurple)
+        }
+        if lower.contains("serve") || lower.contains("return") {
+            return ("\u{1F3AF}", "Serve", AppColors.primary)
+        }
+        if lower.contains("drive") || lower.contains("attack") {
+            return ("\u{1F525}", "Attack", AppColors.coral)
+        }
+        if lower.contains("counter") {
+            return ("\u{26A1}", "Counter", AppColors.drillOrange)
+        }
+        return ("\u{1F3F8}", "Drill", AppColors.primary)
     }
 }
 

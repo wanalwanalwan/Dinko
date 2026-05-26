@@ -100,6 +100,10 @@ final class HomeViewModel {
         totalActiveSkills + completedSkills.count
     }
 
+    var topDrill: HomeRecommendedDrill? {
+        recommendedDrills.first
+    }
+
     private(set) var isLoaded = false
     var errorMessage: String?
 
