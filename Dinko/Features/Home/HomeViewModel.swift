@@ -87,6 +87,7 @@ final class HomeViewModel {
     /// Skills with their latest ratings for the home quick-update list
     private(set) var skillsWithRatings: [(skill: Skill, rating: Int)] = []
     private(set) var completedSkills: [CompletedSkillItem] = []
+    private(set) var weeklySkillMovers: [(skill: Skill, delta: Int, currentRating: Int)] = []
 
     private(set) var streakDays = 0
     private(set) var daysToWeeklyGoal = 0
@@ -281,6 +282,7 @@ final class HomeViewModel {
         computeLatestRatingsAndAverage()
         computeSkillsWithRatings()
         computeChartData(since: cutoff)
+        computeWeeklyMovers()
     }
 
     private func computeSkillsWithRatings() {
@@ -307,6 +309,64 @@ final class HomeViewModel {
             }
         }
         skillsWithRatings = pairs
+    }
+
+    private func computeWeeklyMovers() {
+        let calendar = Calendar.current
+        guard let weekCutoff = calendar.date(byAdding: .day, value: -7, to: Date()) else {
+            weeklySkillMovers = []
+            return
+        }
+
+        var movers: [(skill: Skill, delta: Int, currentRating: Int)] = []
+
+        for skill in cachedSkills {
+            let childSkills = cachedAllSkills.filter { $0.parentSkillId == skill.id }
+
+            if childSkills.isEmpty {
+                // Leaf skill
+                let ratings = cachedRatings[skill.id] ?? []
+                guard let latest = ratings.last else { continue }
+                let currentRating = latest.rating
+
+                // Baseline: most recent rating on or before the cutoff
+                let baseline = ratings.last(where: { $0.date <= weekCutoff })?.rating ?? ratings.first?.rating
+                guard let base = baseline else { continue }
+
+                let delta = currentRating - base
+                if delta != 0 {
+                    movers.append((skill, delta, currentRating))
+                }
+            } else {
+                // Parent skill: average children's baselines vs current averages
+                var currentTotal = 0, currentCount = 0
+                var baseTotal = 0, baseCount = 0
+
+                for child in childSkills {
+                    let ratings = cachedRatings[child.id] ?? []
+                    if let latest = ratings.last {
+                        currentTotal += latest.rating
+                        currentCount += 1
+                    }
+                    if let base = ratings.last(where: { $0.date <= weekCutoff })?.rating ?? ratings.first?.rating {
+                        baseTotal += base
+                        baseCount += 1
+                    }
+                }
+
+                guard currentCount > 0 && baseCount > 0 else { continue }
+                let currentAvg = currentTotal / currentCount
+                let baseAvg = baseTotal / baseCount
+                let delta = currentAvg - baseAvg
+
+                if delta != 0 {
+                    movers.append((skill, delta, currentAvg))
+                }
+            }
+        }
+
+        // Sort by absolute delta descending
+        weeklySkillMovers = movers.sorted { abs($0.delta) > abs($1.delta) }
     }
 
     private func computeLatestRatingsAndAverage() {

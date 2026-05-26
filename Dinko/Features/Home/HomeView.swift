@@ -104,10 +104,14 @@ struct HomeView: View {
                     .staggeredAppearance(index: 1)
                 sessionsCard(viewModel)
                     .staggeredAppearance(index: 2)
+                if !viewModel.weeklySkillMovers.isEmpty {
+                    skillMoversCard(viewModel)
+                        .staggeredAppearance(index: 3)
+                }
                 skillsSection(viewModel)
-                    .staggeredAppearance(index: 3)
-                todaysFocusSection(viewModel)
                     .staggeredAppearance(index: 4)
+                todaysFocusSection(viewModel)
+                    .staggeredAppearance(index: 5)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
@@ -403,6 +407,45 @@ struct HomeView: View {
         .infoCard()
     }
 
+    // MARK: - Skill Movers This Week
+
+    private func skillMoversCard(_ viewModel: HomeViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("This Week's Movers")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+
+            VStack(spacing: 0) {
+                ForEach(Array(viewModel.weeklySkillMovers.enumerated()), id: \.element.skill.id) { index, item in
+                    HStack(spacing: AppSpacing.xs) {
+                        Circle()
+                            .fill(SkillTier(rating: item.currentRating).color)
+                            .frame(width: 10, height: 10)
+
+                        Text(item.skill.name)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .lineLimit(1)
+
+                        Spacer()
+
+                        Text(item.delta > 0 ? "+\(item.delta)%" : "\(item.delta)%")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundStyle(item.delta > 0 ? AppColors.successGreen : AppColors.coral)
+                    }
+                    .padding(.vertical, AppSpacing.xs)
+                    .padding(.horizontal, AppSpacing.xxs)
+
+                    if index < viewModel.weeklySkillMovers.count - 1 {
+                        Divider()
+                            .padding(.leading, AppSpacing.lg)
+                    }
+                }
+            }
+            .infoCard()
+        }
+    }
+
     // MARK: - Skills Section
 
     private func skillsSection(_ viewModel: HomeViewModel) -> some View {
@@ -410,7 +453,7 @@ struct HomeView: View {
             // Section header — outside the card
             HStack(alignment: .firstTextBaseline) {
                 Text("My Skills")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
                 Spacer()
