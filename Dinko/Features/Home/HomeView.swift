@@ -11,6 +11,8 @@ struct HomeView: View {
     @State private var showAddSkill = false
     @State private var showProfile = false
     @State private var ringProgress: CGFloat = 0
+    @State private var showAllAchievements = false
+    @State private var celebratingAchievement: Achievement?
     @AppStorage("pkkl_has_seen_profile_prompt") private var hasSeenProfilePrompt = false
 
     var body: some View {
@@ -106,6 +108,9 @@ struct HomeView: View {
 
                 skillsSpotlightSection(viewModel)
                     .staggeredAppearance(index: 4)
+
+                achievementsSection(viewModel)
+                    .staggeredAppearance(index: 5)
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.top, AppSpacing.xxs)
@@ -550,6 +555,161 @@ struct HomeView: View {
                 .frame(width: 44, alignment: .trailing)
         }
         .infoCard()
+    }
+
+    // MARK: - Achievements
+
+    private func achievementsSection(_ viewModel: HomeViewModel) -> some View {
+        let unlocked = viewModel.achievements.filter(\.isUnlocked)
+        let locked = viewModel.achievements.filter { !$0.isUnlocked }
+
+        return VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            SectionHeaderView(title: "Badges", actionTitle: "See All") {
+                showAllAchievements = true
+            }
+
+            // Unlocked count
+            Text("\(unlocked.count) of \(viewModel.achievements.count) earned")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+
+            // Recent unlocked + next locked badges
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    // Show unlocked first (most recent = last earned, so reverse)
+                    ForEach(unlocked.reversed(), id: \.achievement.id) { item in
+                        AchievementBadge(
+                            name: item.achievement.name,
+                            iconName: item.achievement.iconName,
+                            isUnlocked: true,
+                            badgeColor: item.achievement.color
+                        )
+                    }
+
+                    // Then show next few locked badges
+                    ForEach(locked.prefix(4), id: \.achievement.id) { item in
+                        AchievementBadge(
+                            name: item.achievement.name,
+                            iconName: item.achievement.iconName,
+                            isUnlocked: false,
+                            badgeColor: item.achievement.color
+                        )
+                    }
+                }
+                .padding(.vertical, AppSpacing.xxs)
+            }
+
+            // Newly unlocked celebration
+            if let newest = viewModel.newlyUnlockedAchievements.first, celebratingAchievement == nil {
+                Color.clear
+                    .onAppear {
+                        celebratingAchievement = newest
+                    }
+            }
+        }
+        .sheet(isPresented: $showAllAchievements) {
+            allAchievementsSheet(viewModel)
+        }
+        .overlay {
+            if let achievement = celebratingAchievement {
+                achievementCelebration(achievement)
+            }
+        }
+    }
+
+    private func achievementCelebration(_ achievement: Achievement) -> some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(AppAnimations.springSmooth) {
+                        celebratingAchievement = nil
+                    }
+                }
+
+            VStack(spacing: AppSpacing.sm) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppSpacing.xs)
+                        .fill(achievement.color)
+                        .frame(width: 80, height: 80)
+
+                    Image(systemName: achievement.iconName)
+                        .font(.system(size: 36))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+
+                Text("Badge Earned!")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Text(achievement.name)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundStyle(achievement.color)
+
+                Text(achievement.description)
+                    .font(.system(size: 14, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+
+                Button {
+                    withAnimation(AppAnimations.springSmooth) {
+                        celebratingAchievement = nil
+                    }
+                } label: {
+                    Text("Nice!")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.xs)
+                        .background(AppColors.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding(.top, AppSpacing.xxs)
+            }
+            .padding(AppSpacing.lg)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+            .padding(.horizontal, AppSpacing.xl)
+            .transition(.scale(scale: 0.8).combined(with: .opacity))
+        }
+        .animation(AppAnimations.springBouncy, value: celebratingAchievement?.id)
+    }
+
+    private func allAchievementsSheet(_ viewModel: HomeViewModel) -> some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: [
+                    GridItem(.adaptive(minimum: 80), spacing: AppSpacing.sm)
+                ], spacing: AppSpacing.md) {
+                    ForEach(viewModel.achievements, id: \.achievement.id) { item in
+                        VStack(spacing: AppSpacing.xxs) {
+                            AchievementBadge(
+                                name: item.achievement.name,
+                                iconName: item.achievement.iconName,
+                                isUnlocked: item.isUnlocked,
+                                badgeColor: item.achievement.color
+                            )
+
+                            Text(item.achievement.description)
+                                .font(.system(size: 10, design: .rounded))
+                                .foregroundStyle(item.isUnlocked ? AppColors.textSecondary : AppColors.lockedGray)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                        }
+                    }
+                }
+                .padding(AppSpacing.md)
+            }
+            .background(AppColors.backgroundGradient)
+            .navigationTitle("Badges")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { showAllAchievements = false }
+                }
+            }
+        }
     }
 
     // MARK: - Complete Profile Banner

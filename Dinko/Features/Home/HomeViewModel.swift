@@ -98,6 +98,11 @@ final class HomeViewModel {
     private(set) var thisWeekTotalMinutes = 0
     private(set) var weeklySessionGoal = 3
 
+    /// Achievement system
+    private(set) var achievements: [(achievement: Achievement, isUnlocked: Bool)] = []
+    private(set) var newlyUnlockedAchievements: [Achievement] = []
+    private(set) var totalSessionsAllTime = 0
+
     var totalSkillsIncludingCompleted: Int {
         totalActiveSkills + completedSkills.count
     }
@@ -232,6 +237,9 @@ final class HomeViewModel {
             // Compute practice streak
             try await computeStreak()
 
+            // Evaluate achievements
+            await evaluateAchievements()
+
             isLoaded = true
             errorMessage = nil
         } catch {
@@ -303,6 +311,29 @@ final class HomeViewModel {
     }
 
     // MARK: - Private Helpers
+
+    private func evaluateAchievements() async {
+        // Gather total session count
+        let allSessions = (try? await sessionRepository.fetchAll()) ?? []
+        totalSessionsAllTime = allSessions.count
+
+        let drillsCompleted = UserDefaults.standard.integer(forKey: "pkkl_total_drills_completed")
+
+        let context = AchievementManager.Context(
+            streakDays: streakDays,
+            weeklyGoalMet: thisWeekSessionCount >= weeklySessionGoal,
+            totalActiveSkills: totalActiveSkills,
+            averageRating: averageRating,
+            completedSkillCount: completedSkills.count,
+            totalSessionsAllTime: allSessions.count,
+            weeklySkillMovers: weeklySkillMovers.map { (delta: $0.delta, currentRating: $0.currentRating) },
+            skillRatings: skillsWithRatings.map(\.rating),
+            totalDrillsCompleted: drillsCompleted
+        )
+
+        newlyUnlockedAchievements = AchievementManager.evaluate(context: context)
+        achievements = AchievementManager.allAchievements()
+    }
 
     private func updateGreeting() {
         let hour = Calendar.current.component(.hour, from: Date())
