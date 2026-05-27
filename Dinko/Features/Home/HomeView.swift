@@ -168,58 +168,72 @@ struct HomeView: View {
             }
 
             // Large circular progress ring — weekly session goal
+            let ringSize: CGFloat = 220
+            let strokeWidth: CGFloat = 10
+
             ZStack {
                 // Track
                 Circle()
-                    .stroke(AppColors.separator, lineWidth: 14)
+                    .stroke(AppColors.separator.opacity(0.5), lineWidth: strokeWidth)
 
-                // Progress ring
+                // Progress arc
                 Circle()
                     .trim(from: 0, to: ringProgress)
                     .stroke(
                         AngularGradient(
                             colors: goalMet
                                 ? [AppColors.successGreen, AppColors.primary, AppColors.successGreen]
-                                : [AppColors.primary.opacity(0.5), AppColors.primary, AppColors.successGreen],
+                                : [AppColors.primary.opacity(0.4), AppColors.primary, AppColors.successGreen],
                             center: .center,
                             startAngle: .degrees(-90),
                             endAngle: .degrees(270)
                         ),
-                        style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                        style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))
 
-                // Inner content
-                VStack(spacing: 6) {
-                    CoachMascot(state: viewModel.mascotState, size: 44)
+                // End-cap dot at the tip of the arc
+                if ringProgress > 0.01 {
+                    let angle = Angle.degrees(360 * Double(ringProgress) - 90)
+                    let radius = (ringSize - strokeWidth) / 2
+                    let x = cos(angle.radians) * radius
+                    let y = sin(angle.radians) * radius
 
+                    Circle()
+                        .fill(.white)
+                        .frame(width: strokeWidth + 6, height: strokeWidth + 6)
+                        .shadow(color: AppColors.primary.opacity(0.3), radius: 4, x: 0, y: 2)
+                        .offset(x: x, y: y)
+                }
+
+                // Inner content — no mascot, just the data + CTA
+                VStack(spacing: 6) {
                     if goalMet {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18))
+                            .font(.system(size: 24))
                             .foregroundStyle(AppColors.successGreen)
 
                         Text("Goal reached!")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .foregroundStyle(AppColors.successGreen)
                     } else {
-                        // Session count
                         HStack(alignment: .firstTextBaseline, spacing: 2) {
                             Text("\(count)")
-                                .font(.system(size: 36, weight: .bold, design: .rounded))
+                                .font(.system(size: 40, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppColors.textPrimary)
                                 .contentTransition(.numericText())
                             Text("/ \(goal)")
-                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                .font(.system(size: 18, weight: .medium, design: .rounded))
                                 .foregroundStyle(AppColors.textSecondary)
                         }
 
                         Text("sessions this week")
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
                     }
                 }
             }
-            .frame(width: 220, height: 220)
+            .frame(width: ringSize, height: ringSize)
             .padding(.vertical, AppSpacing.xxs)
             .onChange(of: viewModel.isLoaded) {
                 animateRing(to: targetProgress)
