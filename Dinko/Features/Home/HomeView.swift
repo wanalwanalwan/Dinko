@@ -172,35 +172,30 @@ struct HomeView: View {
             let strokeWidth: CGFloat = 22
 
             ZStack {
-                // Outer glow behind the ring
-                Circle()
-                    .stroke(AppColors.primaryLight.opacity(0.3), lineWidth: strokeWidth + 16)
-                    .blur(radius: 12)
-
-                // Track (subtle light gray)
+                // Track (subtle light gray, no glow)
                 Circle()
                     .stroke(AppColors.separator.opacity(0.25), lineWidth: strokeWidth)
 
-                // Progress arc — light yellow-green to deep green gradient
+                // Progress arc — gradient spans full 360°, trim reveals proportionally
                 if ringProgress > 0 {
                     Circle()
                         .trim(from: 0, to: ringProgress)
                         .stroke(
                             AngularGradient(
                                 colors: [
-                                    Color(hex: "C6E84B"),  // light yellow-green start
+                                    Color(hex: "C6E84B"),  // light yellow-green
                                     AppColors.primaryLight,
                                     AppColors.primary,
-                                    AppColors.primaryDark,  // deep green end
+                                    AppColors.primaryDark,  // deep green
                                 ],
                                 center: .center,
-                                startAngle: .degrees(0),
-                                endAngle: .degrees(360 * Double(targetProgress))
+                                startAngle: .degrees(-90),
+                                endAngle: .degrees(270)
                             ),
                             style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                         )
                         .rotationEffect(.degrees(-90))
-                        .shadow(color: AppColors.primary.opacity(0.4), radius: 8, x: 0, y: 0)
+                        .shadow(color: AppColors.primary.opacity(0.35), radius: 10, x: 0, y: 0)
                 }
 
                 // White inner disc for depth
