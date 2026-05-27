@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var contentReady = false
     @State private var showAddSkill = false
     @State private var showProfile = false
+    @State private var ringProgress: CGFloat = 0
     @AppStorage("pkkl_has_seen_profile_prompt") private var hasSeenProfilePrompt = false
 
     var body: some View {
@@ -131,6 +132,9 @@ struct HomeView: View {
 
     private func heroSection(_ viewModel: HomeViewModel) -> some View {
         let tier = SkillTier(rating: viewModel.averageRating)
+        let targetProgress = viewModel.totalActiveSkills > 0
+            ? CGFloat(viewModel.averageRating) / 100.0
+            : 0
 
         return VStack(spacing: AppSpacing.sm) {
             // Top bar: greeting + profile avatar
@@ -156,63 +160,94 @@ struct HomeView: View {
                 }
             }
 
-            // Mascot + motivational message
-            VStack(spacing: AppSpacing.xs) {
-                CoachMascot(state: viewModel.mascotState, size: 80)
+            // Large circular progress ring with CTA inside
+            ZStack {
+                // Track
+                Circle()
+                    .stroke(AppColors.separator, lineWidth: 14)
 
-                if viewModel.totalActiveSkills > 0 {
+                // Gradient ring
+                Circle()
+                    .trim(from: 0, to: ringProgress)
+                    .stroke(
+                        AngularGradient(
+                            stops: tierGradientStops(for: viewModel.averageRating),
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
+                        ),
+                        style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+
+                // Inner content
+                VStack(spacing: AppSpacing.xxs) {
+                    CoachMascot(state: viewModel.mascotState, size: 44)
+
+                    if viewModel.totalActiveSkills > 0 {
+                        // Tier badge
+                        HStack(spacing: 4) {
+                            Image(systemName: tier.sfSymbol)
+                                .font(.system(size: 11))
+                            Text(tier.displayName)
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundStyle(tier.color)
+
+                        // Rating
+                        Text("\(viewModel.averageRating)%")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .contentTransition(.numericText())
+                    }
+
+                    // Log Session CTA
+                    Button {
+                        showSessionTypeSheet = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 13, weight: .semibold))
+                            Text("Log Session")
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding(.top, 2)
+                }
+            }
+            .frame(width: 220, height: 220)
+            .padding(.vertical, AppSpacing.xs)
+            .onChange(of: viewModel.isLoaded) {
+                animateRing(to: targetProgress)
+            }
+            .onAppear {
+                if viewModel.isLoaded {
+                    animateRing(to: targetProgress)
+                }
+            }
+
+            // Motivational message
+            if viewModel.totalActiveSkills > 0 {
+                VStack(spacing: 4) {
                     Text(heroMessage(viewModel))
                         .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
-                } else {
-                    Text("Ready to start tracking your game?")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
-            }
 
-            // Tier progress bar
-            if viewModel.totalActiveSkills > 0 {
-                VStack(spacing: AppSpacing.xxs) {
-                    HStack(spacing: 4) {
-                        Image(systemName: tier.sfSymbol)
-                            .font(.system(size: 12))
-                        Text(tier.displayName)
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
-
-                        Spacer()
-
-                        if let next = tier.nextTier {
-                            let pointsToNext = SkillTier.pointsToNext(for: viewModel.averageRating)
-                            Text("\(pointsToNext) pts to \(next.displayName)")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
+                    if let next = tier.nextTier {
+                        let pointsToNext = SkillTier.pointsToNext(for: viewModel.averageRating)
+                        Text("\(pointsToNext) pts to \(next.displayName)")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(tier.color)
                     }
-                    .foregroundStyle(tier.color)
-
-                    ProgressBar(
-                        progress: SkillTier.tierProgress(for: viewModel.averageRating),
-                        tint: tier.color
-                    )
                 }
+            } else {
+                Text("Ready to start tracking your game?")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
             }
-
-            // Start Training CTA
-            Button {
-                showSessionTypeSheet = true
-            } label: {
-                Text("Start Training")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xs)
-                    .background(AppColors.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(.pressable)
 
             // Streak + sessions inline stats
             if viewModel.streakDays > 0 || viewModel.thisWeekSessionCount > 0 {
@@ -237,6 +272,44 @@ struct HomeView: View {
         .padding(.top, AppSpacing.xs)
     }
 
+    private func animateRing(to target: CGFloat) {
+        ringProgress = 0
+        withAnimation(.easeOut(duration: 1.0).delay(0.3)) {
+            ringProgress = target
+        }
+    }
+
+    /// Multi-color gradient stops that sweep through tier colors up to the current rating
+    private func tierGradientStops(for rating: Int) -> [Gradient.Stop] {
+        // Each tier spans 20% of the ring
+        let tiers: [(SkillTier, CGFloat)] = [
+            (.beginner,   0.0),
+            (.developing, 0.2),
+            (.solid,      0.4),
+            (.advanced,   0.6),
+            (.weapon,     0.8),
+        ]
+
+        var stops: [Gradient.Stop] = []
+        let progress = CGFloat(rating) / 100.0
+
+        for (tier, start) in tiers {
+            if start >= progress { break }
+            stops.append(Gradient.Stop(color: tier.color, location: start / max(progress, 0.01)))
+        }
+
+        // End cap: repeat the current tier color at 1.0
+        let currentTier = SkillTier(rating: rating)
+        stops.append(Gradient.Stop(color: currentTier.color, location: 1.0))
+
+        // Need at least 2 stops
+        if stops.count < 2 {
+            stops.insert(Gradient.Stop(color: currentTier.color.opacity(0.3), location: 0), at: 0)
+        }
+
+        return stops
+    }
+
     private func heroMessage(_ viewModel: HomeViewModel) -> String {
         if viewModel.averageRating >= 80 {
             return "You're playing at an elite level!"
@@ -247,7 +320,7 @@ struct HomeView: View {
         if viewModel.improvedSkillCount > 0 {
             return "\(viewModel.improvedSkillCount) skill\(viewModel.improvedSkillCount == 1 ? "" : "s") improved this week!"
         }
-        return "Your overall rating: \(viewModel.averageRating)%"
+        return "Keep training to level up!"
     }
 
     // MARK: - Coach Recommendation
