@@ -9,43 +9,33 @@ struct ContentView: View {
     @State private var homeRefreshID = UUID()
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            TabView(selection: $selectedTab) {
-                NavigationStack {
-                    HomeView(selectedTab: $selectedTab, refreshID: homeRefreshID)
-                }
-                .tag(0)
-
-                NavigationStack {
-                    CoachTabView(selectedTab: $selectedTab)
-                }
-                .tag(1)
-
-                NavigationStack {
-                    SkillListView()
-                }
-                .tag(2)
-
-                NavigationStack {
-                    DrillQueueView()
-                }
-                .tag(3)
-
-                NavigationStack {
-                    TimelineView()
-                }
-                .tag(4)
+        TabView(selection: $selectedTab) {
+            NavigationStack {
+                HomeView(selectedTab: $selectedTab, showSessionTypeSheet: $showTypeSelection, refreshID: homeRefreshID)
             }
-            .toolbar(.hidden, for: .tabBar)
+            .tag(0)
 
-            if selectedTab == 0 {
-                FloatingActionButton {
-                    showTypeSelection = true
-                }
-                .padding(.bottom, AppSpacing.sm)
-                .transition(.scale.combined(with: .opacity))
+            NavigationStack {
+                CoachTabView(selectedTab: $selectedTab)
             }
+            .tag(1)
+
+            NavigationStack {
+                SkillListView()
+            }
+            .tag(2)
+
+            NavigationStack {
+                DrillQueueView()
+            }
+            .tag(3)
+
+            NavigationStack {
+                TimelineView()
+            }
+            .tag(4)
         }
+        .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             customTabBar
         }

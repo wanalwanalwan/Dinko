@@ -106,6 +106,70 @@ final class HomeViewModel {
         recommendedDrills.first
     }
 
+    // MARK: - Coach Experience Computed Properties
+
+    /// Lowest-rated active skill
+    var weakestSkill: (skill: Skill, rating: Int)? {
+        skillsWithRatings.min(by: { $0.rating < $1.rating })
+    }
+
+    /// Highest-rated active skill
+    var strongestSkill: (skill: Skill, rating: Int)? {
+        skillsWithRatings.max(by: { $0.rating < $1.rating })
+    }
+
+    /// Skill to focus on: biggest weekly decliner, else weakest
+    var focusSkill: (skill: Skill, rating: Int)? {
+        if let declining = weeklySkillMovers.first(where: { $0.delta < 0 }) {
+            return skillsWithRatings.first(where: { $0.skill.id == declining.skill.id })
+        }
+        return weakestSkill
+    }
+
+    /// Average positive delta across weekly movers
+    var averageWeeklyImprovement: Double {
+        let positives = weeklySkillMovers.filter { $0.delta > 0 }
+        guard !positives.isEmpty else { return 0 }
+        return Double(positives.map(\.delta).reduce(0, +)) / Double(positives.count)
+    }
+
+    /// Mascot state derived from player data
+    var mascotState: MascotState {
+        if averageRating >= 80 || streakDays >= 7 { return .celebrating }
+        if weeklySkillMovers.contains(where: { $0.delta < 0 }) { return .thinking }
+        return .idle
+    }
+
+    /// Personalized coaching message
+    var coachingMessage: String {
+        if let declining = weeklySkillMovers.first(where: { $0.delta < 0 }) {
+            return "Your \(declining.skill.name) dropped \(abs(declining.delta))% this week. Let's get it back on track!"
+        }
+        if let weak = weakestSkill, weak.rating < 40 {
+            return "\(weak.skill.name) is your biggest opportunity. A few focused sessions can make a real difference."
+        }
+        if averageRating >= 80 {
+            return "You're crushing it! Keep this momentum and push for Weapon tier."
+        }
+        return "Consistency is key. Log a session today to keep your streak alive!"
+    }
+
+    /// CTA label for the coaching card
+    var coachingActionLabel: String {
+        if weeklySkillMovers.contains(where: { $0.delta < 0 }) {
+            return "View Skills"
+        }
+        if weakestSkill != nil {
+            return "View Skills"
+        }
+        return "View Skills"
+    }
+
+    /// Number of skills that improved this week
+    var improvedSkillCount: Int {
+        weeklySkillMovers.filter { $0.delta > 0 }.count
+    }
+
     private(set) var isLoaded = false
     var errorMessage: String?
 
