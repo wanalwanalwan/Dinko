@@ -192,19 +192,22 @@ struct HomeView: View {
                     )
                     .rotationEffect(.degrees(-90))
 
-                // End-cap dot at the tip of the arc
-                if ringProgress > 0.01 {
-                    let angle = Angle.degrees(360 * Double(ringProgress) - 90)
-                    let radius = (ringSize - strokeWidth) / 2
-                    let x = cos(angle.radians) * radius
-                    let y = sin(angle.radians) * radius
+                // Dot indicator at the tip of the arc (or top-center at 0 progress)
+                let dotAngle = Angle.degrees(360 * Double(ringProgress) - 90)
+                let dotRadius = (ringSize - strokeWidth) / 2
+                let dotX = cos(dotAngle.radians) * dotRadius
+                let dotY = sin(dotAngle.radians) * dotRadius
 
-                    Circle()
-                        .fill(.white)
-                        .frame(width: strokeWidth + 6, height: strokeWidth + 6)
-                        .shadow(color: AppColors.primary.opacity(0.3), radius: 4, x: 0, y: 2)
-                        .offset(x: x, y: y)
-                }
+                Circle()
+                    .fill(.white)
+                    .frame(width: strokeWidth + 6, height: strokeWidth + 6)
+                    .shadow(color: AppColors.primary.opacity(0.25), radius: 4, x: 0, y: 2)
+                    .overlay(
+                        Circle()
+                            .fill(ringProgress > 0.01 ? AppColors.successGreen : AppColors.primary.opacity(0.3))
+                            .frame(width: strokeWidth, height: strokeWidth)
+                    )
+                    .offset(x: dotX, y: dotY)
 
                 // Inner content — no mascot, just the data + CTA
                 VStack(spacing: 6) {
