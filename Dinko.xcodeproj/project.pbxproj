@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FT1000010000000000000001 /* Sora-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FT2000010000000000000001 /* Sora-Regular.ttf */; };
+		FT1000010000000000000002 /* Sora-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FT2000010000000000000002 /* Sora-SemiBold.ttf */; };
+		FT1000010000000000000003 /* Sora-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FT2000010000000000000003 /* Sora-Bold.ttf */; };
 		A10000010000000000000001 /* DinkoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000001 /* DinkoApp.swift */; };
 		A10000010000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000002 /* ContentView.swift */; };
 		A10000010000000000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000003 /* Assets.xcassets */; };
@@ -283,6 +286,9 @@
 		CC200001000000000000000A /* CoachChatListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachChatListView.swift; sourceTree = "<group>"; };
 		CC200001000000000000000B /* CoachChatListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachChatListViewModel.swift; sourceTree = "<group>"; };
 		CC200001000000000000000C /* MessageBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubbleView.swift; sourceTree = "<group>"; };
+		FT2000010000000000000001 /* Sora-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sora-Regular.ttf"; sourceTree = "<group>"; };
+		FT2000010000000000000002 /* Sora-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sora-SemiBold.ttf"; sourceTree = "<group>"; };
+		FT2000010000000000000003 /* Sora-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sora-Bold.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -402,8 +408,19 @@
 				A70000010000000000000032 /* Extensions */,
 				A70000010000000000000033 /* Utilities */,
 				AC7000010000000000000001 /* Services */,
+				FT7000010000000000000001 /* Fonts */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		FT7000010000000000000001 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				FT2000010000000000000001 /* Sora-Regular.ttf */,
+				FT2000010000000000000002 /* Sora-SemiBold.ttf */,
+				FT2000010000000000000003 /* Sora-Bold.ttf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		A70000010000000000000030 /* DesignSystem */ = {
@@ -803,6 +820,9 @@
 				A10000010000000000000004 /* Preview Assets.xcassets in Resources */,
 				A10000010000000000000003 /* Assets.xcassets in Resources */,
 				L10000010000000000000001 /* PrivacyInfo.xcprivacy in Resources */,
+				FT1000010000000000000001 /* Sora-Regular.ttf in Resources */,
+				FT1000010000000000000002 /* Sora-SemiBold.ttf in Resources */,
+				FT1000010000000000000003 /* Sora-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1115,6 +1135,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Brine;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIAppFonts = "Sora-Regular.ttf Sora-SemiBold.ttf Sora-Bold.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1147,6 +1168,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Brine;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIAppFonts = "Sora-Regular.ttf Sora-SemiBold.ttf Sora-Bold.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
