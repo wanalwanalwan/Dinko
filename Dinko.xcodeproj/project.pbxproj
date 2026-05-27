@@ -27,6 +27,8 @@
 		B10000010000000000000008 /* SparklineChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000008 /* SparklineChart.swift */; };
 		B10000010000000000000009 /* CheckerItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000009 /* CheckerItem.swift */; };
 		B1000001000000000000000A /* AchievementBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000A /* AchievementBadge.swift */; };
+		AC1000010000000000000001 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2000010000000000000001 /* Achievement.swift */; };
+		AC1000010000000000000002 /* AchievementManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2000010000000000000002 /* AchievementManager.swift */; };
 		B1000001000000000000000B /* MotivationalBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000B /* MotivationalBanner.swift */; };
 		B1000001000000000000000C /* SkillCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000C /* SkillCard.swift */; };
 		C10000010000000000000001 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000001 /* Skill.swift */; };
@@ -175,6 +177,8 @@
 		B20000010000000000000008 /* SparklineChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineChart.swift; sourceTree = "<group>"; };
 		B20000010000000000000009 /* CheckerItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckerItem.swift; sourceTree = "<group>"; };
 		B2000001000000000000000A /* AchievementBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementBadge.swift; sourceTree = "<group>"; };
+		AC2000010000000000000001 /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
+		AC2000010000000000000002 /* AchievementManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementManager.swift; sourceTree = "<group>"; };
 		B2000001000000000000000B /* MotivationalBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotivationalBanner.swift; sourceTree = "<group>"; };
 		B2000001000000000000000C /* SkillCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCard.swift; sourceTree = "<group>"; };
 		C20000010000000000000001 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
@@ -397,6 +401,7 @@
 				A70000010000000000000031 /* Components */,
 				A70000010000000000000032 /* Extensions */,
 				A70000010000000000000033 /* Utilities */,
+				AC7000010000000000000001 /* Services */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -448,6 +453,14 @@
 				M20000010000000000000001 /* AppURLs.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		AC7000010000000000000001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AC2000010000000000000002 /* AchievementManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		A70000010000000000000050 /* Data */ = {
@@ -513,6 +526,7 @@
 				CC2000010000000000000001 /* UserRole.swift */,
 				CC2000010000000000000002 /* CoachChatMessage.swift */,
 				CC2000010000000000000003 /* Conversation.swift */,
+				AC2000010000000000000001 /* Achievement.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -862,6 +876,8 @@
 				H10000010000000000000001 /* RateSkillView.swift in Sources */,
 				H10000010000000000000002 /* SkillNotesView.swift in Sources */,
 				I10000010000000000000001 /* SkillTier.swift in Sources */,
+				AC1000010000000000000001 /* Achievement.swift in Sources */,
+				AC1000010000000000000002 /* AchievementManager.swift in Sources */,
 
 				E10000020000000000000001 /* ChatMessage.swift in Sources */,
 				E10000020000000000000002 /* SupabaseConfig.swift in Sources */,
