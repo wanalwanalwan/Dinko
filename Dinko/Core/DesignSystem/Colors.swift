@@ -18,11 +18,11 @@ enum AppColors {
         )
     }
 
-    // MARK: - Primary (Athletic Green — CTA / Interactive)
-    static let primary = Color(hex: "1E6B3A")
-    static let primaryDark = Color(hex: "155A2E")
-    static let primaryLight = Color(hex: "2F8F4E")
-    static let primaryTint = Color(light: "E0F0E5", dark: "122618")
+    // MARK: - Primary (Sage Green — CTA / Interactive)
+    static let primary = Color(hex: "465945")
+    static let primaryDark = Color(hex: "3C4C3B")
+    static let primaryLight = Color(hex: "546B53")
+    static let primaryTint = Color(light: "DDE6DD", dark: "131D13")
 
     // MARK: - Accent (Charts / Trends / Destructive)
     static let coral = Color(hex: "F07167")
@@ -74,8 +74,8 @@ enum AppColors {
     static let bannerBackground = Color(light: "E8F5EC", dark: "162E1C")
 
     // MARK: - Splash Gradient
-    static let splashGradientStart = Color(hex: "1E6B3A")
-    static let splashGradientEnd = Color(hex: "155A2E")
+    static let splashGradientStart = Color(hex: "465945")
+    static let splashGradientEnd = Color(hex: "3C4C3B")
 
     // MARK: - Calendar Session Indicators
     static let calendarGame = Color(light: "FFE0E0", dark: "3D2020")
