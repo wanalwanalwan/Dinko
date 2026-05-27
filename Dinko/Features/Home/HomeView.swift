@@ -168,8 +168,8 @@ struct HomeView: View {
             }
 
             // Large circular progress ring — weekly session goal (Bevel-style)
-            let ringSize: CGFloat = 220
-            let strokeWidth: CGFloat = 22
+            let ringSize: CGFloat = 160
+            let strokeWidth: CGFloat = 18
 
             ZStack {
                 // Track (subtle light gray, no glow)
