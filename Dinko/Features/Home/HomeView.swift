@@ -131,9 +131,11 @@ struct HomeView: View {
     // MARK: - Hero Section
 
     private func heroSection(_ viewModel: HomeViewModel) -> some View {
-        let tier = SkillTier(rating: viewModel.averageRating)
-        let targetProgress = viewModel.totalActiveSkills > 0
-            ? CGFloat(viewModel.averageRating) / 100.0
+        let count = viewModel.thisWeekSessionCount
+        let goal = viewModel.weeklySessionGoal
+        let goalMet = count >= goal
+        let targetProgress = goal > 0
+            ? min(CGFloat(count) / CGFloat(goal), 1.0)
             : 0
 
         return VStack(spacing: AppSpacing.sm) {
@@ -160,18 +162,20 @@ struct HomeView: View {
                 }
             }
 
-            // Large circular progress ring with CTA inside
+            // Large circular progress ring — weekly session goal
             ZStack {
                 // Track
                 Circle()
                     .stroke(AppColors.separator, lineWidth: 14)
 
-                // Gradient ring
+                // Progress ring
                 Circle()
                     .trim(from: 0, to: ringProgress)
                     .stroke(
                         AngularGradient(
-                            stops: tierGradientStops(for: viewModel.averageRating),
+                            colors: goalMet
+                                ? [AppColors.successGreen, AppColors.primary, AppColors.successGreen]
+                                : [AppColors.primary.opacity(0.5), AppColors.primary, AppColors.successGreen],
                             center: .center,
                             startAngle: .degrees(-90),
                             endAngle: .degrees(270)
@@ -181,43 +185,37 @@ struct HomeView: View {
                     .rotationEffect(.degrees(-90))
 
                 // Inner content
-                VStack(spacing: AppSpacing.xxs) {
+                VStack(spacing: 6) {
                     CoachMascot(state: viewModel.mascotState, size: 44)
 
-                    if viewModel.totalActiveSkills > 0 {
-                        // Tier badge
-                        HStack(spacing: 4) {
-                            Image(systemName: tier.sfSymbol)
-                                .font(.system(size: 11))
-                            Text(tier.displayName)
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        }
-                        .foregroundStyle(tier.color)
+                    if goalMet {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(AppColors.successGreen)
 
-                        // Rating
-                        Text("\(viewModel.averageRating)%")
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-                            .contentTransition(.numericText())
-                    }
-
-                    // Log Session CTA
-                    Button {
-                        showSessionTypeSheet = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 13, weight: .semibold))
-                            Text("Log Session")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        Text("Goal reached!")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.successGreen)
+                    } else {
+                        // Session count
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text("\(count)")
+                                .font(.system(size: 36, weight: .bold, design: .rounded))
+                                .foregroundStyle(AppColors.textPrimary)
+                                .contentTransition(.numericText())
+                            Text("/ \(goal)")
+                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
                         }
-                        .foregroundStyle(AppColors.textSecondary)
+
+                        Text("sessions this week")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
                     }
-                    .padding(.top, 2)
                 }
             }
             .frame(width: 220, height: 220)
-            .padding(.vertical, AppSpacing.xs)
+            .padding(.vertical, AppSpacing.xxs)
             .onChange(of: viewModel.isLoaded) {
                 animateRing(to: targetProgress)
             }
@@ -227,46 +225,58 @@ struct HomeView: View {
                 }
             }
 
-            // Motivational message
-            if viewModel.totalActiveSkills > 0 {
-                VStack(spacing: 4) {
-                    Text(heroMessage(viewModel))
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
+            // Motivational text
+            Text(heroMessage(viewModel))
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .multilineTextAlignment(.center)
 
-                    if let next = tier.nextTier {
-                        let pointsToNext = SkillTier.pointsToNext(for: viewModel.averageRating)
-                        Text("\(pointsToNext) pts to \(next.displayName)")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(tier.color)
-                    }
-                }
-            } else {
-                Text("Ready to start tracking your game?")
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
+            // Streak badge
+            if viewModel.streakDays > 0 {
+                Label("\(viewModel.streakDays)-day streak", systemImage: "flame.fill")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.warningOrange)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+                    .background(AppColors.warningOrange.opacity(0.12))
+                    .clipShape(Capsule())
             }
 
-            // Streak + sessions inline stats
-            if viewModel.streakDays > 0 || viewModel.thisWeekSessionCount > 0 {
-                HStack(spacing: AppSpacing.md) {
-                    if viewModel.streakDays > 0 {
-                        Label("\(viewModel.streakDays)-day streak", systemImage: "flame.fill")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.warningOrange)
+            // Action buttons
+            HStack(spacing: AppSpacing.xs) {
+                Button {
+                    showSessionTypeSheet = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 15))
+                        Text("Log Session")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
                     }
-
-                    if viewModel.thisWeekSessionCount > 0 {
-                        Label(
-                            "\(viewModel.thisWeekSessionCount) session\(viewModel.thisWeekSessionCount == 1 ? "" : "s") this week",
-                            systemImage: "calendar"
-                        )
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.xs)
+                    .background(AppColors.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
+                .buttonStyle(.pressable)
+
+                Button {
+                    selectedTab = 1
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "bubble.left.fill")
+                            .font(.system(size: 14))
+                        Text("Coach")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(AppColors.primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.xs)
+                    .background(AppColors.primary.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.pressable)
             }
         }
         .padding(.top, AppSpacing.xs)
@@ -279,48 +289,20 @@ struct HomeView: View {
         }
     }
 
-    /// Multi-color gradient stops that sweep through tier colors up to the current rating
-    private func tierGradientStops(for rating: Int) -> [Gradient.Stop] {
-        // Each tier spans 20% of the ring
-        let tiers: [(SkillTier, CGFloat)] = [
-            (.beginner,   0.0),
-            (.developing, 0.2),
-            (.solid,      0.4),
-            (.advanced,   0.6),
-            (.weapon,     0.8),
-        ]
-
-        var stops: [Gradient.Stop] = []
-        let progress = CGFloat(rating) / 100.0
-
-        for (tier, start) in tiers {
-            if start >= progress { break }
-            stops.append(Gradient.Stop(color: tier.color, location: start / max(progress, 0.01)))
-        }
-
-        // End cap: repeat the current tier color at 1.0
-        let currentTier = SkillTier(rating: rating)
-        stops.append(Gradient.Stop(color: currentTier.color, location: 1.0))
-
-        // Need at least 2 stops
-        if stops.count < 2 {
-            stops.insert(Gradient.Stop(color: currentTier.color.opacity(0.3), location: 0), at: 0)
-        }
-
-        return stops
-    }
-
     private func heroMessage(_ viewModel: HomeViewModel) -> String {
-        if viewModel.averageRating >= 80 {
-            return "You're playing at an elite level!"
+        let count = viewModel.thisWeekSessionCount
+        let goal = viewModel.weeklySessionGoal
+        if count >= goal {
+            return "You hit your weekly goal!"
         }
-        if viewModel.streakDays >= 7 {
-            return "Incredible streak! Keep it going!"
+        let remaining = goal - count
+        if remaining == 1 {
+            return "Just 1 more session to hit your goal!"
         }
-        if viewModel.improvedSkillCount > 0 {
-            return "\(viewModel.improvedSkillCount) skill\(viewModel.improvedSkillCount == 1 ? "" : "s") improved this week!"
+        if count == 0 {
+            return "Start your week strong \u{2014} log your first session!"
         }
-        return "Keep training to level up!"
+        return "\(remaining) more sessions to hit your goal!"
     }
 
     // MARK: - Coach Recommendation
