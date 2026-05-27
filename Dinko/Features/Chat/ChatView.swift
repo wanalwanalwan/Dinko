@@ -16,21 +16,7 @@ struct ChatView: View {
                 ProgressView()
             }
         }
-        .background(AppColors.background)
-        .navigationTitle("Coach")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    selectedTab = 2
-                } label: {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(AppColors.primary)
-                }
-                .accessibilityLabel("View Progress")
-            }
-        }
+        .background(Color.white)
         .task {
             if viewModel == nil {
                 let vm = ChatViewModel(
@@ -336,7 +322,7 @@ struct ChatView: View {
             && networkMonitor.isConnected
 
         return HStack(alignment: .center, spacing: 8) {
-            TextField("How can I help you today?", text: Binding(
+            TextField("Ask Anything", text: Binding(
                 get: { viewModel.inputText },
                 set: { viewModel.inputText = $0 }
             ), axis: .vertical)
@@ -363,12 +349,7 @@ struct ChatView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 22))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22)
-                .stroke(AppColors.separator, lineWidth: 1)
-        )
+        .floatingCard(cornerRadius: 22)
         .padding(.horizontal, AppSpacing.sm)
         .padding(.bottom, AppSpacing.sm)
     }
