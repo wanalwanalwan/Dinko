@@ -1,5 +1,10 @@
 import SwiftUI
 
+// MARK: - Floating Shadow (shared)
+
+let floatShadow1: (Color, CGFloat, CGFloat) = (.black.opacity(0.06), 8, 3)
+let floatShadow2: (Color, CGFloat, CGFloat) = (.black.opacity(0.03), 20, 8)
+
 // MARK: - Hero Card
 
 struct HeroCardModifier: ViewModifier {
@@ -8,11 +13,8 @@ struct HeroCardModifier: ViewModifier {
             .padding(AppSpacing.md)
             .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius)
-                    .stroke(AppColors.heroCardBorder, lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.03), radius: 6, x: 0, y: 2)
+            .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+            .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
     }
 }
 
@@ -24,10 +26,8 @@ struct CoachCardModifier: ViewModifier {
             .padding(AppSpacing.sm)
             .background(AppColors.coachCardBackground)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-            .overlay(
-                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
-                    .stroke(AppColors.coachCardBorder, lineWidth: 1)
-            )
+            .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+            .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
     }
 }
 
@@ -39,10 +39,8 @@ struct InfoCardModifier: ViewModifier {
             .padding(AppSpacing.xs)
             .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-            .overlay(
-                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
-                    .stroke(AppColors.cardBorder, lineWidth: 0.5)
-            )
+            .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+            .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
     }
 }
 
@@ -54,10 +52,8 @@ struct AchievementCardModifier: ViewModifier {
             .padding(AppSpacing.sm)
             .background(AppColors.achievementCardBackground)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-            .overlay(
-                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
-                    .stroke(AppColors.achievementCardBorder, lineWidth: 1)
-            )
+            .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+            .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
     }
 }
 
@@ -78,5 +74,15 @@ extension View {
 
     func achievementCard() -> some View {
         modifier(AchievementCardModifier())
+    }
+
+    /// Bare floating style: no padding, just background + clip + shadow.
+    /// Use on views that already handle their own padding.
+    func floatingCard(cornerRadius: CGFloat = AppSpacing.cardCornerRadiusSmall) -> some View {
+        self
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+            .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
     }
 }

@@ -89,12 +89,7 @@ struct SkillListView: View {
                             }
                         }
                     }
-                    .background(AppColors.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
-                            .stroke(AppColors.cardBorder, lineWidth: 0.5)
-                    )
+                    .floatingCard()
                     .staggeredAppearance(index: 1)
                 }
                 .padding(.horizontal, AppSpacing.sm)

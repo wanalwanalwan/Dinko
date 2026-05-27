@@ -216,12 +216,7 @@ struct TimelineView: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.vertical, AppSpacing.lg)
         .padding(.horizontal, AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
-                .stroke(AppColors.cardBorder, lineWidth: 0.5)
-        )
+        .floatingCard()
     }
 
     private func sessionCard(session: Session, viewModel: TimelineViewModel) -> some View {

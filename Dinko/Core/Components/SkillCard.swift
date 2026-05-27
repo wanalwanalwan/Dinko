@@ -117,9 +117,7 @@ private let skillCardPreviewItems: [SkillCardPreviewItem] = [
             }
         }
     }
-    .background(AppColors.cardBackground)
-    .clipShape(RoundedRectangle(cornerRadius: 16))
-    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+    .floatingCard(cornerRadius: 16)
     .padding()
     .background(AppColors.background)
 }
