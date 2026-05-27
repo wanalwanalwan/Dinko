@@ -170,43 +170,39 @@ struct HomeView: View {
             // Large circular progress ring — weekly session goal
             let ringSize: CGFloat = 220
             let strokeWidth: CGFloat = 10
+            // Green intensity scales with progress: light at 0%, full at 100%
+            let progressGreen = AppColors.primary.opacity(0.15 + 0.85 * Double(targetProgress))
 
             ZStack {
                 // Track
                 Circle()
-                    .stroke(AppColors.separator.opacity(0.5), lineWidth: strokeWidth)
+                    .stroke(AppColors.separator.opacity(0.35), lineWidth: strokeWidth)
 
-                // Progress arc
-                Circle()
-                    .trim(from: 0, to: ringProgress)
-                    .stroke(
-                        AngularGradient(
-                            colors: goalMet
-                                ? [AppColors.successGreen, AppColors.primary, AppColors.successGreen]
-                                : [AppColors.primary.opacity(0.4), AppColors.primary, AppColors.successGreen],
-                            center: .center,
-                            startAngle: .degrees(-90),
-                            endAngle: .degrees(270)
-                        ),
-                        style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
+                // Progress arc — light-to-strong green gradient
+                if ringProgress > 0 {
+                    Circle()
+                        .trim(from: 0, to: ringProgress)
+                        .stroke(
+                            AngularGradient(
+                                colors: [AppColors.primary.opacity(0.25), progressGreen],
+                                center: .center,
+                                startAngle: .degrees(0),
+                                endAngle: .degrees(360 * Double(targetProgress))
+                            ),
+                            style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                }
 
-                // Dot indicator at the tip of the arc (or top-center at 0 progress)
+                // Dot at the tip of the arc (always visible, sits on top of ring)
                 let dotAngle = Angle.degrees(360 * Double(ringProgress) - 90)
                 let dotRadius = (ringSize - strokeWidth) / 2
                 let dotX = cos(dotAngle.radians) * dotRadius
                 let dotY = sin(dotAngle.radians) * dotRadius
 
                 Circle()
-                    .fill(.white)
-                    .frame(width: strokeWidth + 6, height: strokeWidth + 6)
-                    .shadow(color: AppColors.primary.opacity(0.25), radius: 4, x: 0, y: 2)
-                    .overlay(
-                        Circle()
-                            .fill(ringProgress > 0.01 ? AppColors.successGreen : AppColors.primary.opacity(0.3))
-                            .frame(width: strokeWidth, height: strokeWidth)
-                    )
+                    .fill(ringProgress > 0.01 ? progressGreen : AppColors.primary.opacity(0.4))
+                    .frame(width: 14, height: 14)
                     .offset(x: dotX, y: dotY)
 
                 // Inner content — no mascot, just the data + CTA
