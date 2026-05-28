@@ -205,31 +205,34 @@ struct HomeView: View {
                     .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
 
                 // Inner content
-                VStack(spacing: 6) {
+                VStack(spacing: 2) {
                     if goalMet {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 24))
                             .foregroundStyle(AppColors.successGreen)
 
                         Text("Goal reached!")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundStyle(AppColors.successGreen)
                     } else {
-                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        HStack(alignment: .firstTextBaseline, spacing: 1) {
                             Text("\(count)")
-                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .font(.system(size: 38, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppColors.textPrimary)
                                 .contentTransition(.numericText())
-                            Text("/ \(goal)")
-                                .font(.system(size: 18, weight: .medium, design: .rounded))
+                            Text("/\(goal)")
+                                .font(.system(size: 17, weight: .medium, design: .rounded))
                                 .foregroundStyle(AppColors.textSecondary)
                         }
 
                         Text("sessions this week")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                 }
+                .frame(maxWidth: ringSize - strokeWidth * 2 - 20)
             }
             .frame(width: ringSize, height: ringSize)
             .padding(.vertical, AppSpacing.sm)
@@ -301,8 +304,10 @@ struct HomeView: View {
 
     private func animateRing(to target: CGFloat) {
         ringProgress = 0
-        withAnimation(.easeOut(duration: 1.0).delay(0.3)) {
-            ringProgress = target
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeInOut(duration: 1.2)) {
+                ringProgress = target
+            }
         }
     }
 
