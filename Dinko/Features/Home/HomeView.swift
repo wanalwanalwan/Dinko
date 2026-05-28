@@ -168,13 +168,41 @@ struct HomeView: View {
             }
 
             // Large circular progress ring — weekly session goal (Bevel-style)
-            let ringSize: CGFloat = 160
+            let ringSize: CGFloat = 176
             let strokeWidth: CGFloat = 18
+            let ringTrackSize = ringSize - 20
+            let innerDiscSize = ringSize - strokeWidth * 2 - 24
 
             ZStack {
                 // Track (subtle light gray, no glow)
                 Circle()
-                    .stroke(AppColors.separator.opacity(0.25), lineWidth: strokeWidth)
+                    .fill(Color.white.opacity(0.96))
+                    .shadow(color: .white.opacity(0.85), radius: 5, x: -3, y: -3)
+                    .shadow(color: .black.opacity(0.16), radius: 14, x: 0, y: 8)
+
+                Circle()
+                    .stroke(Color.white, lineWidth: 8)
+                    .padding(5)
+                    .shadow(color: .black.opacity(0.08), radius: 7, x: 0, y: 3)
+
+                Circle()
+                    .stroke(
+                        AngularGradient(
+                            colors: [
+                                Color.white.opacity(0.95),
+                                Color(hex: "E8F1EB"),
+                                Color(hex: "DDE8E1"),
+                                Color.white.opacity(0.9),
+                            ],
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
+                        ),
+                        style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
+                    )
+                    .frame(width: ringTrackSize, height: ringTrackSize)
+                    .shadow(color: .black.opacity(0.08), radius: 9, x: 0, y: 5)
+                    .shadow(color: .white.opacity(0.7), radius: 4, x: -2, y: -2)
 
                 // Progress arc — gradient spans full 360°, trim reveals proportionally
                 if ringProgress > 0 {
@@ -183,10 +211,10 @@ struct HomeView: View {
                         .stroke(
                             AngularGradient(
                                 colors: [
-                                    Color(hex: "C6E84B"),  // light yellow-green
-                                    AppColors.primaryLight,
-                                    AppColors.primary,
-                                    AppColors.primaryDark,  // deep green
+                                    Color(hex: "DFFF00"),
+                                    AppColors.successGreenLight,
+                                    Color(hex: "38D900"),
+                                    AppColors.successGreenDark,
                                 ],
                                 center: .center,
                                 startAngle: .degrees(-90),
@@ -194,15 +222,21 @@ struct HomeView: View {
                             ),
                             style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                         )
+                        .frame(width: ringTrackSize, height: ringTrackSize)
                         .rotationEffect(.degrees(-90))
-                        .shadow(color: AppColors.primary.opacity(0.35), radius: 10, x: 0, y: 0)
+                        .shadow(color: AppColors.successGreen.opacity(0.35), radius: 7, x: 0, y: 3)
                 }
 
                 // White inner disc for depth
                 Circle()
                     .fill(.white)
-                    .frame(width: ringSize - strokeWidth * 2 - 8, height: ringSize - strokeWidth * 2 - 8)
-                    .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+                    .frame(width: innerDiscSize, height: innerDiscSize)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.85), lineWidth: 1)
+                    )
+                    .shadow(color: .white.opacity(0.9), radius: 5, x: -2, y: -2)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
 
                 // Inner content
                 VStack(spacing: 2) {
@@ -232,7 +266,7 @@ struct HomeView: View {
                             .minimumScaleFactor(0.8)
                     }
                 }
-                .frame(maxWidth: ringSize - strokeWidth * 2 - 20)
+                .frame(maxWidth: innerDiscSize - 18)
             }
             .frame(width: ringSize, height: ringSize)
             .padding(.vertical, AppSpacing.sm)
