@@ -5,6 +5,7 @@ struct SkillListView: View {
     @State private var viewModel: SkillListViewModel?
     @State private var showingAddSkill = false
     @State private var contentReady = false
+    @State private var ringProgress: CGFloat = 0
 
     var body: some View {
         Group {
@@ -102,28 +103,97 @@ struct SkillListView: View {
         let ratings = viewModel.skills.map { viewModel.latestRatings[$0.id] ?? 0 }
         let avgRating = ratings.isEmpty ? 0 : ratings.reduce(0, +) / ratings.count
         let improvingCount = viewModel.ratingDeltas.values.filter { $0 > 0 }.count
+        let targetProgress = CGFloat(avgRating) / 100.0
+
+        let ringSize: CGFloat = 72
+        let strokeWidth: CGFloat = 7
+        let ringTrackSize = ringSize - 8
+        let innerDiscSize = ringSize - strokeWidth * 2 - 10
 
         return HStack(spacing: AppSpacing.md) {
-            // Progress ring
+            // Progress ring (Bevel-style, matching HomeView)
             ZStack {
+                // Outer bevel
                 Circle()
-                    .stroke(AppColors.primary.opacity(0.1), lineWidth: 7)
-                    .frame(width: 72, height: 72)
+                    .fill(Color.white.opacity(0.96))
+                    .shadow(color: .white.opacity(0.85), radius: 2, x: -1, y: -1)
+                    .shadow(color: .black.opacity(0.16), radius: 6, x: 0, y: 3)
 
                 Circle()
-                    .trim(from: 0, to: CGFloat(avgRating) / 100.0)
-                    .stroke(AppColors.primary, style: StrokeStyle(lineWidth: 7, lineCap: .round))
-                    .frame(width: 72, height: 72)
-                    .rotationEffect(.degrees(-90))
+                    .stroke(Color.white, lineWidth: 3)
+                    .padding(2)
+                    .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 1)
 
+                // Track
+                Circle()
+                    .stroke(
+                        AngularGradient(
+                            colors: [
+                                Color.white.opacity(0.95),
+                                Color(hex: "E8F1EB"),
+                                Color(hex: "DDE8E1"),
+                                Color.white.opacity(0.9),
+                            ],
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
+                        ),
+                        style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
+                    )
+                    .frame(width: ringTrackSize, height: ringTrackSize)
+                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+                    .shadow(color: .white.opacity(0.7), radius: 2, x: -1, y: -1)
+
+                // Progress arc
+                if ringProgress > 0 {
+                    Circle()
+                        .trim(from: 0, to: ringProgress)
+                        .stroke(
+                            AngularGradient(
+                                colors: [
+                                    Color(hex: "DFFF00"),
+                                    AppColors.successGreenLight,
+                                    Color(hex: "38D900"),
+                                    AppColors.successGreenDark,
+                                ],
+                                center: .center,
+                                startAngle: .degrees(-90),
+                                endAngle: .degrees(270)
+                            ),
+                            style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
+                        )
+                        .frame(width: ringTrackSize, height: ringTrackSize)
+                        .rotationEffect(.degrees(-90))
+                        .shadow(color: AppColors.successGreen.opacity(0.35), radius: 3, x: 0, y: 1)
+                }
+
+                // White inner disc
+                Circle()
+                    .fill(.white)
+                    .frame(width: innerDiscSize, height: innerDiscSize)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.85), lineWidth: 0.5)
+                    )
+                    .shadow(color: .white.opacity(0.9), radius: 2, x: -1, y: -1)
+                    .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 2)
+
+                // Center text
                 VStack(spacing: -2) {
                     Text("\(avgRating)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
                     Text("%")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .font(.system(size: 9, weight: .medium, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
                 }
+            }
+            .frame(width: ringSize, height: ringSize)
+            .onAppear {
+                animateRing(to: targetProgress)
+            }
+            .onChange(of: avgRating) {
+                animateRing(to: targetProgress)
             }
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
@@ -139,6 +209,15 @@ struct SkillListView: View {
             Spacer()
         }
         .heroCard()
+    }
+
+    private func animateRing(to target: CGFloat) {
+        ringProgress = 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeInOut(duration: 1.2)) {
+                ringProgress = target
+            }
+        }
     }
 
     // MARK: - Empty State
