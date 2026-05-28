@@ -2,35 +2,39 @@ import SwiftUI
 
 enum AppColors {
     // MARK: - Backgrounds
-    static let background = Color(light: "D6ECDE", dark: "111A14")
-    static let backgroundGray = Color(light: "F0F1F3", dark: "131517")
+    static let background = Color(light: "F6F7F4", dark: "111A14")
+    static let backgroundGray = Color(light: "EFF0ED", dark: "131517")
     static let cardBackground = Color(light: "FFFFFF", dark: "1A2027")
 
-    /// Soft green wash at top fading to neutral gray (MFP-style)
+    /// Soft green wash at top fading to neutral
     static var backgroundGradient: LinearGradient {
         LinearGradient(
             stops: [
-                .init(color: background, location: 0),
-                .init(color: backgroundGray, location: 0.25),
+                .init(color: Color(hex: "DDEBDD"), location: 0),
+                .init(color: background, location: 0.35),
             ],
             startPoint: .top,
             endPoint: .bottom
         )
     }
 
-    // MARK: - Primary (Sage Green — CTA / Interactive)
-    static let primary = Color(hex: "465945")
-    static let primaryDark = Color(hex: "3C4C3B")
-    static let primaryLight = Color(hex: "546B53")
-    static let primaryTint = Color(light: "DDE6DD", dark: "131D13")
+    // MARK: - Primary (Deep Forest Green — CTA / Interactive)
+    static let primary = Color(hex: "365B43")
+    static let primaryDark = Color(hex: "2A4935")
+    static let primaryLight = Color(hex: "5E8C61")
+    static let primaryTint = Color(light: "DDEBDD", dark: "1A2A1E")
+
+    // MARK: - Highlight (Vibrant Green — rewards, success accents)
+    static let highlight = Color(hex: "89C36B")
+    static let highlightLight = Color(hex: "A3D48A")
 
     // MARK: - Accent (Charts / Trends / Destructive)
     static let coral = Color(hex: "F07167")
 
-    // MARK: - Success / Improvement (Bright Progress Green)
-    static let successGreen = Color(hex: "8EDB3A")
-    static let successGreenLight = Color(hex: "A8E86A")
-    static let successGreenDark = Color(hex: "6FB82E")
+    // MARK: - Success / Improvement
+    static let successGreen = Color(hex: "89C36B")
+    static let successGreenLight = Color(hex: "A3D48A")
+    static let successGreenDark = Color(hex: "6FA354")
 
     // MARK: - Warning
     static let warningOrange = Color(hex: "F59E0B")
@@ -42,10 +46,11 @@ enum AppColors {
     // MARK: - Card Variants
     static let cardBorder = Color(light: "E8EAED", dark: "2A3340")
     static let heroCardBorder = Color(light: "DEE1E6", dark: "323D4A")
-    static let coachCardBackground = Color(light: "F0F7F2", dark: "141F17")
-    static let coachCardBorder = Color(light: "C8DFD0", dark: "1E3426")
+    static let coachCardBackground = Color(light: "EBF5ED", dark: "141F17")
+    static let coachCardBorder = Color(light: "B8D8C0", dark: "1E3426")
     static let achievementCardBackground = Color(light: "FFFBF0", dark: "1F1B14")
     static let achievementCardBorder = Color(light: "F0E4C8", dark: "3D3220")
+    static let notesCardBackground = Color(light: "F0F7F2", dark: "162018")
 
     // MARK: - Surfaces & Borders
     static let agentBubble = Color(light: "F0F2F5", dark: "222A33")
@@ -58,7 +63,7 @@ enum AppColors {
     static let tierBlue = Color(hex: "5B9BD5")
     static let tierGold = Color(hex: "F5A623")
 
-    // MARK: - Achievement / Rewards (Yellow)
+    // MARK: - Achievement / Rewards
     static let trophyGold = Color(hex: "FFD84D")
 
     // MARK: - Drill Type Pills
@@ -71,17 +76,22 @@ enum AppColors {
     static let achievementYellow = Color(light: "FFF6D6", dark: "3D3520")
 
     // MARK: - Banner
-    static let bannerBackground = Color(light: "E8F5EC", dark: "162E1C")
+    static let bannerBackground = Color(light: "E0F0E4", dark: "162E1C")
 
     // MARK: - Splash Gradient
-    static let splashGradientStart = Color(hex: "465945")
-    static let splashGradientEnd = Color(hex: "3C4C3B")
+    static let splashGradientStart = Color(hex: "365B43")
+    static let splashGradientEnd = Color(hex: "2A4935")
 
     // MARK: - Calendar Session Indicators
     static let calendarGame = Color(light: "FFE0E0", dark: "3D2020")
     static let calendarDrill = Color(light: "FFF0D6", dark: "3D3220")
-    static let calendarToday = Color(hex: "34C759")
+    static let calendarToday = Color(hex: "89C36B")
 
     // MARK: - Overlay
     static let overlayScrim = Color.black
+
+    // MARK: - Ring Gradients
+    static let ringGradientStart = Color(hex: "89C36B")
+    static let ringGradientEnd = Color(hex: "365B43")
+    static let ringTrack = Color(light: "E8EDE8", dark: "1E2820")
 }

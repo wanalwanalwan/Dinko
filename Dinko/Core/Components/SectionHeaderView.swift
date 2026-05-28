@@ -8,7 +8,7 @@ struct SectionHeaderView: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
             Spacer()
@@ -16,8 +16,8 @@ struct SectionHeaderView: View {
             if let actionTitle, let action {
                 Button(action: action) {
                     Text(actionTitle)
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.primaryLight)
                 }
             }
         }

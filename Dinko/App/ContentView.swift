@@ -75,33 +75,46 @@ struct ContentView: View {
     private var customTabBar: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(AppColors.separator)
+                .fill(AppColors.separator.opacity(0.5))
                 .frame(height: 0.5)
 
-            HStack {
-                tabButton("house", label: "Home", tag: 0)
-                tabButton("bubble.left", label: "Coach", tag: 1)
-                tabButton("doc.text", label: "Progress", tag: 2)
-                tabButton("list.bullet.clipboard", label: "Drills", tag: 3)
-                tabButton("book", label: "Sessions", tag: 4)
+            HStack(spacing: 0) {
+                tabButton(icon: "house", filledIcon: "house.fill", label: "Home", tag: 0)
+                tabButton(icon: "bubble.left", filledIcon: "bubble.left.fill", label: "Coach", tag: 1)
+                tabButton(icon: "doc.text", filledIcon: "doc.text.fill", label: "Progress", tag: 2)
+                tabButton(icon: "list.bullet.clipboard", filledIcon: "list.bullet.clipboard.fill", label: "Drills", tag: 3)
+                tabButton(icon: "book", filledIcon: "book.fill", label: "Sessions", tag: 4)
             }
-            .padding(.top, 8)
-            .padding(.bottom, 4)
+            .padding(.top, 6)
+            .padding(.bottom, 2)
         }
-        .background(AppColors.cardBackground)
+        .background(.ultraThinMaterial)
     }
 
-    private func tabButton(_ icon: String, label: String, tag: Int) -> some View {
-        Button {
+    private func tabButton(icon: String, filledIcon: String, label: String, tag: Int) -> some View {
+        let isActive = selectedTab == tag
+
+        return Button {
             selectedTab = tag
         } label: {
-            VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 20, weight: .light))
+            VStack(spacing: 3) {
+                ZStack {
+                    if isActive {
+                        Capsule()
+                            .fill(AppColors.primary.opacity(0.12))
+                            .frame(width: 52, height: 28)
+                    }
+
+                    Image(systemName: isActive ? filledIcon : icon)
+                        .font(.system(size: 17, weight: isActive ? .semibold : .regular))
+                        .symbolRenderingMode(.monochrome)
+                }
+                .frame(height: 28)
+
                 Text(label)
-                    .font(.system(size: 10, weight: selectedTab == tag ? .semibold : .medium))
+                    .font(.system(size: 10, weight: isActive ? .bold : .medium, design: .rounded))
             }
-            .foregroundStyle(selectedTab == tag ? AppColors.primary : AppColors.textSecondary)
+            .foregroundStyle(isActive ? AppColors.primary : AppColors.textSecondary)
             .frame(maxWidth: .infinity)
         }
     }

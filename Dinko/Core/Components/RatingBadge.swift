@@ -10,26 +10,73 @@ struct RatingBadge: View {
     @State private var animatedProgress: Double = 0
 
     private var targetProgress: Double { min(max(Double(rating) / 100.0, 0), 1) }
-    private var lineWidth: CGFloat { size * 0.1 }
+    private var lineWidth: CGFloat { size >= 100 ? size * 0.12 : size * 0.1 }
+    private var isHero: Bool { size >= 100 }
 
     var body: some View {
         ZStack {
+            // Track ring with subtle inner depth
             Circle()
-                .stroke(AppColors.separator, lineWidth: lineWidth)
+                .stroke(AppColors.ringTrack, lineWidth: lineWidth)
 
+            // Inner shadow for depth
+            if isHero {
+                Circle()
+                    .stroke(Color.black.opacity(0.04), lineWidth: lineWidth * 0.5)
+                    .blur(radius: 2)
+                    .padding(lineWidth * 0.25)
+            }
+
+            // Gradient progress stroke
             Circle()
                 .trim(from: 0, to: animatedProgress)
-                .stroke(ringColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            AppColors.ringGradientStart,
+                            ringColor,
+                            AppColors.ringGradientEnd
+                        ]),
+                        center: .center,
+                        startAngle: .degrees(-90),
+                        endAngle: .degrees(270)
+                    ),
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                )
                 .rotationEffect(.degrees(-90))
 
+            // Glow behind the stroke end
+            if isHero && animatedProgress > 0.05 {
+                Circle()
+                    .trim(from: 0, to: animatedProgress)
+                    .stroke(
+                        ringColor.opacity(0.3),
+                        style: StrokeStyle(lineWidth: lineWidth * 1.6, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                    .blur(radius: 6)
+            }
+
+            // Center content
             if showCheckmark {
                 Image(systemName: "checkmark")
                     .font(.system(size: size * 0.3, weight: .bold))
                     .foregroundStyle(ringColor)
             } else if showLabel {
-                Text("\(rating)%")
-                    .font(size > 100 ? AppTypography.ratingLarge : AppTypography.ratingBadge)
-                    .foregroundStyle(AppColors.textPrimary)
+                VStack(spacing: isHero ? 2 : 0) {
+                    Text("\(rating)")
+                        .font(isHero
+                            ? .system(size: size * 0.28, weight: .bold, design: .rounded)
+                            : AppTypography.ratingBadge
+                        )
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    if isHero {
+                        Text("%")
+                            .font(.system(size: size * 0.1, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
             }
         }
         .frame(width: size, height: size)
@@ -52,7 +99,7 @@ struct RatingBadge: View {
     VStack(spacing: 24) {
         HStack(spacing: 16) {
             RatingBadge(rating: 0)
-            RatingBadge(rating: 45, ringColor: AppColors.drillOrange)
+            RatingBadge(rating: 45, ringColor: AppColors.primaryLight)
             RatingBadge(rating: 75, ringColor: AppColors.primary)
             RatingBadge(rating: 100, ringColor: AppColors.primary, showCheckmark: true)
         }
