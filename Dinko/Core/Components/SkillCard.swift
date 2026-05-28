@@ -12,63 +12,65 @@ struct SkillCard: View {
     @State private var animatedProgress: Double = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            // Primary row: dot + name + progress bar + percentage
-            HStack(alignment: .top, spacing: 10) {
-                Circle()
-                    .fill(tier.color)
-                    .frame(width: 8, height: 8)
-                    .padding(.top, 6) // center with first line of text
-
+        HStack(spacing: 12) {
+            // Left side: name + tier/delta
+            VStack(alignment: .leading, spacing: 3) {
                 Text(skill.name)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(AppColors.textPrimary)
                     .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
-                Spacer(minLength: 4)
+                HStack(spacing: 4) {
+                    Text(tier.displayName.uppercased())
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .tracking(0.5)
 
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(tier.color.opacity(0.12))
-
-                        Capsule()
-                            .fill(tier.color.gradient)
-                            .frame(width: max(geo.size.width * animatedProgress, 0))
+                    if let delta, delta != 0 {
+                        Text("\u{00B7}")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppColors.textSecondary)
+                        Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
                     }
                 }
-                .frame(width: 56, height: 4)
-                .clipShape(Capsule())
-                .padding(.top, 8) // center with first line of text
+            }
 
+            Spacer(minLength: 4)
+
+            // Right side: rating text + mini ring + chevron
+            HStack(spacing: 10) {
                 Text("\(rating)%")
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 15, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(tier.color)
-                    .frame(width: 40, alignment: .trailing)
-                    .padding(.top, 1)
-            }
 
-            // Secondary row: tier label + delta
-            HStack(spacing: 4) {
-                Text(tier.displayName.uppercased())
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .tracking(0.5)
+                // Mini circular progress ring
+                ZStack {
+                    Circle()
+                        .stroke(tier.color.opacity(0.15), lineWidth: 3)
 
-                if let delta, delta != 0 {
-                    Text("\u{00B7}")
-                        .font(.system(size: 10, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                    Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
-                        .foregroundStyle(delta > 0 ? AppColors.successGreen : AppColors.coral)
+                    Circle()
+                        .trim(from: 0, to: animatedProgress)
+                        .stroke(tier.color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
                 }
+                .frame(width: 24, height: 24)
+
+                // Chevron arrow
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                    .frame(width: 24, height: 24)
+                    .background(AppColors.textSecondary.opacity(0.08))
+                    .clipShape(Circle())
             }
-            .padding(.leading, 18) // align with skill name (8 dot + 10 spacing)
         }
-        .padding(.horizontal, AppSpacing.sm)
-        .padding(.vertical, AppSpacing.xs)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .floatingCard()
         .onAppear {
             withAnimation(AppAnimations.springSmooth) {
                 animatedProgress = overallProgress
@@ -103,7 +105,7 @@ private let skillCardPreviewItems: [SkillCardPreviewItem] = [
 ]
 
 #Preview {
-    VStack(spacing: 0) {
+    VStack(spacing: 10) {
         ForEach(skillCardPreviewItems) { item in
             SkillCard(
                 skill: item.skill,
@@ -111,13 +113,8 @@ private let skillCardPreviewItems: [SkillCardPreviewItem] = [
                 rating: item.rating,
                 delta: item.delta
             )
-            if item.id < skillCardPreviewItems.count - 1 {
-                Divider()
-                    .padding(.leading, 34)
-            }
         }
     }
-    .floatingCard(cornerRadius: 16)
-    .padding()
+    .padding(.horizontal)
     .background(AppColors.background)
 }

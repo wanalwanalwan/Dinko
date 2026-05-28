@@ -66,31 +66,23 @@ struct SkillListView: View {
             emptyState
         } else {
             ScrollView {
-                VStack(spacing: AppSpacing.sm) {
+                VStack(spacing: 10) {
                     overviewCard(viewModel)
                         .staggeredAppearance(index: 0)
 
-                    // Grouped skills card
-                    VStack(spacing: 0) {
-                        ForEach(Array(viewModel.skills.enumerated()), id: \.element.id) { index, skill in
-                            NavigationLink(value: skill) {
-                                SkillCard(
-                                    skill: skill,
-                                    subskillCount: viewModel.subskillCounts[skill.id] ?? 0,
-                                    rating: viewModel.latestRatings[skill.id] ?? 0,
-                                    delta: viewModel.ratingDeltas[skill.id]
-                                )
-                            }
-                            .buttonStyle(.pressable)
-
-                            if index < viewModel.skills.count - 1 {
-                                Divider()
-                                    .padding(.leading, 34) // align with skill name
-                            }
+                    // Individual skill cards
+                    ForEach(Array(viewModel.skills.enumerated()), id: \.element.id) { index, skill in
+                        NavigationLink(value: skill) {
+                            SkillCard(
+                                skill: skill,
+                                subskillCount: viewModel.subskillCounts[skill.id] ?? 0,
+                                rating: viewModel.latestRatings[skill.id] ?? 0,
+                                delta: viewModel.ratingDeltas[skill.id]
+                            )
                         }
+                        .buttonStyle(.pressable)
+                        .staggeredAppearance(index: index + 1)
                     }
-                    .floatingCard()
-                    .staggeredAppearance(index: 1)
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
