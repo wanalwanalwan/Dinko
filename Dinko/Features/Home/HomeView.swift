@@ -91,7 +91,7 @@ struct HomeView: View {
     @ViewBuilder
     private func homeContent(_ viewModel: HomeViewModel) -> some View {
         ScrollView {
-            VStack(spacing: AppSpacing.lg) {
+            VStack(spacing: AppSpacing.md) {
                 heroSection(viewModel)
                     .staggeredAppearance(index: 0)
 
@@ -112,8 +112,8 @@ struct HomeView: View {
                 achievementsSection(viewModel)
                     .staggeredAppearance(index: 5)
             }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.top, AppSpacing.xxs)
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.xxxs)
             .padding(.bottom, AppSpacing.xl + 60)
             .contentLoadTransition(isLoaded: contentReady)
         }
@@ -145,14 +145,14 @@ struct HomeView: View {
 
         return VStack(spacing: AppSpacing.sm) {
             // Top bar: greeting + profile avatar
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text("\(viewModel.greetingText),")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
 
                     Text(viewModel.playerName)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
                 }
 
@@ -162,59 +162,100 @@ struct HomeView: View {
                     showProfile = true
                 } label: {
                     Image(systemName: "person.crop.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundStyle(AppColors.primary.opacity(0.7))
+                        .font(.system(size: 28))
+                        .foregroundStyle(AppColors.primary.opacity(0.6))
                 }
             }
+            .padding(.bottom, AppSpacing.xxxs)
 
-            // Large circular progress ring — weekly session goal (Bevel-style)
-            let ringSize: CGFloat = 176
-            let strokeWidth: CGFloat = 18
-            let ringTrackSize = ringSize - 20
-            let innerDiscSize = ringSize - strokeWidth * 2 - 24
+            // Progress ring hero card
+            progressRingCard(
+                count: count,
+                goal: goal,
+                goalMet: goalMet,
+                targetProgress: targetProgress,
+                viewModel: viewModel
+            )
 
-            ZStack {
-                // Track (subtle light gray, no glow)
-                Circle()
-                    .fill(Color.white.opacity(0.96))
-                    .shadow(color: .white.opacity(0.85), radius: 5, x: -3, y: -3)
-                    .shadow(color: .black.opacity(0.16), radius: 14, x: 0, y: 8)
-
-                Circle()
-                    .stroke(Color.white, lineWidth: 8)
-                    .padding(5)
-                    .shadow(color: .black.opacity(0.08), radius: 7, x: 0, y: 3)
-
-                Circle()
-                    .stroke(
-                        AngularGradient(
-                            colors: [
-                                Color.white.opacity(0.95),
-                                Color(hex: "E8F1EB"),
-                                Color(hex: "DDE8E1"),
-                                Color.white.opacity(0.9),
-                            ],
-                            center: .center,
-                            startAngle: .degrees(-90),
-                            endAngle: .degrees(270)
-                        ),
-                        style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
+            // Action buttons
+            HStack(spacing: AppSpacing.xs) {
+                // Primary CTA
+                Button {
+                    showSessionTypeSheet = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 13, weight: .bold))
+                        Text("Log Session")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(
+                        LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryDark],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                    .frame(width: ringTrackSize, height: ringTrackSize)
-                    .shadow(color: .black.opacity(0.08), radius: 9, x: 0, y: 5)
-                    .shadow(color: .white.opacity(0.7), radius: 4, x: -2, y: -2)
+                    .clipShape(Capsule())
+                    .shadow(color: AppColors.primary.opacity(0.2), radius: 6, y: 3)
+                }
+                .buttonStyle(.pressable)
 
-                // Progress arc — gradient spans full 360°, trim reveals proportionally
+                // Secondary CTA
+                Button {
+                    selectedTab = 1
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "bubble.left.fill")
+                            .font(.system(size: 12))
+                        Text("Coach")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(AppColors.primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(AppColors.primaryTint)
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.pressable)
+            }
+        }
+        .padding(.top, AppSpacing.xxs)
+    }
+
+    // MARK: - Progress Ring Card
+
+    private func progressRingCard(count: Int, goal: Int, goalMet: Bool, targetProgress: CGFloat, viewModel: HomeViewModel) -> some View {
+        let ringSize: CGFloat = 148
+        let strokeWidth: CGFloat = 14
+        let trackSize = ringSize - 16
+        let innerDiscSize = ringSize - strokeWidth * 2 - 20
+
+        return VStack(spacing: AppSpacing.xs) {
+            ZStack {
+                // Outer disc
+                Circle()
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.04), radius: 10, y: 4)
+
+                // Track ring
+                Circle()
+                    .stroke(AppColors.ringTrack, style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round))
+                    .frame(width: trackSize, height: trackSize)
+
+                // Progress arc
                 if ringProgress > 0 {
                     Circle()
                         .trim(from: 0, to: ringProgress)
                         .stroke(
                             AngularGradient(
                                 colors: [
-                                    Color(hex: "DFFF00"),
-                                    AppColors.successGreenLight,
-                                    Color(hex: "38D900"),
-                                    AppColors.successGreenDark,
+                                    AppColors.highlight,
+                                    AppColors.primaryLight,
+                                    AppColors.primary,
                                 ],
                                 center: .center,
                                 startAngle: .degrees(-90),
@@ -222,54 +263,46 @@ struct HomeView: View {
                             ),
                             style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                         )
-                        .frame(width: ringTrackSize, height: ringTrackSize)
+                        .frame(width: trackSize, height: trackSize)
                         .rotationEffect(.degrees(-90))
-                        .shadow(color: AppColors.successGreen.opacity(0.35), radius: 7, x: 0, y: 3)
+                        .shadow(color: AppColors.primaryLight.opacity(0.25), radius: 5, y: 2)
                 }
 
-                // White inner disc for depth
+                // Inner disc
                 Circle()
                     .fill(.white)
                     .frame(width: innerDiscSize, height: innerDiscSize)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.white.opacity(0.85), lineWidth: 1)
-                    )
-                    .shadow(color: .white.opacity(0.9), radius: 5, x: -2, y: -2)
-                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                    .shadow(color: .black.opacity(0.03), radius: 4, y: 2)
 
-                // Inner content
+                // Center content
                 VStack(spacing: 2) {
                     if goalMet {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundStyle(AppColors.successGreen)
+                            .font(.system(size: 22))
+                            .foregroundStyle(AppColors.highlight)
 
-                        Text("Goal reached!")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AppColors.successGreen)
+                        Text("Goal met!")
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.highlight)
                     } else {
                         HStack(alignment: .firstTextBaseline, spacing: 1) {
                             Text("\(count)")
-                                .font(.system(size: 38, weight: .bold, design: .rounded))
+                                .font(.system(size: 34, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppColors.textPrimary)
                                 .contentTransition(.numericText())
                             Text("/\(goal)")
-                                .font(.system(size: 17, weight: .medium, design: .rounded))
+                                .font(.system(size: 15, weight: .medium, design: .rounded))
                                 .foregroundStyle(AppColors.textSecondary)
                         }
 
-                        Text("sessions this week")
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                        Text("sessions")
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
                     }
                 }
-                .frame(maxWidth: innerDiscSize - 18)
+                .frame(maxWidth: innerDiscSize - 16)
             }
             .frame(width: ringSize, height: ringSize)
-            .padding(.vertical, AppSpacing.sm)
             .onChange(of: viewModel.isLoaded) {
                 animateRing(to: targetProgress)
             }
@@ -281,59 +314,26 @@ struct HomeView: View {
 
             // Motivational text
             Text(heroMessage(viewModel))
-                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .font(.system(size: 14, weight: .medium, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)
 
             // Streak badge
             if viewModel.streakDays > 0 {
                 Label("\(viewModel.streakDays)-day streak", systemImage: "flame.fill")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.warningOrange)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 5)
-                    .background(AppColors.warningOrange.opacity(0.12))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(AppColors.warningOrange.opacity(0.1))
                     .clipShape(Capsule())
             }
-
-            // Action buttons
-            HStack(spacing: AppSpacing.xs) {
-                Button {
-                    showSessionTypeSheet = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 15))
-                        Text("Log Session")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xs)
-                    .background(AppColors.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .buttonStyle(.pressable)
-
-                Button {
-                    selectedTab = 1
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "bubble.left.fill")
-                            .font(.system(size: 14))
-                        Text("Coach")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    }
-                    .foregroundStyle(AppColors.primary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xs)
-                    .background(AppColors.primary.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .buttonStyle(.pressable)
-            }
         }
-        .padding(.top, AppSpacing.xs)
+        .padding(.vertical, AppSpacing.sm)
+        .padding(.horizontal, AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
     }
 
     private func animateRing(to target: CGFloat) {
@@ -367,7 +367,7 @@ struct HomeView: View {
         Group {
             if viewModel.totalActiveSkills > 0 {
                 HStack(spacing: AppSpacing.xs) {
-                    CoachMascot(state: viewModel.mascotState, size: 28)
+                    CoachMascot(state: viewModel.mascotState, size: 36)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(viewModel.coachingMessage)
@@ -380,13 +380,19 @@ struct HomeView: View {
                         } label: {
                             Text(viewModel.coachingActionLabel)
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(AppColors.primary)
+                                .foregroundStyle(AppColors.primaryLight)
                         }
                     }
 
                     Spacer(minLength: 0)
                 }
-                .coachCard()
+                .padding(AppSpacing.sm)
+                .background(AppColors.coachCardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(AppColors.coachCardBorder.opacity(0.5), lineWidth: 0.5)
+                )
             }
         }
     }
@@ -396,10 +402,10 @@ struct HomeView: View {
     private func weeklyMomentumSection(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
             Text("This Week")
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(.system(size: 17, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
-            HStack(spacing: AppSpacing.xs) {
+            HStack(spacing: AppSpacing.xxs) {
                 momentumTile(
                     value: "\(viewModel.thisWeekSessionCount)",
                     label: "Sessions",
@@ -418,29 +424,40 @@ struct HomeView: View {
                     value: "\(viewModel.improvedSkillCount)",
                     label: "Improved",
                     icon: "arrow.up.right",
-                    color: AppColors.successGreen
+                    color: AppColors.highlight
                 )
             }
         }
     }
 
     private func momentumTile(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: AppSpacing.xxs) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(color)
+        HStack(spacing: AppSpacing.xxs) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.1))
+                    .frame(width: 32, height: 32)
 
-            Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(color)
+            }
 
-            Text(label)
-                .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(value)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Text(label)
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, AppSpacing.xs)
         .padding(.vertical, AppSpacing.xs)
-        .floatingCard()
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.03), radius: 6, y: 2)
     }
 
     // MARK: - Skills Spotlight
@@ -452,11 +469,10 @@ struct HomeView: View {
             }
 
             if viewModel.skillsWithRatings.isEmpty {
-                // Empty state
                 VStack(spacing: AppSpacing.xs) {
                     Image(systemName: "target")
-                        .font(.system(size: 32))
-                        .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                        .font(.system(size: 28))
+                        .foregroundStyle(AppColors.primaryLight.opacity(0.5))
 
                     Text("Add your first skill")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
@@ -471,22 +487,21 @@ struct HomeView: View {
                         showAddSkill = true
                     } label: {
                         Text("Add Skill")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundStyle(.white)
                             .padding(.horizontal, AppSpacing.md)
                             .padding(.vertical, AppSpacing.xxs)
                             .background(AppColors.primary)
                             .clipShape(Capsule())
                     }
-                    .padding(.top, AppSpacing.xxs)
+                    .padding(.top, AppSpacing.xxxs)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.lg)
                 .infoCard()
             } else {
-                // Curated spotlight cards
                 let cards = buildSpotlightCards(viewModel)
-                VStack(spacing: AppSpacing.xs) {
+                VStack(spacing: AppSpacing.xxs) {
                     ForEach(cards, id: \.skill.id) { card in
                         spotlightCard(
                             skill: card.skill,
@@ -511,7 +526,6 @@ struct HomeView: View {
         var cards: [SpotlightItem] = []
         var usedIds: Set<UUID> = []
 
-        // 1. Weakest skill
         if let weak = viewModel.weakestSkill {
             cards.append(SpotlightItem(
                 skill: weak.skill,
@@ -522,7 +536,6 @@ struct HomeView: View {
             usedIds.insert(weak.skill.id)
         }
 
-        // 2. Focus skill (declining or weakest — dedupe)
         if let focus = viewModel.focusSkill, !usedIds.contains(focus.skill.id) {
             cards.append(SpotlightItem(
                 skill: focus.skill,
@@ -533,18 +546,16 @@ struct HomeView: View {
             usedIds.insert(focus.skill.id)
         }
 
-        // 3. Strongest skill (dedupe)
         if let strong = viewModel.strongestSkill, !usedIds.contains(strong.skill.id) {
             cards.append(SpotlightItem(
                 skill: strong.skill,
                 rating: strong.rating,
                 label: "Strongest",
-                labelColor: AppColors.successGreen
+                labelColor: AppColors.highlight
             ))
             usedIds.insert(strong.skill.id)
         }
 
-        // Fill remaining slots from skillsWithRatings if we have fewer than 3
         if cards.count < 3 {
             for item in viewModel.skillsWithRatings where !usedIds.contains(item.skill.id) {
                 cards.append(SpotlightItem(
@@ -566,16 +577,17 @@ struct HomeView: View {
 
         return HStack(spacing: AppSpacing.xs) {
             // Icon
-            Circle()
-                .fill(tier.color.opacity(0.15))
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Text(skill.iconName)
-                        .font(.system(size: 16))
-                )
+            ZStack {
+                Circle()
+                    .fill(tier.color.opacity(0.1))
+                    .frame(width: 34, height: 34)
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
+                Text(skill.iconName)
+                    .font(.system(size: 15))
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 5) {
                     Text(skill.name)
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
@@ -583,11 +595,11 @@ struct HomeView: View {
 
                     if !label.isEmpty {
                         Text(label)
-                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
                             .foregroundStyle(labelColor)
-                            .padding(.horizontal, 6)
+                            .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(labelColor.opacity(0.12))
+                            .background(labelColor.opacity(0.1))
                             .clipShape(Capsule())
                     }
                 }
@@ -596,11 +608,15 @@ struct HomeView: View {
             }
 
             Text("\(rating)%")
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundStyle(tier.color)
-                .frame(width: 44, alignment: .trailing)
+                .frame(width: 40, alignment: .trailing)
         }
-        .infoCard()
+        .padding(.horizontal, AppSpacing.xs)
+        .padding(.vertical, AppSpacing.xs)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.03), radius: 6, y: 2)
     }
 
     // MARK: - Achievements
@@ -614,15 +630,12 @@ struct HomeView: View {
                 showAllAchievements = true
             }
 
-            // Unlocked count
             Text("\(unlocked.count) of \(viewModel.achievements.count) earned")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
 
-            // Recent unlocked + next locked badges
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.sm) {
-                    // Show unlocked first (most recent = last earned, so reverse)
                     ForEach(unlocked.reversed(), id: \.achievement.id) { item in
                         AchievementBadge(
                             name: item.achievement.name,
@@ -632,7 +645,6 @@ struct HomeView: View {
                         )
                     }
 
-                    // Then show next few locked badges
                     ForEach(locked.prefix(4), id: \.achievement.id) { item in
                         AchievementBadge(
                             name: item.achievement.name,
@@ -645,7 +657,6 @@ struct HomeView: View {
                 .padding(.vertical, AppSpacing.xxs)
             }
 
-            // Newly unlocked celebration
             if let newest = viewModel.newlyUnlockedAchievements.first, celebratingAchievement == nil {
                 Color.clear
                     .onAppear {
@@ -675,12 +686,12 @@ struct HomeView: View {
 
             VStack(spacing: AppSpacing.sm) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: AppSpacing.xs)
+                    RoundedRectangle(cornerRadius: 16)
                         .fill(achievement.color)
-                        .frame(width: 80, height: 80)
+                        .frame(width: 72, height: 72)
 
                     Image(systemName: achievement.iconName)
-                        .font(.system(size: 36))
+                        .font(.system(size: 32))
                         .foregroundStyle(AppColors.textPrimary)
                 }
 
@@ -689,11 +700,11 @@ struct HomeView: View {
                     .foregroundStyle(AppColors.textPrimary)
 
                 Text(achievement.name)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundStyle(achievement.color)
 
                 Text(achievement.description)
-                    .font(.system(size: 14, design: .rounded))
+                    .font(.system(size: 13, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
 
@@ -703,19 +714,19 @@ struct HomeView: View {
                     }
                 } label: {
                     Text("Nice!")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.xs)
+                        .padding(.vertical, 10)
                         .background(AppColors.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(Capsule())
                 }
-                .padding(.top, AppSpacing.xxs)
+                .padding(.top, AppSpacing.xxxs)
             }
             .padding(AppSpacing.lg)
             .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+            .shadow(color: .black.opacity(0.12), radius: 20, y: 8)
             .padding(.horizontal, AppSpacing.xl)
             .transition(.scale(scale: 0.8).combined(with: .opacity))
         }
@@ -763,15 +774,15 @@ struct HomeView: View {
     private var completeProfileBanner: some View {
         HStack(spacing: AppSpacing.xs) {
             Image(systemName: "person.crop.circle.badge.exclamationmark")
-                .font(.system(size: 20))
-                .foregroundStyle(AppColors.primary)
+                .font(.system(size: 18))
+                .foregroundStyle(AppColors.primaryLight)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Complete your profile")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
                 Text("Get personalized coaching tips")
-                    .font(.system(size: 12, design: .rounded))
+                    .font(.system(size: 11, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
             }
 
@@ -781,10 +792,10 @@ struct HomeView: View {
                 showProfile = true
             } label: {
                 Text("Set up")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
                     .background(AppColors.primary)
                     .clipShape(Capsule())
             }
@@ -793,9 +804,9 @@ struct HomeView: View {
                 withAnimation { hasSeenProfilePrompt = true }
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(AppColors.textSecondary)
-                    .frame(width: 24, height: 24)
+                    .frame(width: 22, height: 22)
             }
         }
         .infoCard()

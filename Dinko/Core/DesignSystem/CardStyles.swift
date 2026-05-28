@@ -1,9 +1,9 @@
 import SwiftUI
 
-// MARK: - Floating Shadow (shared)
+// MARK: - Floating Shadow (shared — softened for lighter feel)
 
-let floatShadow1: (Color, CGFloat, CGFloat) = (.black.opacity(0.06), 8, 3)
-let floatShadow2: (Color, CGFloat, CGFloat) = (.black.opacity(0.03), 20, 8)
+let floatShadow1: (Color, CGFloat, CGFloat) = (.black.opacity(0.04), 6, 2)
+let floatShadow2: (Color, CGFloat, CGFloat) = (.black.opacity(0.02), 16, 6)
 
 // MARK: - Hero Card
 

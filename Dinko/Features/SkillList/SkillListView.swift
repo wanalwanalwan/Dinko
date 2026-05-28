@@ -151,10 +151,9 @@ struct SkillListView: View {
                         .stroke(
                             AngularGradient(
                                 colors: [
-                                    Color(hex: "DFFF00"),
-                                    AppColors.successGreenLight,
-                                    Color(hex: "38D900"),
-                                    AppColors.successGreenDark,
+                                    AppColors.highlight,
+                                    AppColors.primaryLight,
+                                    AppColors.primary,
                                 ],
                                 center: .center,
                                 startAngle: .degrees(-90),
