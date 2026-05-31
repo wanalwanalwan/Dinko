@@ -46,6 +46,14 @@ final class CoachChatService {
         return profiles.first
     }
 
+    // MARK: - Coach Directory
+
+    func fetchCoaches(authToken: String) async throws -> [CoachProfile] {
+        let url = URL(string: "\(baseURL)/rest/v1/user_profiles?role=eq.coach&select=id,display_name,coach_bio,coach_specialties")!
+        let data = try await get(url: url, authToken: authToken)
+        return try decoder.decode([CoachProfile].self, from: data)
+    }
+
     // MARK: - Conversations
 
     func fetchConversations(forUserId userId: UUID, role: UserRole, authToken: String) async throws -> [Conversation] {
@@ -55,11 +63,26 @@ final class CoachChatService {
         return try decoder.decode([Conversation].self, from: data)
     }
 
-    func fetchConversation(playerId: UUID, authToken: String) async throws -> Conversation? {
-        let url = URL(string: "\(baseURL)/rest/v1/conversations?player_id=eq.\(playerId.uuidString)&select=*&limit=1")!
-        let data = try await get(url: url, authToken: authToken)
+    func createConversation(playerId: UUID, coachId: UUID, authToken: String) async throws -> Conversation {
+        let url = URL(string: "\(baseURL)/rest/v1/conversations?select=*")!
+        let body: [String: Any] = [
+            "player_id": playerId.uuidString,
+            "coach_id": coachId.uuidString,
+            "status": "active",
+            "player_unread_count": 0,
+            "coach_unread_count": 0,
+        ]
+        let data = try await post(url: url, body: body, authToken: authToken)
         let conversations = try decoder.decode([Conversation].self, from: data)
-        return conversations.first
+        guard let conversation = conversations.first else {
+            throw CoachChatError.invalidResponse
+        }
+        return conversation
+    }
+
+    func closeConversation(id: UUID, authToken: String) async throws {
+        let url = URL(string: "\(baseURL)/rest/v1/conversations?id=eq.\(id.uuidString)")!
+        _ = try await patch(url: url, body: ["status": "closed"], authToken: authToken)
     }
 
     // MARK: - Messages
