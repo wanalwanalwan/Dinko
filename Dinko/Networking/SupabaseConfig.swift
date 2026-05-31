@@ -2,19 +2,17 @@ import Foundation
 
 enum SupabaseConfig {
     static let url: String = {
-        guard let value = Bundle.main.infoDictionary?["SupabaseURL"] as? String, !value.isEmpty else {
-            assertionFailure("SupabaseURL missing from Info.plist — add it to Secrets.xcconfig")
-            return ""
+        if let value = Bundle.main.infoDictionary?["SupabaseURL"] as? String, !value.isEmpty {
+            return value
         }
-        return value
+        return "https://dtsmezwkxytpidtjgcid.supabase.co"
     }()
 
     static let anonKey: String = {
-        guard let value = Bundle.main.infoDictionary?["SupabaseAnonKey"] as? String, !value.isEmpty else {
-            assertionFailure("SupabaseAnonKey missing from Info.plist — add it to Secrets.xcconfig")
-            return ""
+        if let value = Bundle.main.infoDictionary?["SupabaseAnonKey"] as? String, !value.isEmpty {
+            return value
         }
-        return value
+        return "sb_publishable_OMtj-652wf8e5kmdsEQirQ_FPKZR4gA"
     }()
 
     static let agentFunctionURL = "\(url)/functions/v1/dinkit-agent"
