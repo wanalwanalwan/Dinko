@@ -135,6 +135,11 @@
 		CC100001000000000000000A /* CoachChatListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC200001000000000000000A /* CoachChatListView.swift */; };
 		CC100001000000000000000B /* CoachChatListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC200001000000000000000B /* CoachChatListViewModel.swift */; };
 		CC100001000000000000000C /* MessageBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC200001000000000000000C /* MessageBubbleView.swift */; };
+		CC100001000000000000000D /* ConversationStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC200001000000000000000D /* ConversationStatus.swift */; };
+		CC100001000000000000000E /* CoachProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC200001000000000000000E /* CoachProfile.swift */; };
+		CC100001000000000000000F /* PlayerConversationListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC200001000000000000000F /* PlayerConversationListViewModel.swift */; };
+		CC1000010000000000000010 /* PlayerConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2000010000000000000010 /* PlayerConversationListView.swift */; };
+		CC1000010000000000000011 /* CoachDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2000010000000000000011 /* CoachDirectoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -286,6 +291,11 @@
 		CC200001000000000000000A /* CoachChatListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachChatListView.swift; sourceTree = "<group>"; };
 		CC200001000000000000000B /* CoachChatListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachChatListViewModel.swift; sourceTree = "<group>"; };
 		CC200001000000000000000C /* MessageBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubbleView.swift; sourceTree = "<group>"; };
+		CC200001000000000000000D /* ConversationStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationStatus.swift; sourceTree = "<group>"; };
+		CC200001000000000000000E /* CoachProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachProfile.swift; sourceTree = "<group>"; };
+		CC200001000000000000000F /* PlayerConversationListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerConversationListViewModel.swift; sourceTree = "<group>"; };
+		CC2000010000000000000010 /* PlayerConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerConversationListView.swift; sourceTree = "<group>"; };
+		CC2000010000000000000011 /* CoachDirectoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachDirectoryView.swift; sourceTree = "<group>"; };
 		FT2000010000000000000001 /* Sora-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sora-Regular.ttf"; sourceTree = "<group>"; };
 		FT2000010000000000000002 /* Sora-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sora-SemiBold.ttf"; sourceTree = "<group>"; };
 		FT2000010000000000000003 /* Sora-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sora-Bold.ttf"; sourceTree = "<group>"; };
@@ -543,6 +553,8 @@
 				CC2000010000000000000001 /* UserRole.swift */,
 				CC2000010000000000000002 /* CoachChatMessage.swift */,
 				CC2000010000000000000003 /* Conversation.swift */,
+				CC200001000000000000000D /* ConversationStatus.swift */,
+				CC200001000000000000000E /* CoachProfile.swift */,
 				AC2000010000000000000001 /* Achievement.swift */,
 			);
 			path = Models;
@@ -578,6 +590,9 @@
 				CC200001000000000000000A /* CoachChatListView.swift */,
 				CC200001000000000000000B /* CoachChatListViewModel.swift */,
 				CC200001000000000000000C /* MessageBubbleView.swift */,
+				CC200001000000000000000F /* PlayerConversationListViewModel.swift */,
+				CC2000010000000000000010 /* PlayerConversationListView.swift */,
+				CC2000010000000000000011 /* CoachDirectoryView.swift */,
 			);
 			path = CoachChat;
 			sourceTree = "<group>";
@@ -964,6 +979,11 @@
 				CC100001000000000000000A /* CoachChatListView.swift in Sources */,
 				CC100001000000000000000B /* CoachChatListViewModel.swift in Sources */,
 				CC100001000000000000000C /* MessageBubbleView.swift in Sources */,
+				CC100001000000000000000D /* ConversationStatus.swift in Sources */,
+				CC100001000000000000000E /* CoachProfile.swift in Sources */,
+				CC100001000000000000000F /* PlayerConversationListViewModel.swift in Sources */,
+				CC1000010000000000000010 /* PlayerConversationListView.swift in Sources */,
+				CC1000010000000000000011 /* CoachDirectoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
