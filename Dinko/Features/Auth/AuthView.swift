@@ -82,6 +82,10 @@ struct AuthView: View {
                         .background(AppColors.cardBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
 
+                    if viewModel.isSignUp && !viewModel.password.isEmpty {
+                        PasswordRequirementsView(requirements: viewModel.passwordRequirements)
+                    }
+
                     if let error = viewModel.errorMessage {
                         Text(error)
                             .font(AppTypography.caption)
@@ -285,5 +289,27 @@ struct AuthView: View {
             Spacer()
         }
         .background(AppColors.background)
+    }
+}
+
+private struct PasswordRequirementsView: View {
+    let requirements: [AuthViewModel.PasswordRequirement]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ForEach(requirements) { req in
+                HStack(spacing: 6) {
+                    Image(systemName: req.isMet ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(req.isMet ? AppColors.successGreen : AppColors.textSecondary)
+                    Text(req.description)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(req.isMet ? AppColors.textPrimary : AppColors.textSecondary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, AppSpacing.xxs)
+        .padding(.top, 2)
     }
 }

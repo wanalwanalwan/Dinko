@@ -16,7 +16,7 @@ struct ChatView: View {
                 ProgressView()
             }
         }
-        .background(Color.white)
+        .background(AppColors.background)
         .task {
             if viewModel == nil {
                 let vm = ChatViewModel(

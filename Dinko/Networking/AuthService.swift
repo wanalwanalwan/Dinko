@@ -10,7 +10,8 @@ final class AuthService {
 
     private let keychainAccountAccess = "pkkl_access_token"
     private let keychainAccountRefresh = "pkkl_refresh_token"
-    private let userDefaultsUserKey = "pkkl_user_json"
+    private let keychainAccountUser = "pkkl_user_json"
+    private let legacyUserDefaultsUserKey = "pkkl_user_json"
 
     // MARK: - Response Types
 
@@ -193,7 +194,7 @@ final class AuthService {
         _ = try? await session.data(for: request)
     }
 
-    // MARK: - Session Persistence (Keychain for tokens, UserDefaults for user info)
+    // MARK: - Session Persistence (all sensitive data in Keychain)
 
     func saveSession(_ response: AuthResponse) {
         if let access = response.accessToken {
@@ -202,17 +203,36 @@ final class AuthService {
         if let refresh = response.refreshToken {
             KeychainHelper.save(key: keychainAccountRefresh, value: refresh)
         }
-        if let data = try? JSONEncoder().encode(response.user) {
-            UserDefaults.standard.set(data, forKey: userDefaultsUserKey)
+        if let data = try? JSONEncoder().encode(response.user),
+           let json = String(data: data, encoding: .utf8) {
+            KeychainHelper.save(key: keychainAccountUser, value: json)
         }
     }
 
     func loadSavedSession() -> (accessToken: String, refreshToken: String, user: AuthUser)? {
         guard let access = KeychainHelper.load(key: keychainAccountAccess),
-              let refresh = KeychainHelper.load(key: keychainAccountRefresh),
-              let userData = UserDefaults.standard.data(forKey: userDefaultsUserKey),
-              let user = try? JSONDecoder().decode(AuthUser.self, from: userData)
+              let refresh = KeychainHelper.load(key: keychainAccountRefresh)
         else { return nil }
+
+        // Try Keychain first; fall back to UserDefaults for one-time migration of existing installs
+        let user: AuthUser?
+        if let json = KeychainHelper.load(key: keychainAccountUser),
+           let data = json.data(using: .utf8),
+           let u = try? JSONDecoder().decode(AuthUser.self, from: data) {
+            user = u
+        } else if let data = UserDefaults.standard.data(forKey: legacyUserDefaultsUserKey),
+                  let u = try? JSONDecoder().decode(AuthUser.self, from: data) {
+            // Migrate to Keychain and clear UserDefaults
+            if let json = String(data: data, encoding: .utf8) {
+                KeychainHelper.save(key: keychainAccountUser, value: json)
+            }
+            UserDefaults.standard.removeObject(forKey: legacyUserDefaultsUserKey)
+            user = u
+        } else {
+            user = nil
+        }
+
+        guard let user else { return nil }
         return (access, refresh, user)
     }
 
@@ -257,7 +277,8 @@ final class AuthService {
     func clearSession() {
         KeychainHelper.delete(key: keychainAccountAccess)
         KeychainHelper.delete(key: keychainAccountRefresh)
-        UserDefaults.standard.removeObject(forKey: userDefaultsUserKey)
+        KeychainHelper.delete(key: keychainAccountUser)
+        UserDefaults.standard.removeObject(forKey: legacyUserDefaultsUserKey)
         UserDefaults.standard.removeObject(forKey: "pkkl_first_name")
         UserDefaults.standard.removeObject(forKey: "pkkl_last_name")
     }

@@ -238,7 +238,7 @@ struct HomeView: View {
             ZStack {
                 // Outer disc
                 Circle()
-                    .fill(Color.white)
+                    .fill(AppColors.cardBackground)
                     .shadow(color: .black.opacity(0.04), radius: 10, y: 4)
 
                 // Track ring
@@ -270,7 +270,7 @@ struct HomeView: View {
 
                 // Inner disc
                 Circle()
-                    .fill(.white)
+                    .fill(AppColors.cardBackground)
                     .frame(width: innerDiscSize, height: innerDiscSize)
                     .shadow(color: .black.opacity(0.03), radius: 4, y: 2)
 

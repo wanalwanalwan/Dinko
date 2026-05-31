@@ -56,6 +56,25 @@ final class AuthViewModel {
         }
     }
 
+    // MARK: - Password Validation
+
+    struct PasswordRequirement: Identifiable {
+        let id = UUID()
+        let description: String
+        let isMet: Bool
+    }
+
+    var passwordRequirements: [PasswordRequirement] {
+        [
+            PasswordRequirement(description: "At least 8 characters",      isMet: password.count >= 8),
+            PasswordRequirement(description: "One uppercase letter",        isMet: password.range(of: "[A-Z]", options: .regularExpression) != nil),
+            PasswordRequirement(description: "One number",                  isMet: password.range(of: "[0-9]", options: .regularExpression) != nil),
+            PasswordRequirement(description: "One special character",       isMet: password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil),
+        ]
+    }
+
+    var isPasswordValid: Bool { passwordRequirements.allSatisfy(\.isMet) }
+
     func submit() async {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let trimmedPassword = password
@@ -82,11 +101,16 @@ final class AuthViewModel {
                 errorMessage = "Email addresses don't match."
                 return
             }
-        }
 
-        guard trimmedPassword.count >= 6 else {
-            errorMessage = "Password must be at least 6 characters."
-            return
+            guard isPasswordValid else {
+                errorMessage = "Password doesn't meet all requirements."
+                return
+            }
+        } else {
+            guard trimmedPassword.count >= 8 else {
+                errorMessage = "Password must be at least 8 characters."
+                return
+            }
         }
 
         isLoading = true

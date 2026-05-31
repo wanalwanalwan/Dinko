@@ -356,6 +356,19 @@ final class AgentService {
     }
 
     private func decodeResponse<T: Codable>(data: Data, statusCode: Int) throws -> T {
+        if statusCode == 429 {
+            struct RateLimitResponse: Codable {
+                let error: String?
+                let retryAfter: Int?
+                enum CodingKeys: String, CodingKey {
+                    case error
+                    case retryAfter = "retry_after"
+                }
+            }
+            let rl = try? JSONDecoder().decode(RateLimitResponse.self, from: data)
+            throw AgentError.rateLimited(retryAfterSeconds: rl?.retryAfter ?? 3600)
+        }
+
         if statusCode != 200 {
             // Try to decode a structured error from the edge function first (covers 500, 504, etc.)
             if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data),
@@ -407,6 +420,7 @@ enum AgentError: LocalizedError {
     case offline
     case sessionExpired
     case timedOut
+    case rateLimited(retryAfterSeconds: Int)
 
     var errorDescription: String? {
         switch self {
@@ -416,6 +430,9 @@ enum AgentError: LocalizedError {
         case .offline: "You're offline. Please check your connection and try again."
         case .sessionExpired: "Your session has expired. Please sign out and sign back in."
         case .timedOut: "Request timed out. The AI coach may be busy — please try again."
+        case .rateLimited(let seconds):
+            let minutes = max(1, (seconds + 59) / 60)
+            return "You've reached the hourly AI limit. Try again in \(minutes) minute\(minutes == 1 ? "" : "s")."
         }
     }
 }

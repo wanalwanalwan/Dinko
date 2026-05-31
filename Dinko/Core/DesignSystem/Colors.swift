@@ -10,7 +10,7 @@ enum AppColors {
     static var backgroundGradient: LinearGradient {
         LinearGradient(
             stops: [
-                .init(color: Color(hex: "DDEBDD"), location: 0),
+                .init(color: Color(light: "DDEBDD", dark: "1A2A1E"), location: 0),
                 .init(color: background, location: 0.35),
             ],
             startPoint: .top,

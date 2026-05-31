@@ -115,12 +115,12 @@ struct SkillListView: View {
             ZStack {
                 // Outer bevel
                 Circle()
-                    .fill(Color.white.opacity(0.96))
-                    .shadow(color: .white.opacity(0.85), radius: 2, x: -1, y: -1)
+                    .fill(AppColors.cardBackground)
+                    .shadow(color: AppColors.elevatedSurface.opacity(0.85), radius: 2, x: -1, y: -1)
                     .shadow(color: .black.opacity(0.16), radius: 6, x: 0, y: 3)
 
                 Circle()
-                    .stroke(Color.white, lineWidth: 3)
+                    .stroke(AppColors.cardBackground, lineWidth: 3)
                     .padding(2)
                     .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 1)
 
@@ -129,10 +129,10 @@ struct SkillListView: View {
                     .stroke(
                         AngularGradient(
                             colors: [
-                                Color.white.opacity(0.95),
-                                Color(hex: "E8F1EB"),
-                                Color(hex: "DDE8E1"),
-                                Color.white.opacity(0.9),
+                                Color(light: "F5F5F3", dark: "1E2820"),
+                                Color(light: "E8F1EB", dark: "243028"),
+                                Color(light: "DDE8E1", dark: "1E2820"),
+                                Color(light: "F5F5F3", dark: "1E2820"),
                             ],
                             center: .center,
                             startAngle: .degrees(-90),
@@ -142,7 +142,7 @@ struct SkillListView: View {
                     )
                     .frame(width: ringTrackSize, height: ringTrackSize)
                     .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
-                    .shadow(color: .white.opacity(0.7), radius: 2, x: -1, y: -1)
+                    .shadow(color: AppColors.elevatedSurface.opacity(0.7), radius: 2, x: -1, y: -1)
 
                 // Progress arc
                 if ringProgress > 0 {
@@ -166,15 +166,15 @@ struct SkillListView: View {
                         .shadow(color: AppColors.successGreen.opacity(0.35), radius: 3, x: 0, y: 1)
                 }
 
-                // White inner disc
+                // Inner disc
                 Circle()
-                    .fill(.white)
+                    .fill(AppColors.cardBackground)
                     .frame(width: innerDiscSize, height: innerDiscSize)
                     .overlay(
                         Circle()
-                            .stroke(Color.white.opacity(0.85), lineWidth: 0.5)
+                            .stroke(AppColors.cardBackground, lineWidth: 0.5)
                     )
-                    .shadow(color: .white.opacity(0.9), radius: 2, x: -1, y: -1)
+                    .shadow(color: AppColors.elevatedSurface.opacity(0.9), radius: 2, x: -1, y: -1)
                     .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 2)
 
                 // Center text

@@ -1311,6 +1311,46 @@ function buildProfileContext(profile: Record<string, unknown>): string {
   return `\nPLAYER PROFILE:\n${lines.join("\n")}\n`;
 }
 
+// ---------- Rate limiting ----------
+
+const RATE_LIMIT_PER_HOUR = parseInt(Deno.env.get("RATE_LIMIT_PER_HOUR") ?? "20");
+
+async function checkRateLimit(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  action: string,
+  limit: number
+): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+  const { count } = await supabase
+    .from("ai_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", oneHourAgo);
+
+  if ((count ?? 0) >= limit) {
+    // Find the oldest request in the window so we can tell the client when it expires
+    const { data: oldest } = await supabase
+      .from("ai_requests")
+      .select("created_at")
+      .eq("user_id", userId)
+      .gte("created_at", oneHourAgo)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .single();
+
+    const retryAfterMs = oldest
+      ? new Date(oldest.created_at).getTime() + 60 * 60 * 1000 - Date.now()
+      : 60 * 60 * 1000;
+
+    return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+  }
+
+  await supabase.from("ai_requests").insert({ user_id: userId, action });
+  return { allowed: true, retryAfterSeconds: 0 };
+}
+
 // ---------- Response helper ----------
 
 function jsonResponse(
@@ -1403,16 +1443,15 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "ANTHROPIC_API_KEY not configured" }, 500);
     }
 
-    // ---- Rate limiting: max 10 requests per hour per user ----
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count: recentCount } = await supabase
-      .from("session_logs")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", oneHourAgo);
-
-    if ((recentCount ?? 0) > 10) {
-      return jsonResponse({ error: "Rate limit exceeded. Please wait before trying again." }, 429);
+    // ---- Rate limiting: confirm_session only reads/writes DB — no AI calls, not counted ----
+    if (action !== "confirm_session") {
+      const rateCheck = await checkRateLimit(supabase, user.id, action, RATE_LIMIT_PER_HOUR);
+      if (!rateCheck.allowed) {
+        return jsonResponse({
+          error: `You've reached the limit of ${RATE_LIMIT_PER_HOUR} AI requests per hour. Please try again in ${Math.ceil(rateCheck.retryAfterSeconds / 60)} minute(s).`,
+          retry_after: rateCheck.retryAfterSeconds,
+        }, 429);
+      }
     }
 
     // ---- Input validation ----

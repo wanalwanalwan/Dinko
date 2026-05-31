@@ -3,3 +3,8 @@
 // Optionally includes Secrets.xcconfig for API keys.
 
 #include? "Secrets.xcconfig"
+
+// Inject Supabase config into the generated Info.plist so SupabaseConfig.swift can read it
+// at runtime via Bundle.main.infoDictionary. Values come from Secrets.xcconfig.
+INFOPLIST_KEY_SupabaseURL = $(SUPABASE_URL)
+INFOPLIST_KEY_SupabaseAnonKey = $(SUPABASE_ANON_KEY)
