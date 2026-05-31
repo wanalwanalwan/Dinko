@@ -425,12 +425,12 @@ enum AgentError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL: "Invalid server URL"
-        case .invalidResponse: "Invalid response from server"
-        case .server(let message): message
-        case .offline: "You're offline. Please check your connection and try again."
-        case .sessionExpired: "Your session has expired. Please sign out and sign back in."
-        case .timedOut: "Request timed out. The AI coach may be busy — please try again."
+        case .invalidURL: return "Invalid server URL"
+        case .invalidResponse: return "Invalid response from server"
+        case .server(let message): return message
+        case .offline: return "You're offline. Please check your connection and try again."
+        case .sessionExpired: return "Your session has expired. Please sign out and sign back in."
+        case .timedOut: return "Request timed out. The AI coach may be busy — please try again."
         case .rateLimited(let seconds):
             let minutes = max(1, (seconds + 59) / 60)
             return "You've reached the hourly AI limit. Try again in \(minutes) minute\(minutes == 1 ? "" : "s")."
