@@ -168,8 +168,8 @@ struct CoachDirectoryView: View {
         isLoading = true
         do {
             coaches = try await chatService.fetchCoaches(authToken: token)
-        } catch {
-            self.error = error.localizedDescription
+        } catch let fetchError {
+            error = fetchError.localizedDescription
         }
         isLoading = false
     }
@@ -331,8 +331,8 @@ struct CoachProfileDetailView: View {
             )
             createdConversation = conversation
             onConversationStarted()
-        } catch {
-            self.error = error.localizedDescription
+        } catch let startError {
+            error = startError.localizedDescription
         }
         isStarting = false
     }
