@@ -169,6 +169,15 @@ final class AgentService {
         let deleted: Bool
     }
 
+    private struct RateLimitResponse: Codable {
+        let error: String?
+        let retryAfter: Int?
+        enum CodingKeys: String, CodingKey {
+            case error
+            case retryAfter = "retry_after"
+        }
+    }
+
     // MARK: - Skill Coaching
 
     struct PendingDrillPayload: Codable {
@@ -357,14 +366,6 @@ final class AgentService {
 
     private func decodeResponse<T: Codable>(data: Data, statusCode: Int) throws -> T {
         if statusCode == 429 {
-            struct RateLimitResponse: Codable {
-                let error: String?
-                let retryAfter: Int?
-                enum CodingKeys: String, CodingKey {
-                    case error
-                    case retryAfter = "retry_after"
-                }
-            }
             let rl = try? JSONDecoder().decode(RateLimitResponse.self, from: data)
             throw AgentError.rateLimited(retryAfterSeconds: rl?.retryAfter ?? 3600)
         }
