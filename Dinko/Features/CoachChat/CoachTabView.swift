@@ -5,20 +5,32 @@ struct CoachTabView: View {
     @Binding var selectedTab: Int
     @State private var selectedSegment: Int = 0
     @State private var realtimeService = RealtimeService()
+    @Namespace private var segmentAnimation
+
+    private let switchAnimation = Animation.spring(response: 0.38, dampingFraction: 0.82)
 
     var body: some View {
         VStack(spacing: 0) {
             topBar
 
-            Group {
+            ZStack {
                 if selectedSegment == 0 {
                     ChatView(selectedTab: $selectedTab)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading).combined(with: .opacity),
+                            removal:   .move(edge: .leading).combined(with: .opacity)
+                        ))
                 } else {
                     CoachChatContainerView(realtimeService: realtimeService)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal:   .move(edge: .trailing).combined(with: .opacity)
+                        ))
                 }
             }
+            .animation(switchAnimation, value: selectedSegment)
         }
-        .background(Color.white)
+        .background(AppColors.background)
         .task {
             if let token = await AuthService.shared.validAccessToken() {
                 realtimeService.connect(authToken: token)
@@ -76,7 +88,7 @@ struct CoachTabView: View {
     private func segmentButton(_ title: String, index: Int) -> some View {
         let isSelected = selectedSegment == index
         return Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
+            withAnimation(switchAnimation) {
                 selectedSegment = index
             }
         } label: {
@@ -85,8 +97,14 @@ struct CoachTabView: View {
                 .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 7)
-                .background(isSelected ? AppColors.cardBackground : Color.clear)
-                .clipShape(Capsule())
+                .background {
+                    if isSelected {
+                        Capsule()
+                            .fill(AppColors.cardBackground)
+                            .matchedGeometryEffect(id: "pill", in: segmentAnimation)
+                    }
+                }
+                .animation(.none, value: isSelected)
         }
         .buttonStyle(.plain)
     }
