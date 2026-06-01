@@ -156,8 +156,8 @@ struct SkillListView: View {
                                     AppColors.primary,
                                 ],
                                 center: .center,
-                                startAngle: .degrees(-90),
-                                endAngle: .degrees(270)
+                                startAngle: .degrees(-10),
+                                endAngle: .degrees(350)
                             ),
                             style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                         )
