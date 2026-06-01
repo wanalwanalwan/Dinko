@@ -295,26 +295,6 @@ struct HomeView: View {
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
 
-            // ── CTA ────────────────────────────────────────────────────────
-            Button { showSessionTypeSheet = true } label: {
-                HStack(spacing: 7) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .bold))
-                    Text(viewModel.thisWeekSessionCount == 0 ? "Log First Session" : "Log Session")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryDark],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                ))
-                .clipShape(RoundedRectangle(cornerRadius: 13))
-                .shadow(color: AppColors.primary.opacity(0.28), radius: 8, y: 4)
-            }
-            .buttonStyle(.pressable)
-
             // ── Stats strip ────────────────────────────────────────────────
             Divider().padding(.top, 2)
 
@@ -340,6 +320,28 @@ struct HomeView: View {
                            color: AppColors.trophyGold)
             }
             .padding(.top, 4)
+
+            // ── CTA — below stats so score story reads top to bottom ───────
+            Divider()
+
+            Button { showSessionTypeSheet = true } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .bold))
+                    Text(viewModel.thisWeekSessionCount == 0 ? "Log First Session" : "Log Session")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+                .clipShape(RoundedRectangle(cornerRadius: 13))
+                .shadow(color: AppColors.primary.opacity(0.22), radius: 6, y: 3)
+            }
+            .buttonStyle(.pressable)
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
