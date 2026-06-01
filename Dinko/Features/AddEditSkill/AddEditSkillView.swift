@@ -101,8 +101,10 @@ struct AddEditSkillView: View {
         .font(AppTypography.headline)
         .foregroundStyle(AppColors.textPrimary)
         .padding(AppSpacing.xs)
-        .background(AppColors.background)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .overlay(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+            .stroke(AppColors.separator.opacity(0.5), lineWidth: 1))
     }
 
     // MARK: - Create: Starting Level (Premium slider)
@@ -146,8 +148,10 @@ struct AddEditSkillView: View {
             }
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.background)
+        .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .overlay(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+            .stroke(AppColors.separator.opacity(0.5), lineWidth: 1))
     }
 
     // MARK: - Create: Notes
@@ -161,8 +165,10 @@ struct AddEditSkillView: View {
         .foregroundStyle(AppColors.textPrimary)
         .lineLimit(2...4)
         .padding(AppSpacing.xs)
-        .background(AppColors.background)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .overlay(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+            .stroke(AppColors.separator.opacity(0.5), lineWidth: 1))
     }
 
     // MARK: - Create: Action Button
@@ -190,7 +196,7 @@ struct AddEditSkillView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, AppSpacing.xs)
             .background(viewModel.isValid ? AppColors.primary : AppColors.lockedGray)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         }
         .disabled(!viewModel.isValid || viewModel.isSaving)
     }
@@ -336,8 +342,10 @@ struct AddEditSkillView: View {
             }
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.background)
+        .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .overlay(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+            .stroke(AppColors.separator.opacity(0.5), lineWidth: 1))
     }
 
     // MARK: - Edit: Existing Subskills
@@ -375,8 +383,8 @@ struct AddEditSkillView: View {
                 }
                 .padding(.vertical, AppSpacing.xs)
                 .padding(.horizontal, AppSpacing.xxs)
-                .background(AppColors.background)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
             }
 
             Button {
