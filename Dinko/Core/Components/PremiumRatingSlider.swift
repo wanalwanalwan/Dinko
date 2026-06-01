@@ -10,6 +10,13 @@ struct PremiumRatingSlider: View {
     /// already shows a large percentage number, e.g. RateSkillView).
     var showLevelLabel: Bool = true
 
+    /// When false the Beginner / Elite end labels are hidden (use when
+    /// the parent renders its own tier milestone labels).
+    var showRails: Bool = true
+
+    /// Called with the committed value when the user lifts their finger.
+    var onCommit: ((Double) -> Void)? = nil
+
     @State private var isDragging = false
     @State private var lastBand: Int = -1   // for milestone haptics
 
@@ -20,7 +27,7 @@ struct PremiumRatingSlider: View {
         VStack(spacing: 8) {
             if showLevelLabel { labelSlot }
             track
-            rails
+            if showRails { rails }
         }
     }
 
@@ -183,6 +190,7 @@ struct PremiumRatingSlider: View {
                 withAnimation(.spring(response: 0.38, dampingFraction: 0.60)) {
                     isDragging = false
                 }
+                onCommit?(value)
             }
     }
 

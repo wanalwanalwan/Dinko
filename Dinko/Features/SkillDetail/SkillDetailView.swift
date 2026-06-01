@@ -289,31 +289,19 @@ struct SkillDetailView: View {
 
     private func skillLevelSlider(displayRating: Int, tier: SkillTier, viewModel: SkillDetailViewModel) -> some View {
         VStack(spacing: AppSpacing.xxs) {
-            // Custom styled slider
-            Slider(
+            PremiumRatingSlider(
                 value: $sliderRating,
-                in: 0...100,
-                step: 1
-            ) {
-                Text("Rating")
-            } onEditingChanged: { editing in
-                isEditingSlider = editing
-                if editing {
-                    let generator = UIImpactFeedbackGenerator(style: .light)
-                    generator.impactOccurred()
-                }
-                if !editing {
-                    let newRating = Int(sliderRating)
+                showLevelLabel: false,
+                showRails: false,
+                onCommit: { newValue in
+                    isEditingSlider = false
+                    let newRating = Int(newValue)
                     if newRating != viewModel.latestRating {
                         Task { _ = await viewModel.saveRating(newRating, notes: nil) }
                     }
                 }
-            }
-            .tint(tier.color)
-            .onAppear {
-                // Match max track to ring track so both sides of the thumb look unified
-                UISlider.appearance().maximumTrackTintColor = UIColor(AppColors.ringTrack)
-            }
+            )
+            .onChange(of: sliderRating) { isEditingSlider = true }
 
             // Milestone labels
             HStack {
