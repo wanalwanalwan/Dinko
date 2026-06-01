@@ -17,18 +17,22 @@ struct CoachTabView: View {
             ZStack {
                 if selectedSegment == 0 {
                     ChatView(selectedTab: $selectedTab)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .transition(.asymmetric(
                             insertion: .move(edge: .leading).combined(with: .opacity),
                             removal:   .move(edge: .leading).combined(with: .opacity)
                         ))
                 } else {
                     CoachChatContainerView(realtimeService: realtimeService)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal:   .move(edge: .trailing).combined(with: .opacity)
                         ))
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
             .animation(switchAnimation, value: selectedSegment)
         }
         .background(AppColors.background)
