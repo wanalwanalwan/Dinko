@@ -94,6 +94,18 @@ struct HomeView: View {
                 }
             }
         }
+        .overlay {
+            if let achievement = celebratingAchievement {
+                AchievementCelebrationView(achievement: achievement) {
+                    celebratingAchievement = nil
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+                .transition(.opacity)
+                .zIndex(100)
+            }
+        }
+        .animation(.easeOut(duration: 0.25), value: celebratingAchievement?.id)
     }
 
     // MARK: - Main Content
@@ -651,16 +663,6 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $showAllAchievements) { allAchievementsSheet(viewModel) }
-        .overlay {
-            if let achievement = celebratingAchievement {
-                AchievementCelebrationView(achievement: achievement) {
-                    celebratingAchievement = nil
-                }
-                .transition(.opacity)
-                .zIndex(100)
-            }
-        }
-        .animation(.easeOut(duration: 0.25), value: celebratingAchievement?.id)
     }
 
     // MARK: - Spotlight Cards (data state)

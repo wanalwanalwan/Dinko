@@ -309,7 +309,11 @@ struct SkillDetailView: View {
                     }
                 }
             }
-            .tint(AppColors.primary)
+            .tint(tier.color)
+            .onAppear {
+                // Match max track to ring track so both sides of the thumb look unified
+                UISlider.appearance().maximumTrackTintColor = UIColor(AppColors.ringTrack)
+            }
 
             // Milestone labels
             HStack {

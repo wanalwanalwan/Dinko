@@ -28,18 +28,22 @@ struct RatingBadge: View {
             }
 
             // Gradient progress stroke
+            // startAngle: 0 aligns the gradient start with the Circle path's 3-o'clock
+            // origin; rotationEffect(-90) then moves the visual start to 12-o'clock.
+            // Using endAngle: 360 ensures progress values > 75% stay within the
+            // gradient range (the old -90…270 span caused a hard cut-off at 75%).
             Circle()
                 .trim(from: 0, to: animatedProgress)
                 .stroke(
                     AngularGradient(
-                        gradient: Gradient(colors: [
-                            AppColors.ringGradientStart,
-                            ringColor,
-                            AppColors.ringGradientEnd
-                        ]),
+                        stops: [
+                            .init(color: AppColors.highlightLight, location: 0),
+                            .init(color: ringColor, location: 0.6),
+                            .init(color: ringColor, location: 1.0)
+                        ],
                         center: .center,
-                        startAngle: .degrees(-90),
-                        endAngle: .degrees(270)
+                        startAngle: .degrees(0),
+                        endAngle: .degrees(360)
                     ),
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
