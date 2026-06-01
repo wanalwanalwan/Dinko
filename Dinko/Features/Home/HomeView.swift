@@ -13,7 +13,7 @@ struct HomeView: View {
     @State private var showProfile = false
     @State private var showAllAchievements = false
     @State private var celebratingAchievement: Achievement?
-    @State private var showBrineScoreDetail = false
+    @State private var brineScoreExpanded = false
 
     @AppStorage("pkkl_has_seen_profile_prompt") private var hasSeenProfilePrompt = false
     @AppStorage("pkkl_first_name") private var storedFirstName = ""
@@ -220,34 +220,38 @@ struct HomeView: View {
             }
 
             // ── Gauge + Alma-style label ───────────────────────────────────
-            Button { showBrineScoreDetail = true } label: {
-                VStack(spacing: 10) {
-                    ZStack {
-                        Circle()
-                            .trim(from: 0, to: 0.75)
-                            .stroke(AppColors.ringTrack, style: StrokeStyle(lineWidth: 11, lineCap: .round))
-                            .rotationEffect(.degrees(135))
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .trim(from: 0, to: 0.75)
+                        .stroke(AppColors.ringTrack, style: StrokeStyle(lineWidth: 11, lineCap: .round))
+                        .rotationEffect(.degrees(135))
 
-                        Circle()
-                            .trim(from: 0, to: max(CGFloat(score) / 100.0 * 0.75, score > 0 ? 0.01 : 0))
-                            .stroke(
-                                LinearGradient(
-                                    colors: [color.opacity(0.75), color],
-                                    startPoint: .leading, endPoint: .trailing
-                                ),
-                                style: StrokeStyle(lineWidth: 11, lineCap: .round)
-                            )
-                            .rotationEffect(.degrees(135))
-                            .animation(.easeOut(duration: 1.0), value: score)
+                    Circle()
+                        .trim(from: 0, to: max(CGFloat(score) / 100.0 * 0.75, score > 0 ? 0.01 : 0))
+                        .stroke(
+                            LinearGradient(
+                                colors: [color.opacity(0.75), color],
+                                startPoint: .leading, endPoint: .trailing
+                            ),
+                            style: StrokeStyle(lineWidth: 11, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(135))
+                        .animation(.easeOut(duration: 1.0), value: score)
 
-                        Text("\(score)")
-                            .font(Font.custom("Sora-Bold", size: 46))
-                            .foregroundStyle(AppColors.textPrimary)
-                            .contentTransition(.numericText())
+                    Text("\(score)")
+                        .font(Font.custom("Sora-Bold", size: 46))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .contentTransition(.numericText())
+                }
+                .frame(width: 152, height: 152)
+
+                // "Brine Score ›" — tappable label, chevron rotates on expand
+                Button {
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                        brineScoreExpanded.toggle()
                     }
-                    .frame(width: 152, height: 152)
-
-                    // "Brine Score ›" — Alma-style tappable label
+                } label: {
                     HStack(spacing: 4) {
                         Text("Brine Score")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
@@ -255,6 +259,7 @@ struct HomeView: View {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(AppColors.textSecondary)
+                            .rotationEffect(.degrees(brineScoreExpanded ? 90 : 0))
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
@@ -262,12 +267,18 @@ struct HomeView: View {
                     .clipShape(Capsule())
                     .shadow(color: Color.black.opacity(0.06), radius: 4, y: 2)
                 }
-            }
-            .buttonStyle(.plain)
-            .sheet(isPresented: $showBrineScoreDetail) {
-                brineScoreDetailSheet(viewModel)
+                .buttonStyle(.plain)
             }
             .padding(.vertical, 4)
+
+            // ── Inline breakdown (expands from the label) ──────────────────
+            if brineScoreExpanded {
+                brineScoreBreakdown(viewModel)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.96, anchor: .top)),
+                        removal:   .opacity.combined(with: .scale(scale: 0.96, anchor: .top))
+                    ))
+            }
 
             // ── Tagline ────────────────────────────────────────────────────
             Text(brineScoreLabel(score))
@@ -358,102 +369,51 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Brine Score Detail Sheet
+    // MARK: - Brine Score Inline Breakdown
 
-    private func brineScoreDetailSheet(_ viewModel: HomeViewModel) -> some View {
-        let score = viewModel.brineScore
-        let color = brineScoreColor(score)
-
-        // Component breakdowns
-        let skillPts    = Int(Double(viewModel.averageRating) * 0.40)
-        let streakPts   = Int(min(Double(viewModel.streakDays), 14.0) / 14.0 * 15.0)
-        let sessionPts  = viewModel.weeklySessionGoal > 0
+    private func brineScoreBreakdown(_ viewModel: HomeViewModel) -> some View {
+        let skillPts   = Int(Double(viewModel.averageRating) * 0.40)
+        let streakPts  = Int(min(Double(viewModel.streakDays), 14.0) / 14.0 * 15.0)
+        let sessionPts = viewModel.weeklySessionGoal > 0
             ? Int(min(Double(viewModel.thisWeekSessionCount), Double(viewModel.weeklySessionGoal)) / Double(viewModel.weeklySessionGoal) * 10.0)
             : 0
-        let improving   = Double(viewModel.improvedSkillCount)
-        let tracked     = Double(max(viewModel.totalActiveSkills, 1))
-        let momentumPts = Int(min(improving / tracked, 1.0) * 20.0)
-        var engagePts   = 0
-        if viewModel.totalActiveSkills > 0    { engagePts += 5 }
-        if viewModel.totalSessionsAllTime > 0 { engagePts += 5 }
+        let momentumPts = Int(min(Double(viewModel.improvedSkillCount) / Double(max(viewModel.totalActiveSkills, 1)), 1.0) * 20.0)
+        var engagePts = 0
+        if viewModel.totalActiveSkills > 0      { engagePts += 5 }
+        if viewModel.totalSessionsAllTime > 0   { engagePts += 5 }
         if !viewModel.recommendedDrills.isEmpty { engagePts += 3 }
         if !viewModel.completedSkills.isEmpty   { engagePts += 2 }
 
-        return ScrollView {
+        return VStack(spacing: 0) {
+            Divider()
+
             VStack(spacing: 0) {
-
-                // ── Mini gauge ────────────────────────────────────────────
-                VStack(spacing: 10) {
-                    ZStack {
-                        Circle()
-                            .trim(from: 0, to: 0.75)
-                            .stroke(AppColors.ringTrack, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                            .rotationEffect(.degrees(135))
-                        Circle()
-                            .trim(from: 0, to: max(CGFloat(score) / 100.0 * 0.75, score > 0 ? 0.01 : 0))
-                            .stroke(
-                                LinearGradient(colors: [color.opacity(0.75), color],
-                                               startPoint: .leading, endPoint: .trailing),
-                                style: StrokeStyle(lineWidth: 10, lineCap: .round)
-                            )
-                            .rotationEffect(.degrees(135))
-                        Text("\(score)")
-                            .font(Font.custom("Sora-Bold", size: 40))
-                            .foregroundStyle(AppColors.textPrimary)
-                    }
-                    .frame(width: 130, height: 130)
-
-                    Text(brineScoreLabel(score))
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, AppSpacing.lg)
-                .padding(.bottom, AppSpacing.md)
-                .frame(maxWidth: .infinity)
-
-                Divider().padding(.horizontal, AppSpacing.md)
-
-                // ── Breakdown rows ────────────────────────────────────────
-                VStack(spacing: 0) {
-                    scoreRow(icon: "chart.bar.fill",     color: AppColors.primary,
-                             title: "Skill Level",
-                             subtitle: "Average rating across all skills",
-                             pts: skillPts, maxPts: 40)
-                    Divider().padding(.leading, 52)
-                    scoreRow(icon: "flame.fill",         color: AppColors.warningOrange,
-                             title: "Consistency",
-                             subtitle: "Day streak + weekly session goal",
-                             pts: streakPts + sessionPts, maxPts: 25)
-                    Divider().padding(.leading, 52)
-                    scoreRow(icon: "arrow.up.right",     color: AppColors.highlight,
-                             title: "Momentum",
-                             subtitle: "Skills trending up this week",
-                             pts: momentumPts, maxPts: 20)
-                    Divider().padding(.leading, 52)
-                    scoreRow(icon: "sparkles",           color: AppColors.trophyGold,
-                             title: "Engagement",
-                             subtitle: "Using skills, drills & features",
-                             pts: engagePts, maxPts: 15)
-                }
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.vertical, AppSpacing.xs)
-
-                Divider().padding(.horizontal, AppSpacing.md)
-
-                // ── Footer note ───────────────────────────────────────────
-                Text("Score updates each time you log a session or rate a skill.")
-                    .font(.system(size: 12, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, AppSpacing.xl)
-                    .padding(.vertical, AppSpacing.md)
+                scoreRow(icon: "chart.bar.fill",  color: AppColors.primary,
+                         title: "Skill Level",    subtitle: "Average rating across all skills",
+                         pts: skillPts,            maxPts: 40)
+                Divider().padding(.leading, 52)
+                scoreRow(icon: "flame.fill",       color: AppColors.warningOrange,
+                         title: "Consistency",    subtitle: "Day streak + weekly session goal",
+                         pts: streakPts + sessionPts, maxPts: 25)
+                Divider().padding(.leading, 52)
+                scoreRow(icon: "arrow.up.right",   color: AppColors.highlight,
+                         title: "Momentum",       subtitle: "Skills improving this week",
+                         pts: momentumPts,         maxPts: 20)
+                Divider().padding(.leading, 52)
+                scoreRow(icon: "sparkles",         color: AppColors.trophyGold,
+                         title: "Engagement",     subtitle: "Using skills, drills & features",
+                         pts: engagePts,           maxPts: 15)
             }
+
+            Divider()
+
+            Text("Updates each time you log a session or rate a skill.")
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.sm)
         }
-        .background(AppColors.background)
-        .presentationDetents([.medium])
-        .presentationDragIndicator(.visible)
-        .presentationBackground(AppColors.background)
     }
 
     private func scoreRow(icon: String, color: Color, title: String, subtitle: String, pts: Int, maxPts: Int) -> some View {
