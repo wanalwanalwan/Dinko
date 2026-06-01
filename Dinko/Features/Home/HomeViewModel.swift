@@ -156,7 +156,14 @@ final class HomeViewModel {
         if averageRating >= 80 {
             return "You're crushing it! Keep this momentum and push for Weapon tier."
         }
-        return "Consistency is key. Log a session today to keep your streak alive!"
+        if thisWeekSessionCount >= weeklySessionGoal {
+            return "Weekly goal hit! Rate your skills to track how you're improving."
+        }
+        if thisWeekSessionCount > 0 {
+            let left = weeklySessionGoal - thisWeekSessionCount
+            return "Good work this week. \(left == 1 ? "One more session" : "\(left) more sessions") to hit your weekly goal!"
+        }
+        return "Consistency is key. Log your first session of the week to build momentum!"
     }
 
     /// CTA label for the coaching card
