@@ -26,6 +26,7 @@ struct CoachDirectoryView: View {
                     coachList
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.background)
             .navigationTitle("Find a Coach")
             .navigationBarTitleDisplayMode(.large)
@@ -33,8 +34,10 @@ struct CoachDirectoryView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
                         .foregroundStyle(AppColors.primary)
+                        .buttonStyle(.plain)
                 }
             }
+            .toolbarBackground(AppColors.background, for: .navigationBar)
             .navigationDestination(item: $selectedCoach) { coach in
                 CoachProfileDetailView(
                     coach: coach,
@@ -44,6 +47,7 @@ struct CoachDirectoryView: View {
                 )
             }
         }
+        .presentationBackground(AppColors.background)
         .task { await load() }
     }
 
@@ -221,6 +225,7 @@ struct CoachProfileDetailView: View {
         .background(AppColors.background)
         .navigationTitle(coach.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(AppColors.background, for: .navigationBar)
         .navigationDestination(item: $createdConversation) { conversation in
             CoachChatView(
                 viewModel: CoachChatViewModel(

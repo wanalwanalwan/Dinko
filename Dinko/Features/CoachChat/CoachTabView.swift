@@ -14,26 +14,18 @@ struct CoachTabView: View {
         VStack(spacing: 0) {
             topBar
 
-            ZStack {
-                if selectedSegment == 0 {
+            GeometryReader { geo in
+                HStack(spacing: 0) {
                     ChatView(selectedTab: $selectedTab)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading).combined(with: .opacity),
-                            removal:   .move(edge: .leading).combined(with: .opacity)
-                        ))
-                } else {
+                        .frame(width: geo.size.width, height: geo.size.height)
                     CoachChatContainerView(realtimeService: realtimeService)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal:   .move(edge: .trailing).combined(with: .opacity)
-                        ))
+                        .frame(width: geo.size.width, height: geo.size.height)
                 }
+                .frame(width: geo.size.width * 2, alignment: .leading)
+                .offset(x: selectedSegment == 0 ? 0 : -geo.size.width)
+                .animation(switchAnimation, value: selectedSegment)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
-            .animation(switchAnimation, value: selectedSegment)
         }
         .background(AppColors.background)
         .sheet(isPresented: $showCoachDirectory) {
