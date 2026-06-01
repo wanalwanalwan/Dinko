@@ -334,12 +334,23 @@ struct HomeView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryDark],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                ))
+                .background(
+                    ZStack {
+                        LinearGradient(
+                            colors: [AppColors.primaryLight, AppColors.primaryDark],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                        // Gloss highlight — subtle white sheen at the top
+                        LinearGradient(
+                            colors: [.white.opacity(0.16), .clear],
+                            startPoint: .top,
+                            endPoint: .init(x: 0.5, y: 0.55)
+                        )
+                    }
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 13))
-                .shadow(color: AppColors.primary.opacity(0.22), radius: 6, y: 3)
+                .shadow(color: AppColors.primary.opacity(0.30), radius: 0, y: 3)
+                .shadow(color: AppColors.primary.opacity(0.14), radius: 8, y: 5)
             }
             .buttonStyle(.pressable)
         }

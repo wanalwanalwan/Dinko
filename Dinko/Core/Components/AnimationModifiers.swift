@@ -26,6 +26,7 @@ struct PressableButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? AppAnimations.pressedScale : 1.0)
+            .brightness(configuration.isPressed ? -0.06 : 0)
             .animation(AppAnimations.springSnappy, value: configuration.isPressed)
     }
 }
