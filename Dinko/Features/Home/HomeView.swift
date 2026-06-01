@@ -124,17 +124,14 @@ struct HomeView: View {
                         .staggeredAppearance(index: 2)
                 }
 
-                weeklyStatsSection(viewModel)
+                skillsSnapshotSection(viewModel)
                     .staggeredAppearance(index: 3)
 
-                skillsSnapshotSection(viewModel)
+                coachSection(viewModel)
                     .staggeredAppearance(index: 4)
 
-                coachSection(viewModel)
-                    .staggeredAppearance(index: 5)
-
                 achievementsSection(viewModel)
-                    .staggeredAppearance(index: 6)
+                    .staggeredAppearance(index: 5)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
@@ -280,6 +277,33 @@ struct HomeView: View {
                 .shadow(color: AppColors.primary.opacity(0.28), radius: 8, y: 4)
             }
             .buttonStyle(.pressable)
+
+            // ── Inline stats strip ─────────────────────────────────────────
+            Divider()
+                .padding(.top, 2)
+
+            HStack(spacing: 0) {
+                inlineStat(value: "\(viewModel.thisWeekSessionCount)",
+                           label: "Sessions",
+                           icon: "figure.pickleball",
+                           color: AppColors.primary)
+                inlineStatDivider
+                inlineStat(value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)" : "—",
+                           label: "Day Streak",
+                           icon: "flame.fill",
+                           color: AppColors.warningOrange)
+                inlineStatDivider
+                inlineStat(value: viewModel.improvedSkillCount > 0 ? "\(viewModel.improvedSkillCount)" : "—",
+                           label: "Improved",
+                           icon: "arrow.up.right",
+                           color: AppColors.highlight)
+                inlineStatDivider
+                inlineStat(value: viewModel.completedSkills.isEmpty ? "—" : "\(viewModel.completedSkills.count)",
+                           label: "Completed",
+                           icon: "checkmark.seal.fill",
+                           color: AppColors.trophyGold)
+            }
+            .padding(.top, 4)
         }
         .padding(AppSpacing.sm)
         .background(
@@ -431,74 +455,38 @@ struct HomeView: View {
         .opacity(isComplete ? 0.65 : 1.0)
     }
 
-    // MARK: - Weekly Stats
+    // MARK: - Inline stat helpers (used inside heroGoalCard)
 
-    private func weeklyStatsSection(_ viewModel: HomeViewModel) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("THIS WEEK")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .tracking(0.9)
-                .foregroundStyle(AppColors.textSecondary)
-
-            VStack(spacing: AppSpacing.xxs) {
-                HStack(spacing: AppSpacing.xxs) {
-                    statTile(
-                        value: "\(viewModel.thisWeekSessionCount)",
-                        label: "Sessions",
-                        icon: "figure.pickleball",
-                        color: AppColors.primary
-                    )
-                    statTile(
-                        value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)" : "—",
-                        label: "Day Streak",
-                        icon: "flame.fill",
-                        color: AppColors.warningOrange
-                    )
-                }
-                HStack(spacing: AppSpacing.xxs) {
-                    statTile(
-                        value: viewModel.improvedSkillCount > 0 ? "\(viewModel.improvedSkillCount)" : "—",
-                        label: "Improved",
-                        icon: "arrow.up.right",
-                        color: AppColors.highlight
-                    )
-                    statTile(
-                        value: viewModel.completedSkills.isEmpty ? "—" : "\(viewModel.completedSkills.count)",
-                        label: "Completed",
-                        icon: "checkmark.seal.fill",
-                        color: AppColors.trophyGold
-                    )
-                }
-            }
-        }
-    }
-
-    private func statTile(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 7) {
+    private func inlineStat(value: String, label: String, icon: String, color: Color) -> some View {
+        VStack(spacing: 5) {
             ZStack {
                 Circle()
                     .fill(color.opacity(0.12))
-                    .frame(width: 38, height: 38)
+                    .frame(width: 30, height: 30)
                 Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(color)
             }
             Text(value)
-                .font(Font.custom("Sora-Bold", size: 26))
+                .font(Font.custom("Sora-Bold", size: 18))
                 .foregroundStyle(AppColors.textPrimary)
                 .contentTransition(.numericText())
             Text(label)
-                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .font(.system(size: 10, weight: .medium, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.md)
-        .padding(.horizontal, AppSpacing.xs)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
+        .padding(.vertical, 10)
+    }
+
+    private var inlineStatDivider: some View {
+        Rectangle()
+            .fill(AppColors.separator.opacity(0.5))
+            .frame(width: 0.5)
+            .padding(.vertical, 8)
     }
 
     // MARK: - Skills Snapshot
