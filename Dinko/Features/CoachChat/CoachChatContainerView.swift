@@ -4,12 +4,26 @@ import SwiftUI
 /// - Player: conversation list (all coaches, active + past)
 /// - Coach: list of player conversations
 struct CoachChatContainerView: View {
-    @State private var userRole: UserRole? = .player
-    @State private var isLoading = true
+    // Seed from cache so returning users never see a spinner.
+    // isLoading stays true only when there is no cached role at all.
+    @State private var userRole: UserRole?
+    @State private var isLoading: Bool
 
     let realtimeService: RealtimeService
 
     private let chatService = CoachChatService()
+
+    init(realtimeService: RealtimeService) {
+        self.realtimeService = realtimeService
+        if let cached = UserDefaults.standard.string(forKey: "pkkl_user_role"),
+           let role = UserRole(rawValue: cached) {
+            _userRole = State(initialValue: role)
+            _isLoading = State(initialValue: false)
+        } else {
+            _userRole = State(initialValue: nil)
+            _isLoading = State(initialValue: true)
+        }
+    }
 
     var body: some View {
         Group {
@@ -31,6 +45,9 @@ struct CoachChatContainerView: View {
                 }
             }
         }
+        // Suppress animation on the loading→content swap so it never
+        // bleeds into the parent ZStack's tab-switch transition.
+        .animation(.none, value: isLoading)
         .background(AppColors.background)
         .task { await loadUserRole() }
     }
@@ -41,11 +58,6 @@ struct CoachChatContainerView: View {
         guard let token = await AuthService.shared.validAccessToken() else {
             isLoading = false
             return
-        }
-
-        if let cached = UserDefaults.standard.string(forKey: "pkkl_user_role"),
-           let role = UserRole(rawValue: cached) {
-            userRole = role
         }
 
         do {
