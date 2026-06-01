@@ -219,40 +219,44 @@ struct HomeView: View {
                 }
             }
 
-            // ── Gauge + Alma-style label ───────────────────────────────────
-            VStack(spacing: 10) {
+            // ── Gauge + Alma-style label floating in ring gap ──────────────
+            ZStack(alignment: .bottom) {
+                // Ring
                 ZStack {
+                    // Track
                     Circle()
                         .trim(from: 0, to: 0.75)
-                        .stroke(AppColors.ringTrack, style: StrokeStyle(lineWidth: 11, lineCap: .round))
+                        .stroke(AppColors.ringTrack,
+                                style: StrokeStyle(lineWidth: 13, lineCap: .round))
                         .rotationEffect(.degrees(135))
 
+                    // Progress
                     Circle()
-                        .trim(from: 0, to: max(CGFloat(score) / 100.0 * 0.75, score > 0 ? 0.01 : 0))
+                        .trim(from: 0, to: max(CGFloat(score) / 100.0 * 0.75,
+                                               score > 0 ? 0.015 : 0))
                         .stroke(
-                            LinearGradient(
-                                colors: [color.opacity(0.75), color],
-                                startPoint: .leading, endPoint: .trailing
-                            ),
-                            style: StrokeStyle(lineWidth: 11, lineCap: .round)
+                            LinearGradient(colors: [color.opacity(0.8), color],
+                                           startPoint: .leading, endPoint: .trailing),
+                            style: StrokeStyle(lineWidth: 13, lineCap: .round)
                         )
                         .rotationEffect(.degrees(135))
-                        .animation(.easeOut(duration: 1.0), value: score)
+                        .animation(.easeOut(duration: 1.1), value: score)
 
+                    // Score number — just the number, like Alma
                     Text("\(score)")
-                        .font(Font.custom("Sora-Bold", size: 46))
+                        .font(Font.custom("Sora-Bold", size: 54))
                         .foregroundStyle(AppColors.textPrimary)
                         .contentTransition(.numericText())
                 }
-                .frame(width: 152, height: 152)
+                .frame(width: 184, height: 184)
 
-                // "Brine Score ›" — tappable label, chevron rotates on expand
+                // "Brine Score ›" pill — floats at bottom of ring in the gap
                 Button {
                     withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
                         brineScoreExpanded.toggle()
                     }
                 } label: {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 5) {
                         Text("Brine Score")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)
@@ -261,15 +265,18 @@ struct HomeView: View {
                             .foregroundStyle(AppColors.textSecondary)
                             .rotationEffect(.degrees(brineScoreExpanded ? 90 : 0))
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(AppColors.cardBackground.opacity(0.7))
-                    .clipShape(Capsule())
-                    .shadow(color: Color.black.opacity(0.06), radius: 4, y: 2)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 7)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(AppColors.cardBackground)
+                            .shadow(color: .black.opacity(0.10), radius: 6, y: 2)
+                    )
                 }
                 .buttonStyle(.plain)
+                .offset(y: 18) // float into the open gap at the bottom
             }
-            .padding(.vertical, 4)
+            .padding(.bottom, 22) // room for the floating label
 
             // ── Inline breakdown (expands from the label) ──────────────────
             if brineScoreExpanded {
