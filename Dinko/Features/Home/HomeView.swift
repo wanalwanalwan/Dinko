@@ -826,6 +826,9 @@ private struct AchievementCelebrationView: View {
     let achievement: Achievement
     let onDismiss: () -> Void
 
+    // Whole-overlay fade (controls the blur backdrop + all content together)
+    @State private var overlayOpacity: Double = 1
+
     // Badge entry
     @State private var badgeScale: CGFloat    = 0.05
     @State private var badgeRotation: Double  = -18
@@ -908,6 +911,7 @@ private struct AchievementCelebrationView: View {
                 .offset(y: textOffset)
             }
         }
+        .opacity(overlayOpacity)
         .onAppear { runEntryAnimation() }
     }
 
@@ -965,8 +969,15 @@ private struct AchievementCelebrationView: View {
         withAnimation(.easeOut(duration: 0.22)) {
             textOpacity = 0
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-            onDismiss()
+        // Fade the entire overlay (including the blur backdrop) so it never sticks.
+        // Then remove the view inside withAnimation so the parent's transition fires
+        // correctly — calling onDismiss() bare from a DispatchQueue block gave no
+        // animation context, causing the blur to sometimes linger.
+        withAnimation(.easeOut(duration: 0.28)) {
+            overlayOpacity = 0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
+            withAnimation { onDismiss() }
         }
     }
 }
