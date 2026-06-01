@@ -19,21 +19,6 @@ struct PlayerConversationListView: View {
             }
         }
         .background(AppColors.background)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    if viewModel.hasActiveConversation {
-                        showActiveAlert = true
-                    } else {
-                        showDirectory = true
-                    }
-                } label: {
-                    Image(systemName: "person.badge.plus")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(AppColors.textPrimary)
-                }
-            }
-        }
         .alert("Active Conversation", isPresented: $showActiveAlert) {
             Button("OK") {}
         } message: {

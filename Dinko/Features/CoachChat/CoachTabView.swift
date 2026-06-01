@@ -5,6 +5,7 @@ struct CoachTabView: View {
     @Binding var selectedTab: Int
     @State private var selectedSegment: Int = 0
     @State private var realtimeService = RealtimeService()
+    @State private var showCoachDirectory = false
     @Namespace private var segmentAnimation
 
     private let switchAnimation = Animation.spring(response: 0.38, dampingFraction: 0.82)
@@ -31,6 +32,12 @@ struct CoachTabView: View {
             .animation(switchAnimation, value: selectedSegment)
         }
         .background(AppColors.background)
+        .sheet(isPresented: $showCoachDirectory) {
+            CoachDirectoryView(
+                currentUserId: currentUserId,
+                realtimeService: realtimeService
+            )
+        }
         .task {
             if let token = await AuthService.shared.validAccessToken() {
                 realtimeService.connect(authToken: token)
@@ -60,17 +67,30 @@ struct CoachTabView: View {
 
             Spacer()
 
+            // Right action: new AI chat on segment 0, find a coach on segment 1
             Button {
-                // New chat placeholder
+                if selectedSegment == 1 {
+                    showCoachDirectory = true
+                }
             } label: {
-                Image(systemName: "square.and.pencil")
+                Image(systemName: selectedSegment == 1 ? "person.badge.plus" : "square.and.pencil")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(AppColors.textPrimary)
+                    .foregroundStyle(selectedSegment == 1 ? AppColors.primary : AppColors.textPrimary)
+                    .animation(.easeInOut(duration: 0.18), value: selectedSegment)
             }
-            .accessibilityLabel("New Chat")
+            .accessibilityLabel(selectedSegment == 1 ? "Find a Coach" : "New Chat")
         }
         .padding(.horizontal, AppSpacing.md)
         .padding(.vertical, AppSpacing.xs)
+    }
+
+    // MARK: - Helpers
+
+    private var currentUserId: UUID {
+        guard let data = UserDefaults.standard.data(forKey: "pkkl_user_json"),
+              let user = try? JSONDecoder().decode(AuthService.AuthUser.self, from: data),
+              let id = UUID(uuidString: user.id) else { return UUID() }
+        return id
     }
 
     // MARK: - Segmented Picker
