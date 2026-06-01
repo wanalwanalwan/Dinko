@@ -52,36 +52,27 @@ struct CoachTabView: View {
 
     private var topBar: some View {
         HStack {
-            Button {
-                // Hamburger menu placeholder
-            } label: {
-                Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(AppColors.textPrimary)
-            }
-            .accessibilityLabel("Menu")
-
             Spacer()
-
             segmentedPicker
-
             Spacer()
-
-            // Right action: new AI chat on segment 0, find a coach on segment 1
-            Button {
-                if selectedSegment == 1 {
-                    showCoachDirectory = true
-                }
-            } label: {
-                Image(systemName: selectedSegment == 1 ? "person.badge.plus" : "square.and.pencil")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(selectedSegment == 1 ? AppColors.primary : AppColors.textPrimary)
-                    .animation(.easeInOut(duration: 0.18), value: selectedSegment)
-            }
-            .accessibilityLabel(selectedSegment == 1 ? "Find a Coach" : "New Chat")
         }
         .padding(.horizontal, AppSpacing.md)
         .padding(.vertical, AppSpacing.xs)
+        .overlay(alignment: .trailing) {
+            if selectedSegment == 1 {
+                Button {
+                    showCoachDirectory = true
+                } label: {
+                    Image(systemName: "person.badge.plus")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(AppColors.primary)
+                }
+                .accessibilityLabel("Find a Coach")
+                .padding(.trailing, AppSpacing.md)
+                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.18), value: selectedSegment)
     }
 
     // MARK: - Helpers
