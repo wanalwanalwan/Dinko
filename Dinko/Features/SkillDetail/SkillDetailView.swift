@@ -279,18 +279,23 @@ struct SkillDetailView: View {
     private func ratingHero(_ viewModel: SkillDetailViewModel) -> some View {
         let displayRating = isEditingSlider ? Int(sliderRating) : viewModel.latestRating
         let tier = SkillTier(rating: displayRating)
-        return VStack(spacing: AppSpacing.xs) {
-            // Compact hero: ring + title tightly grouped
-            RatingBadge(rating: displayRating, size: 140, ringColor: tier.color)
+        return VStack(spacing: 0) {
 
+            // Ring — centred, generous top spacing
+            RatingBadge(rating: displayRating, size: 158, ringColor: tier.color)
+                .padding(.top, AppSpacing.md)
+                .padding(.bottom, AppSpacing.sm)
+
+            // Skill name
             Text(skill.name)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
-                .padding(.top, AppSpacing.xxxs)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.bottom, AppSpacing.xs)
 
-            // Tier badge + metadata in one row
-            HStack(spacing: AppSpacing.xxs) {
-                // Premium tier badge
+            // Tier + delta + date — one tight row
+            HStack(spacing: 8) {
                 HStack(spacing: 4) {
                     Image(systemName: tier.sfSymbol)
                         .font(.system(size: 10, weight: .semibold))
@@ -298,22 +303,19 @@ struct SkillDetailView: View {
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                 }
                 .foregroundStyle(tier.color)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(tier.color.opacity(0.12))
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(tier.color.opacity(0.11))
                 .clipShape(Capsule())
 
                 if let delta = viewModel.weeklyDelta, delta != 0 {
                     HStack(spacing: 3) {
                         Image(systemName: delta > 0 ? "arrow.up.right" : "arrow.down.right")
                             .font(.system(size: 9, weight: .bold))
-
                         Text(delta > 0 ? "+\(delta)%" : "\(delta)%")
                             .font(.system(size: 12, weight: .semibold, design: .rounded))
                     }
                     .foregroundStyle(delta > 0 ? AppColors.highlight : AppColors.coral)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, 8).padding(.vertical, 5)
                     .background((delta > 0 ? AppColors.highlight : AppColors.coral).opacity(0.1))
                     .clipShape(Capsule())
                 }
@@ -322,19 +324,21 @@ struct SkillDetailView: View {
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
             }
+            .padding(.bottom, AppSpacing.md)
 
-            // Skill level slider
+            // Divider before slider
             if !viewModel.hasSubskills && skill.status == .active {
+                Divider().padding(.horizontal, AppSpacing.md)
                 skillLevelSlider(displayRating: displayRating, tier: tier, viewModel: viewModel)
-                    .padding(.top, AppSpacing.xxs)
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.top, AppSpacing.sm)
+                    .padding(.bottom, AppSpacing.md)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.md)
-        .padding(.horizontal, AppSpacing.sm)
         .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: .black.opacity(0.05), radius: 12, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(skill.name), \(displayRating) percent, \(tier.displayName)")
     }
@@ -427,153 +431,142 @@ struct SkillDetailView: View {
     // MARK: - Subskills
 
     private func subskillsSection(_ viewModel: SkillDetailViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(spacing: 0) {
+            // Alma-style card header
             HStack {
-                HStack(spacing: 6) {
+                HStack(spacing: 7) {
                     Image(systemName: "square.stack.3d.up.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(AppColors.primaryLight)
-
-                    Text("SUBSKILLS")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AppColors.primary)
+                    Text("Subskills")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
                 }
-
                 Spacer()
-
                 if skill.status == .active {
-                    Button {
-                        showingAddSubskill = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(AppColors.primary)
+                    Button { showingAddSubskill = true } label: {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.separator.opacity(0.4))
+                                .frame(width: 30, height: 30)
+                            Image(systemName: "plus")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(AppColors.textPrimary)
+                        }
                     }
                     .accessibilityLabel("Add Subskill")
                 }
             }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
             .padding(.bottom, AppSpacing.xs)
 
-            if viewModel.subskills.isEmpty {
-                HStack(spacing: AppSpacing.xxs) {
-                    Image(systemName: "arrow.branch")
-                        .font(.system(size: 14))
-                        .foregroundStyle(AppColors.primaryLight)
+            Divider().padding(.horizontal, AppSpacing.sm)
 
-                    Text("Break this skill into subskills to track progress in detail")
-                        .font(AppTypography.caption)
+            if viewModel.subskills.isEmpty {
+                VStack(spacing: 6) {
+                    Image(systemName: "arrow.branch")
+                        .font(.system(size: 22))
+                        .foregroundStyle(AppColors.primary.opacity(0.3))
+                    Text("Break this skill into subskills\nto track progress in detail")
+                        .font(.system(size: 13, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
-                .padding(.vertical, AppSpacing.xs)
                 .frame(maxWidth: .infinity)
-                .background(AppColors.primaryTint.opacity(0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .padding(.vertical, AppSpacing.lg)
             }
 
             ForEach(Array(viewModel.subskills.enumerated()), id: \.element.id) { index, subskill in
                 let rating = viewModel.subskillRatings[subskill.id] ?? 0
-
-                if index > 0 {
-                    Divider()
-                }
-
+                if index > 0 { Divider().padding(.horizontal, AppSpacing.sm) }
                 NavigationLink(value: subskill) {
                     HStack(alignment: .center, spacing: AppSpacing.xs) {
-                        VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
+                        VStack(alignment: .leading, spacing: 5) {
                             Text(subskill.name)
-                                .font(AppTypography.headline)
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundStyle(AppColors.textPrimary)
-
-                            ProgressBar(progress: Double(rating) / 100.0, tint: SkillTier(rating: rating).color)
+                            ProgressBar(progress: Double(rating) / 100.0,
+                                        tint: SkillTier(rating: rating).color)
                         }
-
+                        Spacer()
                         Text("\(rating)%")
                             .font(.system(size: 15, weight: .bold, design: .rounded))
                             .foregroundStyle(SkillTier(rating: rating).color)
-
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary.opacity(0.35))
                     }
-                    .padding(.vertical, AppSpacing.xs)
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.vertical, 14)
                 }
                 .buttonStyle(.pressable)
             }
         }
-        .infoCard()
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+        .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
     }
 
     // MARK: - Notes Section
 
     private func notesSection(_ viewModel: SkillDetailViewModel) -> some View {
         NavigationLink {
-            SkillNotesView(
-                notes: viewModel.skill.description
-            ) { updatedNotes in
+            SkillNotesView(notes: viewModel.skill.description) { updatedNotes in
                 await viewModel.updateNotes(updatedNotes)
             }
         } label: {
-            HStack(spacing: 0) {
-                // Accent bar
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(
-                        LinearGradient(
-                            colors: [AppColors.highlight, AppColors.primaryLight],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: 5)
-
-                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                    HStack {
-                        HStack(spacing: 5) {
-                            Image(systemName: "note.text")
-                                .font(.system(size: 11))
-                                .foregroundStyle(AppColors.primaryLight)
-
-                            Text("MY NOTES")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
-                                .foregroundStyle(AppColors.primary)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+            VStack(spacing: 0) {
+                // Alma-style card header
+                HStack {
+                    HStack(spacing: 7) {
+                        Image(systemName: "note.text")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(AppColors.primary)
+                        Text("My Notes")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
                     }
-
-                    if viewModel.skill.description.isEmpty {
-                        HStack(spacing: AppSpacing.xxs) {
-                            Image(systemName: "square.and.pencil")
-                                .font(.system(size: 15))
-                                .foregroundStyle(AppColors.primaryLight.opacity(0.7))
-
-                            Text("Tap to jot down thoughts about this skill...")
-                                .font(.system(.body, design: .serif))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                        .padding(.top, AppSpacing.xxxs)
-                    } else {
-                        Text(viewModel.skill.description)
-                            .font(.system(.body, design: .serif))
-                            .foregroundStyle(AppColors.textPrimary.opacity(0.85))
-                            .lineLimit(3)
-                            .multilineTextAlignment(.leading)
-                            .padding(.top, AppSpacing.xxxs)
-                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.4))
                 }
-                .padding(.leading, AppSpacing.xs)
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                if viewModel.skill.description.isEmpty {
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 15))
+                            .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                        Text("Tap to add notes about this skill…")
+                            .font(.system(size: 14, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.vertical, AppSpacing.md)
+                } else {
+                    Text(viewModel.skill.description)
+                        .font(.system(size: 15, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary.opacity(0.8))
+                        .lineLimit(4)
+                        .multilineTextAlignment(.leading)
+                        .lineSpacing(3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.vertical, AppSpacing.sm)
+                }
             }
-            .padding(.vertical, AppSpacing.sm)
-            .padding(.horizontal, AppSpacing.sm)
-            .background(AppColors.notesCardBackground)
+            .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
-                    .stroke(AppColors.primaryLight.opacity(0.15), lineWidth: 1)
-            )
+            .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+            .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
         }
         .buttonStyle(.plain)
     }
