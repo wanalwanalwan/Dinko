@@ -27,19 +27,18 @@ struct RatingBadge: View {
                     .padding(lineWidth * 0.25)
             }
 
-            // Gradient progress stroke
-            // startAngle: 0 aligns the gradient start with the Circle path's 3-o'clock
-            // origin; rotationEffect(-90) then moves the visual start to 12-o'clock.
-            // Using endAngle: 360 ensures progress values > 75% stay within the
-            // gradient range (the old -90…270 span caused a hard cut-off at 75%).
+            // Gradient progress stroke.
+            // startAngle: 0 aligns with the Circle path's 3-o'clock origin;
+            // rotationEffect(-90) moves the visual start to 12-o'clock.
+            // Two-stop gradient gives a smooth light→dark sweep with no abrupt
+            // plateaus; colors are fixed so every tier looks consistent.
             Circle()
                 .trim(from: 0, to: animatedProgress)
                 .stroke(
                     AngularGradient(
-                        stops: [
-                            .init(color: AppColors.highlightLight, location: 0),
-                            .init(color: ringColor, location: 0.6),
-                            .init(color: ringColor, location: 1.0)
+                        colors: [
+                            AppColors.ringGradientStart,
+                            AppColors.ringGradientEnd
                         ],
                         center: .center,
                         startAngle: .degrees(0),
