@@ -2,20 +2,12 @@ import SwiftUI
 
 enum AppColors {
     // MARK: - Backgrounds
-    static let background = Color(light: "F6F7F4", dark: "111A14")
-    static let backgroundGray = Color(light: "EFF0ED", dark: "131517")
+    static let background = Color(light: "EDE8E0", dark: "111A14")
+    static let backgroundGray = Color(light: "E4DFD7", dark: "131517")
     static let cardBackground = Color(light: "FFFFFF", dark: "1A2027")
 
-    /// Soft green wash at top fading to neutral
     static var backgroundGradient: LinearGradient {
-        LinearGradient(
-            stops: [
-                .init(color: Color(light: "DDEBDD", dark: "1A2A1E"), location: 0),
-                .init(color: background, location: 0.35),
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
+        LinearGradient(colors: [background, background], startPoint: .top, endPoint: .bottom)
     }
 
     // MARK: - Primary (Deep Forest Green — CTA / Interactive)
