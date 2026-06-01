@@ -6,8 +6,8 @@ struct SkillDetailView: View {
     @State private var viewModel: SkillDetailViewModel?
     @State private var showingAddSubskill = false
     @State private var showingDeleteConfirm = false
-    @State private var showingCoaching = false
     @State private var showingProgressCheckers = false
+    @State private var inlineCoachingVM: SkillCoachingViewModel?
     @State private var ratingNotesExpanded = false
     @State private var contentReady = false
     @State private var celebrationVisible = false
@@ -61,7 +61,7 @@ struct SkillDetailView: View {
                     }
 
                     notesSection(viewModel)
-                    coachingButton(viewModel)
+                    coachingCard(viewModel)
                     drillsSection(viewModel)
                     ratingNotesSection(viewModel)
 
@@ -85,21 +85,6 @@ struct SkillDetailView: View {
             Task { await viewModel.loadDetail() }
         }) {
             AddEditSkillView(parentSkillId: skill.id)
-        }
-        .sheet(isPresented: $showingCoaching, onDismiss: {
-            Task { await viewModel.loadDetail() }
-        }) {
-            SkillCoachingView(
-                viewModel: SkillCoachingViewModel(
-                    skill: skill,
-                    subskills: viewModel.subskills,
-                    subskillRatings: viewModel.subskillRatings,
-                    currentRating: viewModel.latestRating,
-                    existingDrills: viewModel.drills,
-                    ratings: viewModel.ratings,
-                    drillRepository: dependencies.drillRepository
-                )
-            )
         }
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
@@ -488,82 +473,321 @@ struct SkillDetailView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Coaching Button
+    // MARK: - Inline Coaching Card
 
     @ViewBuilder
-    private func coachingButton(_ viewModel: SkillDetailViewModel) -> some View {
-        let hasPendingDrills = viewModel.drills.contains { $0.status == .pending }
-
+    private func coachingCard(_ detailVM: SkillDetailViewModel) -> some View {
         if skill.status == .active {
-            if hasPendingDrills {
-                Button {
-                    showingCoaching = true
-                } label: {
-                    HStack(spacing: AppSpacing.xxs) {
-                        Image(systemName: "sparkles")
-                            .font(.caption)
-                            .foregroundStyle(AppColors.primaryLight)
-
-                        Text("Get More Coaching")
-                            .font(AppTypography.callout)
-                            .foregroundStyle(AppColors.primary)
+            if let coachVM = inlineCoachingVM {
+                Group {
+                    if coachVM.isLoading {
+                        inlineLoadingCard
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .top)),
+                                removal: .opacity
+                            ))
+                    } else if let err = coachVM.errorMessage,
+                              coachVM.gameTips.isEmpty && coachVM.drills.isEmpty {
+                        inlineErrorCard(err, coachVM: coachVM)
+                            .transition(.opacity)
+                    } else {
+                        inlineResultsCard(coachVM, detailVM: detailVM)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .top)),
+                                removal: .opacity
+                            ))
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xs)
-                    .background(AppColors.coachCardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
-                            .stroke(AppColors.coachCardBorder, lineWidth: 1)
-                    )
                 }
-                .buttonStyle(.pressable)
+                .animation(.spring(response: 0.42, dampingFraction: 0.82), value: coachVM.isLoading)
             } else {
-                // Prominent coaching card -- highest emphasis
-                Button {
-                    showingCoaching = true
-                } label: {
-                    HStack(spacing: AppSpacing.xs) {
-                        ZStack {
-                            Circle()
-                                .fill(.white.opacity(0.2))
-                                .frame(width: 40, height: 40)
-
+                let hasPendingDrills = detailVM.drills.contains { $0.status == .pending }
+                if hasPendingDrills {
+                    Button {
+                        startInlineCoaching(detailVM)
+                    } label: {
+                        HStack(spacing: AppSpacing.xxs) {
                             Image(systemName: "sparkles")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(.white)
+                                .font(.caption)
+                                .foregroundStyle(AppColors.primaryLight)
+                            Text("Get More Coaching")
+                                .font(AppTypography.callout)
+                                .foregroundStyle(AppColors.primary)
                         }
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Get AI Coaching")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-
-                            Text("Personalized drills & game tips")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.75))
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "arrow.right.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-                    .padding(AppSpacing.sm)
-                    .background(
-                        LinearGradient(
-                            colors: [AppColors.primary, Color(hex: "2A4935")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.xs)
+                        .background(AppColors.coachCardBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
+                                .stroke(AppColors.coachCardBorder, lineWidth: 1)
                         )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-                    .shadow(color: AppColors.primary.opacity(0.3), radius: 8, y: 4)
+                    }
+                    .buttonStyle(.pressable)
+                } else {
+                    Button {
+                        startInlineCoaching(detailVM)
+                    } label: {
+                        HStack(spacing: AppSpacing.xs) {
+                            ZStack {
+                                Circle()
+                                    .fill(.white.opacity(0.2))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundStyle(.white)
+                            }
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Get AI Coaching")
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white)
+                                Text("Personalized drills & game tips")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.75))
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
+                        .padding(AppSpacing.sm)
+                        .background(LinearGradient(
+                            colors: [AppColors.primary, Color(hex: "2A4935")],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+                        .shadow(color: AppColors.primary.opacity(0.3), radius: 8, y: 4)
+                    }
+                    .buttonStyle(.pressable)
                 }
-                .buttonStyle(.pressable)
             }
         }
+    }
+
+    private func startInlineCoaching(_ detailVM: SkillDetailViewModel) {
+        let vm = SkillCoachingViewModel(
+            skill: skill,
+            subskills: detailVM.subskills,
+            subskillRatings: detailVM.subskillRatings,
+            currentRating: detailVM.latestRating,
+            existingDrills: detailVM.drills,
+            ratings: detailVM.ratings,
+            drillRepository: dependencies.drillRepository
+        )
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+            inlineCoachingVM = vm
+        }
+        Task { await vm.generateCoaching() }
+    }
+
+    // MARK: - Loading card
+
+    private var inlineLoadingCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label("Premium", systemImage: "star.fill")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.trophyGold)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(AppColors.trophyGold.opacity(0.13))
+                .clipShape(Capsule())
+
+            HStack(spacing: 10) {
+                ProgressView()
+                    .scaleEffect(0.85)
+                    .tint(AppColors.textSecondary)
+                Text("Checking your goals...")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .padding(AppSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: AppColors.trophyGold.opacity(0.28), radius: 18, y: 6)
+        .shadow(color: AppColors.coral.opacity(0.10), radius: 28, y: 10)
+    }
+
+    // MARK: - Error card
+
+    private func inlineErrorCard(_ message: String, coachVM: SkillCoachingViewModel) -> some View {
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundStyle(AppColors.coral)
+            Text(message)
+                .font(.system(size: 13, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .lineLimit(2)
+            Spacer()
+            Button {
+                Task { await coachVM.generateCoaching() }
+            } label: {
+                Text("Retry")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12).padding(.vertical, 5)
+                    .background(AppColors.primary)
+                    .clipShape(Capsule())
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+    }
+
+    // MARK: - Results card
+
+    private func inlineResultsCard(_ coachVM: SkillCoachingViewModel, detailVM: SkillDetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+
+            // Header
+            HStack {
+                Label("AI Coaching", systemImage: "sparkles")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.primary)
+                Spacer()
+                Button {
+                    Task {
+                        await coachVM.generateCoaching()
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                Button {
+                    withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+                        inlineCoachingVM = nil
+                    }
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .padding(6)
+                        .background(AppColors.separator.opacity(0.4))
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
+
+            if !coachVM.gameTips.isEmpty {
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppColors.warningOrange)
+                        Text("GAME TIPS")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.top, AppSpacing.xs)
+
+                    ForEach(coachVM.gameTips) { tip in
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(tip.title)
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundStyle(AppColors.textPrimary)
+                            Text(tip.tip)
+                                .font(.system(size: 13, design: .rounded))
+                                .foregroundStyle(AppColors.textPrimary.opacity(0.8))
+                                .lineSpacing(2)
+                            HStack(spacing: 4) {
+                                Image(systemName: "location.fill")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(AppColors.warningOrange)
+                                Text(tip.situation)
+                                    .font(.system(size: 11, design: .rounded))
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                        }
+                        .padding(AppSpacing.sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(AppColors.background.opacity(0.6))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .padding(.horizontal, AppSpacing.xs)
+                    }
+                }
+                .padding(.bottom, AppSpacing.xs)
+            }
+
+            if !coachVM.drills.isEmpty {
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "figure.run")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppColors.primary)
+                        Text("DRILL SUGGESTIONS")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.top, AppSpacing.xs)
+
+                    ForEach(Array(coachVM.drills.enumerated()), id: \.element.name) { index, drill in
+                        let isAdded = coachVM.addedDrillIndices.contains(index)
+                        VStack(alignment: .leading, spacing: 5) {
+                            HStack(alignment: .top) {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(drill.name)
+                                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                        .foregroundStyle(AppColors.textPrimary)
+                                    HStack(spacing: 4) {
+                                        Text("\(drill.durationMinutes) min")
+                                            .font(.system(size: 11, design: .rounded))
+                                            .foregroundStyle(AppColors.textSecondary)
+                                        if let sub = drill.targetSubskill {
+                                            Text("•").foregroundStyle(AppColors.textSecondary)
+                                            Text(sub)
+                                                .font(.system(size: 11, design: .rounded))
+                                                .foregroundStyle(AppColors.primary)
+                                        }
+                                    }
+                                }
+                                Spacer()
+                                Button {
+                                    Task {
+                                        await coachVM.addDrill(at: index)
+                                        await detailVM.loadDetail()
+                                    }
+                                } label: {
+                                    if isAdded {
+                                        Label("Added", systemImage: "checkmark.circle.fill")
+                                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                            .foregroundStyle(AppColors.successGreen)
+                                    } else {
+                                        Label("Add", systemImage: "plus.circle.fill")
+                                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                            .foregroundStyle(AppColors.primary)
+                                    }
+                                }
+                                .disabled(isAdded)
+                                .buttonStyle(.pressable)
+                            }
+                            Text(drill.reason)
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                                .italic()
+                        }
+                        .padding(AppSpacing.sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(AppColors.background.opacity(0.6))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .padding(.horizontal, AppSpacing.xs)
+                    }
+                }
+                .padding(.bottom, AppSpacing.sm)
+            }
+        }
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
     }
 
     // MARK: - Drills Section
