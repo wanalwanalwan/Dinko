@@ -223,32 +223,42 @@ struct HomeView: View {
             ZStack(alignment: .bottom) {
                 // Ring
                 ZStack {
+                    let progress = max(CGFloat(score) / 100.0 * 0.75, score > 0 ? 0.015 : 0)
+
                     // Track
                     Circle()
                         .trim(from: 0, to: 0.75)
                         .stroke(AppColors.ringTrack,
-                                style: StrokeStyle(lineWidth: 13, lineCap: .round))
+                                style: StrokeStyle(lineWidth: 17, lineCap: .round))
                         .rotationEffect(.degrees(135))
 
-                    // Progress
+                    // Glow — blurred copy behind the progress arc
                     Circle()
-                        .trim(from: 0, to: max(CGFloat(score) / 100.0 * 0.75,
-                                               score > 0 ? 0.015 : 0))
+                        .trim(from: 0, to: progress)
+                        .stroke(color, style: StrokeStyle(lineWidth: 17, lineCap: .round))
+                        .rotationEffect(.degrees(135))
+                        .blur(radius: 9)
+                        .opacity(0.45)
+                        .animation(.easeOut(duration: 1.1), value: score)
+
+                    // Progress arc
+                    Circle()
+                        .trim(from: 0, to: progress)
                         .stroke(
-                            LinearGradient(colors: [color.opacity(0.8), color],
+                            LinearGradient(colors: [color.opacity(0.85), color],
                                            startPoint: .leading, endPoint: .trailing),
-                            style: StrokeStyle(lineWidth: 13, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 17, lineCap: .round)
                         )
                         .rotationEffect(.degrees(135))
                         .animation(.easeOut(duration: 1.1), value: score)
 
-                    // Score number — just the number, like Alma
+                    // Score number
                     Text("\(score)")
-                        .font(Font.custom("Sora-Bold", size: 54))
+                        .font(Font.custom("Sora-Bold", size: 48))
                         .foregroundStyle(AppColors.textPrimary)
                         .contentTransition(.numericText())
                 }
-                .frame(width: 184, height: 184)
+                .frame(width: 160, height: 160)
 
                 // "Brine Score ›" pill — floats at bottom of ring in the gap
                 Button {
