@@ -145,63 +145,132 @@ struct SkillDetailView: View {
 
     private func completionCelebration(_ viewModel: SkillDetailViewModel) -> some View {
         ZStack {
-            AppColors.overlayScrim.opacity(celebrationVisible ? 0.5 : 0)
+            // Blurred backdrop
+            Rectangle()
+                .fill(.ultraThinMaterial)
                 .ignoresSafeArea()
+                .opacity(celebrationVisible ? 1 : 0)
                 .animation(AppAnimations.fadeIn, value: celebrationVisible)
 
-            VStack(spacing: AppSpacing.lg) {
-                // Mascot celebration
-                Text("\u{1F952}")
-                    .font(.system(size: 56))
-                    .scaleEffect(celebrationVisible ? 1.2 : 0.6)
-
-                Text("Skill Mastered!")
-                    .font(AppTypography.largeTitle)
-                    .foregroundStyle(AppColors.textPrimary)
-
-                VStack(spacing: AppSpacing.xxxs) {
-                    Text(skill.name)
-                        .font(AppTypography.title)
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    Text("100%")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.highlight)
+            VStack(spacing: 0) {
+                // Emoji + pulse rings
+                ZStack {
+                    ForEach(0..<3, id: \.self) { i in
+                        Circle()
+                            .stroke(AppColors.highlight.opacity(0.12 - Double(i) * 0.03),
+                                    lineWidth: 1.5)
+                            .frame(width: CGFloat(80 + i * 30), height: CGFloat(80 + i * 30))
+                            .scaleEffect(celebrationVisible ? 1 : 0.3)
+                            .opacity(celebrationVisible ? 1 : 0)
+                            .animation(
+                                .spring(response: 0.6, dampingFraction: 0.6)
+                                    .delay(0.1 + Double(i) * 0.08),
+                                value: celebrationVisible
+                            )
+                    }
+                    Circle()
+                        .fill(AppColors.highlight.opacity(0.12))
+                        .frame(width: 72, height: 72)
+                    Text("🥒")
+                        .font(.system(size: 38))
+                        .scaleEffect(celebrationVisible ? 1.0 : 0.3)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.55).delay(0.05),
+                                   value: celebrationVisible)
                 }
+                .padding(.bottom, AppSpacing.md)
 
-                Text("You crushed it! Time for the next challenge.")
-                    .font(AppTypography.callout)
+                // "Mastered" pill
+                Label("Skill Mastered", systemImage: "checkmark.seal.fill")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.highlight)
+                    .padding(.horizontal, 12).padding(.vertical, 5)
+                    .background(AppColors.highlight.opacity(0.12))
+                    .clipShape(Capsule())
+                    .opacity(celebrationVisible ? 1 : 0)
+                    .offset(y: celebrationVisible ? 0 : 10)
+                    .animation(.spring(response: 0.45, dampingFraction: 0.75).delay(0.15),
+                               value: celebrationVisible)
+                    .padding(.bottom, AppSpacing.xs)
+
+                // Skill name
+                Text(skill.name)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .opacity(celebrationVisible ? 1 : 0)
+                    .offset(y: celebrationVisible ? 0 : 12)
+                    .animation(.spring(response: 0.45, dampingFraction: 0.78).delay(0.20),
+                               value: celebrationVisible)
+                    .padding(.bottom, 4)
+
+                // 100%
+                Text("100%")
+                    .font(Font.custom("Sora-Bold", size: 42))
+                    .foregroundStyle(AppColors.highlight)
+                    .opacity(celebrationVisible ? 1 : 0)
+                    .offset(y: celebrationVisible ? 0 : 10)
+                    .animation(.spring(response: 0.45, dampingFraction: 0.78).delay(0.25),
+                               value: celebrationVisible)
+                    .padding(.bottom, AppSpacing.sm)
+
+                // Body
+                Text("You mastered this skill.\nTime for the next challenge.")
+                    .font(.system(size: 14, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+                    .opacity(celebrationVisible ? 1 : 0)
+                    .animation(.easeOut(duration: 0.35).delay(0.30),
+                               value: celebrationVisible)
+                    .padding(.bottom, AppSpacing.lg)
 
+                // CTA
                 Button {
                     viewModel.showCompletionCelebration = false
                     dismiss()
                 } label: {
-                    Text("Let's go!")
-                        .font(AppTypography.headline)
+                    Text("Let's go! 🎉")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white)
-                        .padding(.horizontal, AppSpacing.xl)
-                        .padding(.vertical, AppSpacing.sm)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
                         .background(
-                            LinearGradient(
-                                colors: [AppColors.highlight, AppColors.primary],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                            ZStack {
+                                LinearGradient(colors: [AppColors.primaryLight, AppColors.primaryDark],
+                                               startPoint: .top, endPoint: .bottom)
+                                LinearGradient(colors: [.white.opacity(0.16), .clear],
+                                               startPoint: .top,
+                                               endPoint: .init(x: 0.5, y: 0.55))
+                            }
                         )
-                        .clipShape(Capsule())
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .shadow(color: AppColors.primary.opacity(0.30), radius: 0, y: 3)
+                        .shadow(color: AppColors.primary.opacity(0.14), radius: 8, y: 5)
                 }
                 .buttonStyle(.pressable)
-                .padding(.top, AppSpacing.xxs)
+                .opacity(celebrationVisible ? 1 : 0)
+                .offset(y: celebrationVisible ? 0 : 16)
+                .animation(.spring(response: 0.45, dampingFraction: 0.78).delay(0.35),
+                           value: celebrationVisible)
             }
-            .padding(AppSpacing.xl)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-            .shadow(radius: 20)
-            .padding(.horizontal, AppSpacing.xl)
-            .scaleEffect(celebrationVisible ? 1.0 : 0.6)
+            .padding(AppSpacing.lg)
+            .padding(.top, AppSpacing.sm)
+            .background(
+                ZStack {
+                    AppColors.cardBackground
+                    // Subtle green glow at top
+                    LinearGradient(
+                        colors: [AppColors.highlight.opacity(0.08), .clear],
+                        startPoint: .top, endPoint: .init(x: 0.5, y: 0.45)
+                    )
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 28))
+            .shadow(color: .black.opacity(0.12), radius: 24, y: 8)
+            .padding(.horizontal, AppSpacing.lg)
+            .scaleEffect(celebrationVisible ? 1.0 : 0.75)
             .opacity(celebrationVisible ? 1 : 0)
+            .animation(.spring(response: 0.48, dampingFraction: 0.70), value: celebrationVisible)
         }
     }
 
@@ -315,7 +384,43 @@ struct SkillDetailView: View {
                 }
                 .padding(.top, 2)
             }
+
+            // Complete Skill button — appears when slider reaches 100
+            if displayRating == 100 {
+                Button {
+                    Task { _ = await viewModel.saveRating(100, notes: nil) }
+                } label: {
+                    HStack(spacing: 7) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Complete Skill")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(
+                        ZStack {
+                            LinearGradient(colors: [AppColors.highlight, AppColors.successGreenDark],
+                                           startPoint: .top, endPoint: .bottom)
+                            LinearGradient(colors: [.white.opacity(0.16), .clear],
+                                           startPoint: .top,
+                                           endPoint: .init(x: 0.5, y: 0.55))
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 13))
+                    .shadow(color: AppColors.highlight.opacity(0.35), radius: 0, y: 3)
+                    .shadow(color: AppColors.highlight.opacity(0.18), radius: 8, y: 5)
+                }
+                .buttonStyle(.pressable)
+                .padding(.top, AppSpacing.xs)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.9, anchor: .bottom).combined(with: .opacity),
+                    removal: .opacity
+                ))
+            }
         }
+        .animation(.spring(response: 0.38, dampingFraction: 0.78), value: displayRating == 100)
         .padding(.horizontal, AppSpacing.xxs)
     }
 
