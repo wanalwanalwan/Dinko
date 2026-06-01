@@ -653,9 +653,14 @@ struct HomeView: View {
         .sheet(isPresented: $showAllAchievements) { allAchievementsSheet(viewModel) }
         .overlay {
             if let achievement = celebratingAchievement {
-                achievementCelebration(achievement)
+                AchievementCelebrationView(achievement: achievement) {
+                    celebratingAchievement = nil
+                }
+                .transition(.opacity)
+                .zIndex(100)
             }
         }
+        .animation(.easeOut(duration: 0.25), value: celebratingAchievement?.id)
     }
 
     // MARK: - Spotlight Cards (data state)
@@ -714,56 +719,6 @@ struct HomeView: View {
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
         .shadow(color: Color.black.opacity(0.03), radius: 6, y: 2)
-    }
-
-    // MARK: - Achievement Celebration
-
-    private func achievementCelebration(_ achievement: Achievement) -> some View {
-        ZStack {
-            Color.black.opacity(0.4).ignoresSafeArea()
-                .onTapGesture {
-                    withAnimation(AppAnimations.springSmooth) { celebratingAchievement = nil }
-                }
-            VStack(spacing: AppSpacing.sm) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(achievement.color)
-                        .frame(width: 72, height: 72)
-                    Image(systemName: achievement.iconName)
-                        .font(.system(size: 32))
-                        .foregroundStyle(AppColors.textPrimary)
-                }
-                Text("Badge Earned!")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-                Text(achievement.name)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(achievement.color)
-                Text(achievement.description)
-                    .font(.system(size: 13, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                Button {
-                    withAnimation(AppAnimations.springSmooth) { celebratingAchievement = nil }
-                } label: {
-                    Text("Nice!")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(AppColors.primary)
-                        .clipShape(Capsule())
-                }
-                .padding(.top, AppSpacing.xxxs)
-            }
-            .padding(AppSpacing.lg)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: Color.black.opacity(0.12), radius: 20, y: 8)
-            .padding(.horizontal, AppSpacing.xl)
-            .transition(.scale(scale: 0.8).combined(with: .opacity))
-        }
-        .animation(AppAnimations.springBouncy, value: celebratingAchievement?.id)
     }
 
     private func allAchievementsSheet(_ viewModel: HomeViewModel) -> some View {
@@ -860,6 +815,157 @@ struct HomeView: View {
         .background(AppColors.background)
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Achievement Celebration
+
+private struct AchievementCelebrationView: View {
+    let achievement: Achievement
+    let onDismiss: () -> Void
+
+    // Badge entry
+    @State private var badgeScale: CGFloat    = 0.05
+    @State private var badgeRotation: Double  = -18
+    @State private var badgeOpacity: Double   = 0
+
+    // Text block
+    @State private var textOpacity: Double    = 0
+    @State private var textOffset: CGFloat    = 22
+
+    // Expanding ring pulses
+    @State private var r1Scale: CGFloat = 1.0;  @State private var r1Opacity: Double = 0.55
+    @State private var r2Scale: CGFloat = 1.0;  @State private var r2Opacity: Double = 0.40
+    @State private var r3Scale: CGFloat = 1.0;  @State private var r3Opacity: Double = 0.28
+
+    // Glow behind badge
+    @State private var glowScale: CGFloat     = 0.7
+    @State private var glowOpacity: Double    = 0.7
+
+    var body: some View {
+        ZStack {
+            // ── Blurred backdrop ──────────────────────────────────────────
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .ignoresSafeArea()
+                .onTapGesture { dismiss() }
+
+            VStack(spacing: 30) {
+                // ── Badge ─────────────────────────────────────────────────
+                ZStack {
+                    // Ring pulses
+                    pulseRing(scale: r1Scale, opacity: r1Opacity)
+                    pulseRing(scale: r2Scale, opacity: r2Opacity)
+                    pulseRing(scale: r3Scale, opacity: r3Opacity)
+
+                    // Colored glow disc
+                    RoundedRectangle(cornerRadius: 32)
+                        .fill(achievement.color.opacity(glowOpacity))
+                        .frame(width: 148, height: 148)
+                        .blur(radius: 28)
+                        .scaleEffect(glowScale)
+
+                    // Badge tile
+                    RoundedRectangle(cornerRadius: 28)
+                        .fill(achievement.color)
+                        .frame(width: 112, height: 112)
+                        .overlay(
+                            Image(systemName: achievement.iconName)
+                                .font(.system(size: 50, weight: .medium))
+                                .foregroundStyle(.white)
+                        )
+                        .shadow(color: achievement.color.opacity(0.55), radius: 30, y: 12)
+                        .shadow(color: achievement.color.opacity(0.20), radius: 60, y: 24)
+                        .scaleEffect(badgeScale)
+                        .rotationEffect(.degrees(badgeRotation))
+                        .opacity(badgeOpacity)
+                }
+
+                // ── Text ──────────────────────────────────────────────────
+                VStack(spacing: 7) {
+                    Text("Badge Earned!")
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text(achievement.name)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .foregroundStyle(achievement.color)
+
+                    Text(achievement.description)
+                        .font(.system(size: 14, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+
+                    Text("Tap anywhere to continue")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.55))
+                        .padding(.top, 10)
+                }
+                .opacity(textOpacity)
+                .offset(y: textOffset)
+            }
+        }
+        .onAppear { runEntryAnimation() }
+    }
+
+    private func pulseRing(scale: CGFloat, opacity: Double) -> some View {
+        Circle()
+            .stroke(achievement.color.opacity(opacity), lineWidth: 1.5)
+            .frame(width: 148, height: 148)
+            .scaleEffect(scale)
+    }
+
+    // MARK: Entry animation
+    private func runEntryAnimation() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+        // Badge springs in
+        withAnimation(.spring(response: 0.52, dampingFraction: 0.60)) {
+            badgeScale    = 1.0
+            badgeRotation = 0
+            badgeOpacity  = 1
+        }
+
+        // Glow expands + fades
+        withAnimation(.easeOut(duration: 1.0)) {
+            glowScale   = 1.6
+            glowOpacity = 0
+        }
+
+        // Ring 1 — immediate
+        withAnimation(.easeOut(duration: 1.15)) {
+            r1Scale = 2.4; r1Opacity = 0
+        }
+        // Ring 2 — slight delay
+        withAnimation(.easeOut(duration: 1.15).delay(0.16)) {
+            r2Scale = 2.4; r2Opacity = 0
+        }
+        // Ring 3 — longer delay
+        withAnimation(.easeOut(duration: 1.15).delay(0.32)) {
+            r3Scale = 2.4; r3Opacity = 0
+        }
+
+        // Text rises in
+        withAnimation(.spring(response: 0.48, dampingFraction: 0.78).delay(0.22)) {
+            textOpacity = 1
+            textOffset  = 0
+        }
+    }
+
+    // MARK: Dismiss animation
+    private func dismiss() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.75)) {
+            badgeScale   = 0.05
+            badgeOpacity = 0
+        }
+        withAnimation(.easeOut(duration: 0.22)) {
+            textOpacity = 0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+            onDismiss()
+        }
     }
 }
 
