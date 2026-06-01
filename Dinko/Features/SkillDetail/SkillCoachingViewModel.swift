@@ -13,7 +13,8 @@ final class SkillCoachingViewModel {
     private let subskills: [Skill]
     private let subskillRatings: [UUID: Int]
     private let currentRating: Int
-    private let existingDrills: [Drill]
+    private var existingDrills: [Drill]   // var — grows as user adds drills
+    private var seenDrillNames: Set<String> = [] // tracks all generated names across sessions
     private let ratings: [SkillRating]
     private let drillRepository: DrillRepository
     private let agentService = AgentService()
@@ -40,6 +41,10 @@ final class SkillCoachingViewModel {
     func generateCoaching() async {
         isLoading = true
         errorMessage = nil
+
+        // Record names from the previous generation so they're excluded next time
+        for drill in drills { seenDrillNames.insert(drill.name.lowercased()) }
+
         gameTips = []
         drills = []
         addedDrillIndices = []
@@ -47,6 +52,16 @@ final class SkillCoachingViewModel {
         do {
             let token = await getAuthToken()
             let profilePayload = PlayerProfile.current().toPayload()
+
+            // Build the full exclusion list: stored pending drills + every name seen so far
+            let storedPending = existingDrills
+                .filter { $0.status == .pending }
+                .map { AgentService.PendingDrillPayload(name: $0.name, targetSubskill: $0.targetSubskill) }
+            let seenPayloads = seenDrillNames.map {
+                AgentService.PendingDrillPayload(name: $0, targetSubskill: nil)
+            }
+            let drillsToAvoid = storedPending + seenPayloads
+
             let response: SkillCoachingResponse = try await agentService.skillCoaching(
                 skillName: skill.name,
                 category: skill.category.rawValue,
@@ -58,9 +73,7 @@ final class SkillCoachingViewModel {
                         currentRating: subskillRatings[sub.id] ?? 0
                     )
                 },
-                pendingDrills: existingDrills
-                    .filter { $0.status == .pending }
-                    .map { AgentService.PendingDrillPayload(name: $0.name, targetSubskill: $0.targetSubskill) },
+                pendingDrills: drillsToAvoid,
                 ratingTrend: buildRatingTrend(),
                 playerProfile: profilePayload.isEmpty ? nil : profilePayload,
                 authToken: token
@@ -95,6 +108,8 @@ final class SkillCoachingViewModel {
         do {
             try await drillRepository.save(drill)
             addedDrillIndices.insert(index)
+            existingDrills.append(drill)
+            seenDrillNames.insert(drill.name.lowercased())
         } catch {
             errorMessage = "Failed to save drill."
         }
