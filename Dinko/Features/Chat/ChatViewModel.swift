@@ -656,6 +656,14 @@ final class ChatViewModel {
             )
 
             await loadStats()
+
+            // Resume the original request now that the skill exists
+            let originalRequest = findUserNote(before: index)
+            if !originalRequest.isEmpty {
+                try? await Task.sleep(nanoseconds: 700_000_000)
+                inputText = originalRequest
+                await sendMessage()
+            }
         } catch {
             preview.confirmState = .failed(error.localizedDescription)
             messages[index] = ChatMessage(
