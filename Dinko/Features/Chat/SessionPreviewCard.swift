@@ -396,21 +396,31 @@ struct SessionPreviewCard: View {
     // MARK: - Confirmed Banner
 
     private var confirmedBanner: some View {
-        VStack(spacing: AppSpacing.xxs) {
+        let hasSession  = !preview.sessionId.isEmpty
+        let newSkills   = preview.skillSuggestions?.count ?? 0
+        let skillCount  = preview.selectedSkillUpdateIndices.count
+        let drillCount  = preview.selectedDrillIndices.count
+
+        let headline: String = {
+            if hasSession { return "Session Logged" }
+            if newSkills > 0 { return newSkills == 1 ? "Skill Added" : "\(newSkills) Skills Added" }
+            return "Saved"
+        }()
+
+        let parts = [
+            newSkills  > 0 && hasSession ? "\(newSkills) skill\(newSkills == 1 ? "" : "s") created" : nil,
+            skillCount > 0               ? "\(skillCount) skill\(skillCount == 1 ? "" : "s") updated" : nil,
+            drillCount > 0               ? "\(drillCount) drill\(drillCount == 1 ? "" : "s") added"   : nil
+        ].compactMap { $0 }
+
+        return VStack(spacing: AppSpacing.xxs) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 28))
                 .foregroundStyle(AppColors.successGreen)
 
-            Text("Session Logged")
+            Text(headline)
                 .font(AppTypography.headline)
                 .foregroundStyle(AppColors.textPrimary)
-
-            let skillCount = preview.selectedSkillUpdateIndices.count
-            let drillCount = preview.selectedDrillIndices.count
-            let parts = [
-                skillCount > 0 ? "\(skillCount) skill\(skillCount == 1 ? "" : "s") updated" : nil,
-                drillCount > 0 ? "\(drillCount) drill\(drillCount == 1 ? "" : "s") added" : nil
-            ].compactMap { $0 }
 
             if !parts.isEmpty {
                 Text(parts.joined(separator: " \u{00B7} "))
