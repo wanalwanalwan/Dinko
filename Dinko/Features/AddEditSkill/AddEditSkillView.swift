@@ -109,46 +109,49 @@ struct AddEditSkillView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
     }
 
-    // MARK: - Create: Starting Level (Compact)
+    // MARK: - Create: Starting Level (Premium slider)
 
     private func createStartingLevel(_ viewModel: AddEditSkillViewModel) -> some View {
         let isAutoCalculated = viewModel.hasSubskillRatings
-        let displayRating = isAutoCalculated ? viewModel.averageSubskillRating : Int(viewModel.initialRating)
+        let displayRating = isAutoCalculated
+            ? viewModel.averageSubskillRating
+            : Int(viewModel.initialRating.rounded())
 
-        return VStack(alignment: .leading, spacing: AppSpacing.xxxs) {
-            HStack {
-                Text("Starting Level")
-                    .font(AppTypography.callout)
-                    .fontWeight(.medium)
-                    .foregroundStyle(AppColors.textPrimary)
-
+        return VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Where are you today?")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text("You can update this anytime.")
+                        .font(.system(size: 11, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
                 Spacer()
-
                 Text("\(displayRating)%")
-                    .font(AppTypography.callout)
-                    .fontWeight(.bold)
+                    .font(Font.custom("Sora-Bold", size: 22))
                     .foregroundStyle(AppColors.primary)
+                    .contentTransition(.numericText())
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7),
+                               value: displayRating)
             }
 
             if isAutoCalculated {
-                Text("Avg of subskills")
-                    .font(AppTypography.caption)
+                Label("Calculated from subskills", systemImage: "function")
+                    .font(.system(size: 12, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
             } else {
-                Slider(
+                PremiumRatingSlider(
                     value: Binding(
                         get: { viewModel.initialRating },
                         set: { viewModel.initialRating = $0 }
-                    ),
-                    in: 0...100,
-                    step: 1
+                    )
                 )
-                .tint(AppColors.primary)
             }
         }
-        .padding(AppSpacing.xs)
+        .padding(AppSpacing.sm)
         .background(AppColors.background)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
     }
 
     // MARK: - Create: Notes

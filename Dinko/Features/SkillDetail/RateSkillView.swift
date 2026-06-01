@@ -22,24 +22,22 @@ struct RateSkillView: View {
             VStack(spacing: AppSpacing.lg) {
                 Spacer()
 
-                Text("\(Int(rating))%")
-                    .font(AppTypography.ratingLarge)
-                    .foregroundStyle(AppColors.primary)
+                // Big live percentage
+                VStack(spacing: 4) {
+                    Text("\(Int(rating.rounded()))%")
+                        .font(AppTypography.ratingLarge)
+                        .foregroundStyle(AppColors.primary)
+                        .contentTransition(.numericText())
+                        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: Int(rating.rounded()))
 
-                VStack(spacing: AppSpacing.xxxs) {
-                    HStack {
-                        Text("0")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                        Spacer()
-                        Text("100")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-
-                    Slider(value: $rating, in: 0...100, step: 1)
-                        .tint(AppColors.primary)
+                    Text(skillName)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .lineLimit(1)
                 }
+
+                // Premium slider (level label shown below big %)
+                PremiumRatingSlider(value: $rating, showLevelLabel: true)
 
                 VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                     TextField("Notes (optional)", text: $notes, axis: .vertical)

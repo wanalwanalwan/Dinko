@@ -35,6 +35,7 @@
 		B1000001000000000000000E /* DrillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000E /* DrillCardView.swift */; };
 		B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000F /* CompletedSkillCardView.swift */; };
 		B10000010000000000000010 /* CoachMascot.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000010 /* CoachMascot.swift */; };
+		B10000010000000000000011 /* PremiumRatingSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000011 /* PremiumRatingSlider.swift */; };
 		C10000010000000000000001 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000001 /* Skill.swift */; };
 		C10000010000000000000002 /* ProgressChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000002 /* ProgressChecker.swift */; };
 		C10000010000000000000003 /* SkillRating.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000003 /* SkillRating.swift */; };
@@ -189,6 +190,7 @@
 		B2000001000000000000000E /* DrillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillCardView.swift; sourceTree = "<group>"; };
 		B2000001000000000000000F /* CompletedSkillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedSkillCardView.swift; sourceTree = "<group>"; };
 		B20000010000000000000010 /* CoachMascot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMascot.swift; sourceTree = "<group>"; };
+		B20000010000000000000011 /* PremiumRatingSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumRatingSlider.swift; sourceTree = "<group>"; };
 		C20000010000000000000001 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
 		C20000010000000000000002 /* ProgressChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressChecker.swift; sourceTree = "<group>"; };
 		C20000010000000000000003 /* SkillRating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRating.swift; sourceTree = "<group>"; };
@@ -441,6 +443,7 @@
 				B20000010000000000000009 /* CheckerItem.swift */,
 				B20000010000000000000010 /* CoachMascot.swift */,
 				B2000001000000000000000F /* CompletedSkillCardView.swift */,
+				B20000010000000000000011 /* PremiumRatingSlider.swift */,
 				B2000001000000000000000E /* DrillCardView.swift */,
 				B2000001000000000000000B /* MotivationalBanner.swift */,
 				B20000010000000000000005 /* PreviewData.swift */,
@@ -939,6 +942,7 @@
 				B1000001000000000000000E /* DrillCardView.swift in Sources */,
 				B1000001000000000000000F /* CompletedSkillCardView.swift in Sources */,
 				B10000010000000000000010 /* CoachMascot.swift in Sources */,
+				B10000010000000000000011 /* PremiumRatingSlider.swift in Sources */,
 				J10000010000000000000001 /* JournalEntry.swift in Sources */,
 				J10000010000000000000002 /* JournalEntryEntity+Ext.swift in Sources */,
 				J10000010000000000000003 /* JournalEntryRepository.swift in Sources */,
