@@ -28,10 +28,11 @@ struct RatingBadge: View {
             }
 
             // Gradient progress stroke.
-            // startAngle: 0 aligns with the Circle path's 3-o'clock origin;
-            // rotationEffect(-90) moves the visual start to 12-o'clock.
-            // Two-stop gradient gives a smooth light→dark sweep with no abrupt
-            // plateaus; colors are fixed so every tier looks consistent.
+            // startAngle is nudged to -10° so the gradient seam (where dark wraps
+            // back to light) falls at 350° — inside the arc's gap between its end
+            // and its start. At 0° (path start, visual 12-o'clock after rotation)
+            // the gradient is only 10/360 ≈ 3% through, essentially ringGradientStart,
+            // so the rounded start-cap is fully light and never clips the dark end.
             Circle()
                 .trim(from: 0, to: animatedProgress)
                 .stroke(
@@ -41,8 +42,8 @@ struct RatingBadge: View {
                             AppColors.ringGradientEnd
                         ],
                         center: .center,
-                        startAngle: .degrees(0),
-                        endAngle: .degrees(360)
+                        startAngle: .degrees(-10),
+                        endAngle: .degrees(350)
                     ),
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
