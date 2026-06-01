@@ -315,9 +315,10 @@ struct HomeView: View {
             // ── Header ─────────────────────────────────────────────────────
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Getting Started")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
+                    Text("GETTING STARTED")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .tracking(0.9)
+                        .foregroundStyle(AppColors.textSecondary)
                     Text(remaining == 1 ? "1 step remaining" : "\(remaining) steps remaining")
                         .font(.system(size: 12, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
@@ -434,9 +435,10 @@ struct HomeView: View {
 
     private func weeklyStatsSection(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("This Week")
-                .font(.system(size: 17, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
+            Text("THIS WEEK")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(0.9)
+                .foregroundStyle(AppColors.textSecondary)
 
             VStack(spacing: AppSpacing.xxs) {
                 HStack(spacing: AppSpacing.xxs) {
@@ -492,7 +494,8 @@ struct HomeView: View {
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.sm)
+        .padding(.vertical, AppSpacing.md)
+        .padding(.horizontal, AppSpacing.xs)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
         .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
