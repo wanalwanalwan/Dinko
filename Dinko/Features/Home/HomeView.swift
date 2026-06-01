@@ -6,19 +6,24 @@ struct HomeView: View {
     @Binding var selectedTab: Int
     @Binding var showSessionTypeSheet: Bool
     var refreshID: UUID = UUID()
+
     @State private var viewModel: HomeViewModel?
     @State private var contentReady = false
     @State private var showAddSkill = false
     @State private var showProfile = false
-    @State private var ringProgress: CGFloat = 0
     @State private var showAllAchievements = false
     @State private var celebratingAchievement: Achievement?
+
     @AppStorage("pkkl_has_seen_profile_prompt") private var hasSeenProfilePrompt = false
+    @AppStorage("pkkl_first_name") private var storedFirstName = ""
+    @State private var showNamePrompt = false
+    @State private var namePromptFirst = ""
+    @State private var namePromptLast = ""
 
     var body: some View {
         Group {
             if let viewModel {
-                homeContent(viewModel)
+                mainContent(viewModel)
             } else {
                 ProgressView()
             }
@@ -37,6 +42,12 @@ struct HomeView: View {
                 withAnimation { contentReady = true }
                 await vm.loadDashboard()
             }
+            if storedFirstName.isEmpty {
+                showNamePrompt = true
+            }
+        }
+        .sheet(isPresented: $showNamePrompt) {
+            namePromptSheet
         }
         .onAppear {
             if let viewModel {
@@ -72,10 +83,9 @@ struct HomeView: View {
                 ZStack {
                     Color.black.opacity(0.3).ignoresSafeArea()
                     VStack(spacing: AppSpacing.sm) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("Deleting account...")
-                            .font(AppTypography.callout)
+                        ProgressView().scaleEffect(1.2)
+                        Text("Deleting account…")
+                            .font(.system(size: 14, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
                     }
                     .padding(AppSpacing.lg)
@@ -88,340 +98,349 @@ struct HomeView: View {
 
     // MARK: - Main Content
 
-    @ViewBuilder
-    private func homeContent(_ viewModel: HomeViewModel) -> some View {
+    private func mainContent(_ viewModel: HomeViewModel) -> some View {
         ScrollView {
-            VStack(spacing: AppSpacing.md) {
-                heroSection(viewModel)
+            VStack(spacing: 20) {
+                headerSection(viewModel)
                     .staggeredAppearance(index: 0)
 
-                if !hasSeenProfilePrompt && !PlayerProfile.current().isComplete {
-                    completeProfileBanner
-                        .staggeredAppearance(index: 1)
+                heroGoalCard(viewModel)
+                    .staggeredAppearance(index: 1)
+
+                if !viewModel.allOnboardingComplete {
+                    gettingStartedSection(viewModel)
+                        .staggeredAppearance(index: 2)
                 }
 
-                coachRecommendationSection(viewModel)
-                    .staggeredAppearance(index: 2)
-
-                weeklyMomentumSection(viewModel)
+                weeklyStatsSection(viewModel)
                     .staggeredAppearance(index: 3)
 
-                skillsSpotlightSection(viewModel)
+                skillsSnapshotSection(viewModel)
                     .staggeredAppearance(index: 4)
 
-                achievementsSection(viewModel)
+                coachSection(viewModel)
                     .staggeredAppearance(index: 5)
+
+                achievementsSection(viewModel)
+                    .staggeredAppearance(index: 6)
             }
             .padding(.horizontal, AppSpacing.sm)
-            .padding(.top, AppSpacing.xxxs)
+            .padding(.top, AppSpacing.xxs)
             .padding(.bottom, AppSpacing.xl + 60)
             .contentLoadTransition(isLoaded: contentReady)
         }
-        .background(AppColors.backgroundGradient)
-        .refreshable {
-            await viewModel.loadDashboard()
-        }
-        .sheet(isPresented: $showProfile) {
-            ProfileView()
-        }
+        .background(homeBackground)
+        .refreshable { await viewModel.loadDashboard() }
+        .sheet(isPresented: $showProfile) { ProfileView() }
         .sheet(isPresented: $showAddSkill) {
             AddEditSkillView()
                 .presentationDetents([.medium])
-                .onDisappear {
-                    Task { await viewModel.loadDashboard() }
-                }
+                .onDisappear { Task { await viewModel.loadDashboard() } }
         }
     }
 
-    // MARK: - Hero Section
+    // MARK: - Background
 
-    private func heroSection(_ viewModel: HomeViewModel) -> some View {
-        let count = viewModel.thisWeekSessionCount
-        let goal = viewModel.weeklySessionGoal
-        let goalMet = count >= goal
-        let targetProgress = goal > 0
-            ? min(CGFloat(count) / CGFloat(goal), 1.0)
-            : 0
-
-        return VStack(spacing: AppSpacing.sm) {
-            // Top bar: greeting + profile avatar
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("\(viewModel.greetingText),")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    Text(viewModel.playerName)
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                }
-
-                Spacer()
-
-                Button {
-                    showProfile = true
-                } label: {
-                    Image(systemName: "person.crop.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundStyle(AppColors.primary.opacity(0.6))
-                }
-            }
-            .padding(.bottom, AppSpacing.xxxs)
-
-            // Progress ring hero card
-            progressRingCard(
-                count: count,
-                goal: goal,
-                goalMet: goalMet,
-                targetProgress: targetProgress,
-                viewModel: viewModel
+    private var homeBackground: some View {
+        ZStack {
+            AppColors.backgroundGradient.ignoresSafeArea()
+            RadialGradient(
+                colors: [AppColors.primary.opacity(0.07), .clear],
+                center: .init(x: 0.5, y: 0.0),
+                startRadius: 0,
+                endRadius: 320
             )
+            .ignoresSafeArea()
+        }
+    }
 
-            // Action buttons
-            HStack(spacing: AppSpacing.xs) {
-                // Primary CTA
-                Button {
-                    showSessionTypeSheet = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 13, weight: .bold))
-                        Text("Log Session")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
-                    .background(
-                        LinearGradient(
-                            colors: [AppColors.primary, AppColors.primaryDark],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .clipShape(Capsule())
-                    .shadow(color: AppColors.primary.opacity(0.2), radius: 6, y: 3)
-                }
-                .buttonStyle(.pressable)
+    // MARK: - Header
 
-                // Secondary CTA
-                Button {
-                    selectedTab = 1
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "bubble.left.fill")
-                            .font(.system(size: 12))
-                        Text("Coach")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    }
-                    .foregroundStyle(AppColors.primary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
-                    .background(AppColors.primaryTint)
-                    .clipShape(Capsule())
-                }
-                .buttonStyle(.pressable)
+    private func headerSection(_ viewModel: HomeViewModel) -> some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(viewModel.greetingText + ",")
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                Text(viewModel.playerName)
+                    .font(Font.custom("Sora-Bold", size: 28))
+                    .foregroundStyle(AppColors.textPrimary)
+            }
+            Spacer()
+            Button { showProfile = true } label: {
+                Image(systemName: "person.crop.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundStyle(AppColors.primary.opacity(0.55))
             }
         }
         .padding(.top, AppSpacing.xxs)
     }
 
-    // MARK: - Progress Ring Card
+    // MARK: - Hero Goal Card
 
-    private func progressRingCard(count: Int, goal: Int, goalMet: Bool, targetProgress: CGFloat, viewModel: HomeViewModel) -> some View {
-        let ringSize: CGFloat = 148
-        let strokeWidth: CGFloat = 14
-        let trackSize = ringSize - 16
-        let innerDiscSize = ringSize - strokeWidth * 2 - 20
-
-        return VStack(spacing: AppSpacing.xs) {
-            ZStack {
-                // Outer disc
-                Circle()
-                    .fill(AppColors.cardBackground)
-                    .shadow(color: .black.opacity(0.04), radius: 10, y: 4)
-
-                // Track ring
-                Circle()
-                    .stroke(AppColors.ringTrack, style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round))
-                    .frame(width: trackSize, height: trackSize)
-
-                // Progress arc
-                if ringProgress > 0 {
-                    Circle()
-                        .trim(from: 0, to: ringProgress)
-                        .stroke(
-                            AngularGradient(
-                                colors: [
-                                    AppColors.highlight,
-                                    AppColors.primaryLight,
-                                    AppColors.primary,
-                                ],
-                                center: .center,
-                                startAngle: .degrees(-90),
-                                endAngle: .degrees(270)
-                            ),
-                            style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
-                        )
-                        .frame(width: trackSize, height: trackSize)
-                        .rotationEffect(.degrees(-90))
-                        .shadow(color: AppColors.primaryLight.opacity(0.25), radius: 5, y: 2)
-                }
-
-                // Inner disc
-                Circle()
-                    .fill(AppColors.cardBackground)
-                    .frame(width: innerDiscSize, height: innerDiscSize)
-                    .shadow(color: .black.opacity(0.03), radius: 4, y: 2)
-
-                // Center content
-                VStack(spacing: 2) {
-                    if goalMet {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(AppColors.highlight)
-
-                        Text("Goal met!")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AppColors.highlight)
-                    } else {
-                        HStack(alignment: .firstTextBaseline, spacing: 1) {
-                            Text("\(count)")
-                                .font(.system(size: 34, weight: .bold, design: .rounded))
-                                .foregroundStyle(AppColors.textPrimary)
-                                .contentTransition(.numericText())
-                            Text("/\(goal)")
-                                .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-
-                        Text("sessions")
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                }
-                .frame(maxWidth: innerDiscSize - 16)
-            }
-            .frame(width: ringSize, height: ringSize)
-            .onChange(of: viewModel.isLoaded) {
-                animateRing(to: targetProgress)
-            }
-            .onAppear {
-                if viewModel.isLoaded {
-                    animateRing(to: targetProgress)
-                }
-            }
-
-            // Motivational text
-            Text(heroMessage(viewModel))
-                .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-                .multilineTextAlignment(.center)
-
-            // Streak badge
-            if viewModel.streakDays > 0 {
-                Label("\(viewModel.streakDays)-day streak", systemImage: "flame.fill")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.warningOrange)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(AppColors.warningOrange.opacity(0.1))
-                    .clipShape(Capsule())
-            }
-        }
-        .padding(.vertical, AppSpacing.sm)
-        .padding(.horizontal, AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
-    }
-
-    private func animateRing(to target: CGFloat) {
-        ringProgress = 0
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeInOut(duration: 1.2)) {
-                ringProgress = target
-            }
-        }
-    }
-
-    private func heroMessage(_ viewModel: HomeViewModel) -> String {
+    private func heroGoalCard(_ viewModel: HomeViewModel) -> some View {
         let count = viewModel.thisWeekSessionCount
-        let goal = viewModel.weeklySessionGoal
-        if count >= goal {
-            return "You hit your weekly goal!"
+        let goal  = viewModel.weeklySessionGoal
+        let progress = goal > 0 ? min(Double(count) / Double(goal), 1.0) : 0
+        let goalMet  = count >= goal
+
+        return VStack(alignment: .leading, spacing: AppSpacing.sm) {
+
+            // ── Top row: label + streak badge ──────────────────────────────
+            HStack {
+                Text("THIS WEEK")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .tracking(0.9)
+                    .foregroundStyle(AppColors.textSecondary)
+                Spacer()
+                if goalMet {
+                    Label("Goal met!", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.highlight)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(AppColors.highlight.opacity(0.12))
+                        .clipShape(Capsule())
+                } else if viewModel.streakDays > 0 {
+                    Label("\(viewModel.streakDays)-day streak", systemImage: "flame.fill")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.warningOrange)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(AppColors.warningOrange.opacity(0.1))
+                        .clipShape(Capsule())
+                }
+            }
+
+            // ── Big session count ───────────────────────────────────────────
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(count)")
+                    .font(Font.custom("Sora-Bold", size: 48))
+                    .foregroundStyle(goalMet ? AppColors.highlight : AppColors.textPrimary)
+                    .contentTransition(.numericText())
+                Text("/ \(goal) sessions")
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            // ── Progress track ─────────────────────────────────────────────
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(AppColors.ringTrack)
+                        .frame(height: 7)
+                    Capsule()
+                        .fill(LinearGradient(
+                            colors: goalMet
+                                ? [AppColors.highlight, AppColors.highlightLight]
+                                : [AppColors.primary, AppColors.primaryLight],
+                            startPoint: .leading, endPoint: .trailing
+                        ))
+                        .frame(width: max(geo.size.width * progress, progress > 0 ? 7 : 0), height: 7)
+                        .animation(.easeInOut(duration: 0.8), value: progress)
+                }
+            }
+            .frame(height: 7)
+
+            // ── Motivational copy ──────────────────────────────────────────
+            Text(heroMotivationCopy(count: count, goal: goal, goalMet: goalMet))
+                .font(.system(size: 14, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // ── Primary CTA ────────────────────────────────────────────────
+            Button {
+                showSessionTypeSheet = true
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .bold))
+                    Text(count == 0 ? "Log First Session" : "Log Session")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+                .clipShape(RoundedRectangle(cornerRadius: 13))
+                .shadow(color: AppColors.primary.opacity(0.28), radius: 8, y: 4)
+            }
+            .buttonStyle(.pressable)
         }
-        let remaining = goal - count
-        if remaining == 1 {
-            return "Just 1 more session to hit your goal!"
-        }
-        if count == 0 {
-            return "Start your week strong \u{2014} log your first session!"
-        }
-        return "\(remaining) more sessions to hit your goal!"
+        .padding(AppSpacing.sm)
+        .background(
+            LinearGradient(
+                stops: [
+                    .init(color: AppColors.primaryTint.opacity(0.55), location: 0),
+                    .init(color: AppColors.cardBackground,             location: 0.30),
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+        .shadow(color: Color.black.opacity(0.05), radius: 14, y: 5)
     }
 
-    // MARK: - Coach Recommendation
+    private func heroMotivationCopy(count: Int, goal: Int, goalMet: Bool) -> String {
+        if goalMet { return "You crushed your weekly goal. Keep the momentum going!" }
+        if count == 0 { return "Your first session unlocks personalized coaching insights and starts your streak." }
+        let left = goal - count
+        return left == 1
+            ? "One more session and you hit your weekly goal — you've got this."
+            : "\(left) sessions to go. Small steps create big improvements."
+    }
 
-    private func coachRecommendationSection(_ viewModel: HomeViewModel) -> some View {
-        Group {
-            if viewModel.totalActiveSkills > 0 {
-                HStack(spacing: AppSpacing.xs) {
-                    CoachMascot(state: viewModel.mascotState, size: 36)
+    // MARK: - Getting Started Checklist
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(viewModel.coachingMessage)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
+    private func gettingStartedSection(_ viewModel: HomeViewModel) -> some View {
+        let completed = viewModel.onboardingStepsCompleted
+        let remaining = 4 - completed
 
-                        Button {
-                            selectedTab = 2
-                        } label: {
-                            Text(viewModel.coachingActionLabel)
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(AppColors.primaryLight)
-                        }
-                    }
+        return VStack(alignment: .leading, spacing: 0) {
 
-                    Spacer(minLength: 0)
+            // ── Header ─────────────────────────────────────────────────────
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Getting Started")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text(remaining == 1 ? "1 step remaining" : "\(remaining) steps remaining")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
                 }
-                .padding(AppSpacing.sm)
-                .background(AppColors.coachCardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppColors.coachCardBorder.opacity(0.5), lineWidth: 0.5)
+                Spacer()
+                HStack(spacing: 5) {
+                    ForEach(0..<4, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(i < completed ? AppColors.primary : AppColors.ringTrack)
+                            .frame(width: 18, height: 4)
+                            .animation(.easeInOut(duration: 0.3), value: completed)
+                    }
+                }
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
+
+            Divider()
+                .padding(.horizontal, AppSpacing.sm)
+
+            // ── Steps ──────────────────────────────────────────────────────
+            VStack(spacing: 0) {
+                checklistRow(
+                    title: "Account Created",
+                    icon: "person.fill",
+                    isComplete: true,
+                    isNext: false,
+                    actionLabel: nil,
+                    action: nil
+                )
+                checklistRow(
+                    title: "Complete Profile",
+                    icon: "slider.horizontal.3",
+                    isComplete: viewModel.isProfileComplete,
+                    isNext: !viewModel.isProfileComplete,
+                    actionLabel: "Set up",
+                    action: { showProfile = true }
+                )
+                checklistRow(
+                    title: "Add First Skill",
+                    icon: "target",
+                    isComplete: viewModel.hasAnySkills,
+                    isNext: viewModel.isProfileComplete && !viewModel.hasAnySkills,
+                    actionLabel: "Add",
+                    action: { showAddSkill = true }
+                )
+                checklistRow(
+                    title: "Log First Session",
+                    icon: "figure.pickleball",
+                    isComplete: viewModel.hasLoggedAnySession,
+                    isNext: viewModel.isProfileComplete && viewModel.hasAnySkills && !viewModel.hasLoggedAnySession,
+                    actionLabel: "Log",
+                    action: { showSessionTypeSheet = true }
                 )
             }
+            .padding(.bottom, AppSpacing.xxs)
         }
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
     }
 
-    // MARK: - Weekly Momentum
+    private func checklistRow(
+        title: String,
+        icon: String,
+        isComplete: Bool,
+        isNext: Bool,
+        actionLabel: String?,
+        action: (() -> Void)?
+    ) -> some View {
+        HStack(spacing: AppSpacing.xs) {
+            ZStack {
+                Circle()
+                    .fill(isComplete
+                          ? AppColors.highlight.opacity(0.14)
+                          : isNext
+                          ? AppColors.primary.opacity(0.1)
+                          : AppColors.ringTrack.opacity(0.45))
+                    .frame(width: 30, height: 30)
+                Image(systemName: isComplete ? "checkmark" : icon)
+                    .font(.system(size: isComplete ? 11 : 12, weight: .semibold))
+                    .foregroundStyle(isComplete
+                                     ? AppColors.highlight
+                                     : isNext ? AppColors.primary : AppColors.lockedGray)
+            }
 
-    private func weeklyMomentumSection(_ viewModel: HomeViewModel) -> some View {
+            Text(title)
+                .font(.system(size: 14,
+                              weight: isNext ? .semibold : .regular,
+                              design: .rounded))
+                .foregroundStyle(isComplete ? AppColors.textSecondary : AppColors.textPrimary)
+                .strikethrough(isComplete, color: AppColors.textSecondary.opacity(0.6))
+
+            Spacer()
+
+            if !isComplete, isNext, let label = actionLabel, let action {
+                Button(action: action) {
+                    Text(label)
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12).padding(.vertical, 5)
+                        .background(AppColors.primary)
+                        .clipShape(Capsule())
+                }
+            }
+        }
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.vertical, 11)
+        .opacity(isComplete ? 0.65 : 1.0)
+    }
+
+    // MARK: - Weekly Stats
+
+    private func weeklyStatsSection(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
             Text("This Week")
                 .font(.system(size: 17, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
             HStack(spacing: AppSpacing.xxs) {
-                momentumTile(
+                statTile(
                     value: "\(viewModel.thisWeekSessionCount)",
                     label: "Sessions",
                     icon: "figure.pickleball",
                     color: AppColors.primary
                 )
-
-                momentumTile(
-                    value: "\(viewModel.streakDays)",
+                statTile(
+                    value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)" : "—",
                     label: "Day Streak",
                     icon: "flame.fill",
                     color: AppColors.warningOrange
                 )
-
-                momentumTile(
-                    value: "\(viewModel.improvedSkillCount)",
+                statTile(
+                    value: viewModel.improvedSkillCount > 0 ? "\(viewModel.improvedSkillCount)" : "—",
                     label: "Improved",
                     icon: "arrow.up.right",
                     color: AppColors.highlight
@@ -430,75 +449,42 @@ struct HomeView: View {
         }
     }
 
-    private func momentumTile(value: String, label: String, icon: String, color: Color) -> some View {
-        HStack(spacing: AppSpacing.xxs) {
+    private func statTile(value: String, label: String, icon: String, color: Color) -> some View {
+        VStack(spacing: 7) {
             ZStack {
                 Circle()
-                    .fill(color.opacity(0.1))
-                    .frame(width: 32, height: 32)
-
+                    .fill(color.opacity(0.12))
+                    .frame(width: 38, height: 38)
                 Image(systemName: icon)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(color)
             }
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(value)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Text(label)
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-            }
+            Text(value)
+                .font(Font.custom("Sora-Bold", size: 26))
+                .foregroundStyle(AppColors.textPrimary)
+                .contentTransition(.numericText())
+            Text(label)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, AppSpacing.xs)
-        .padding(.vertical, AppSpacing.xs)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.sm)
         .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .shadow(color: .black.opacity(0.03), radius: 6, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
     }
 
-    // MARK: - Skills Spotlight
+    // MARK: - Skills Snapshot
 
-    private func skillsSpotlightSection(_ viewModel: HomeViewModel) -> some View {
+    private func skillsSnapshotSection(_ viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
             SectionHeaderView(title: "Skills Snapshot", actionTitle: "See All") {
                 selectedTab = 2
             }
-
             if viewModel.skillsWithRatings.isEmpty {
-                VStack(spacing: AppSpacing.xs) {
-                    Image(systemName: "target")
-                        .font(.system(size: 28))
-                        .foregroundStyle(AppColors.primaryLight.opacity(0.5))
-
-                    Text("Add your first skill")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    Text("Track your pickleball skills and rate your progress.")
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
-
-                    Button {
-                        showAddSkill = true
-                    } label: {
-                        Text("Add Skill")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, AppSpacing.md)
-                            .padding(.vertical, AppSpacing.xxs)
-                            .background(AppColors.primary)
-                            .clipShape(Capsule())
-                    }
-                    .padding(.top, AppSpacing.xxxs)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.lg)
-                .infoCard()
+                skillsEmptyState
             } else {
                 let cards = buildSpotlightCards(viewModel)
                 VStack(spacing: AppSpacing.xxs) {
@@ -515,115 +501,128 @@ struct HomeView: View {
         }
     }
 
-    private struct SpotlightItem {
-        let skill: Skill
-        let rating: Int
-        let label: String
-        let labelColor: Color
-    }
-
-    private func buildSpotlightCards(_ viewModel: HomeViewModel) -> [SpotlightItem] {
-        var cards: [SpotlightItem] = []
-        var usedIds: Set<UUID> = []
-
-        if let weak = viewModel.weakestSkill {
-            cards.append(SpotlightItem(
-                skill: weak.skill,
-                rating: weak.rating,
-                label: "Needs Work",
-                labelColor: AppColors.coral
-            ))
-            usedIds.insert(weak.skill.id)
-        }
-
-        if let focus = viewModel.focusSkill, !usedIds.contains(focus.skill.id) {
-            cards.append(SpotlightItem(
-                skill: focus.skill,
-                rating: focus.rating,
-                label: "Focus",
-                labelColor: AppColors.warningOrange
-            ))
-            usedIds.insert(focus.skill.id)
-        }
-
-        if let strong = viewModel.strongestSkill, !usedIds.contains(strong.skill.id) {
-            cards.append(SpotlightItem(
-                skill: strong.skill,
-                rating: strong.rating,
-                label: "Strongest",
-                labelColor: AppColors.highlight
-            ))
-            usedIds.insert(strong.skill.id)
-        }
-
-        if cards.count < 3 {
-            for item in viewModel.skillsWithRatings where !usedIds.contains(item.skill.id) {
-                cards.append(SpotlightItem(
-                    skill: item.skill,
-                    rating: item.rating,
-                    label: "",
-                    labelColor: .clear
-                ))
-                usedIds.insert(item.skill.id)
-                if cards.count >= 3 { break }
-            }
-        }
-
-        return Array(cards.prefix(3))
-    }
-
-    private func spotlightCard(skill: Skill, rating: Int, label: String, labelColor: Color) -> some View {
-        let tier = SkillTier(rating: rating)
-
-        return HStack(spacing: AppSpacing.xs) {
-            // Icon
+    private var skillsEmptyState: some View {
+        VStack(spacing: AppSpacing.sm) {
             ZStack {
                 Circle()
-                    .fill(tier.color.opacity(0.1))
-                    .frame(width: 34, height: 34)
-
-                Text(skill.iconName)
-                    .font(.system(size: 15))
+                    .fill(AppColors.primaryTint)
+                    .frame(width: 54, height: 54)
+                Image(systemName: "target")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(AppColors.primary)
             }
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 5) {
-                    Text(skill.name)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                        .lineLimit(1)
+            VStack(spacing: 5) {
+                Text("Build your skill map")
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Track the specific shots and skills\nthat make a great pickleball player.")
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+            }
 
-                    if !label.isEmpty {
-                        Text(label)
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(labelColor)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(labelColor.opacity(0.1))
-                            .clipShape(Capsule())
+            VStack(spacing: 6) {
+                Text("Popular in pickleball:")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+
+                HStack(spacing: 6) {
+                    ForEach(["🎯 Dinking", "🏓 Serve", "💨 Drive"], id: \.self) { name in
+                        skillPill(name)
                     }
                 }
-
-                ProgressBar(progress: Double(rating) / 100.0, tint: tier.color)
+                HStack(spacing: 6) {
+                    ForEach(["🔄 Third Shot", "⚡️ Speed-Up", "📍 Volley"], id: \.self) { name in
+                        skillPill(name)
+                    }
+                }
             }
 
-            Text("\(rating)%")
-                .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(tier.color)
-                .frame(width: 40, alignment: .trailing)
+            Button { showAddSkill = true } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                    Text("Add First Skill")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(AppColors.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .buttonStyle(.pressable)
         }
-        .padding(.horizontal, AppSpacing.xs)
-        .padding(.vertical, AppSpacing.xs)
+        .padding(AppSpacing.sm)
+        .frame(maxWidth: .infinity)
         .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .shadow(color: .black.opacity(0.03), radius: 6, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
+    }
+
+    private func skillPill(_ label: String) -> some View {
+        Text(label)
+            .font(.system(size: 12, weight: .medium, design: .rounded))
+            .foregroundStyle(AppColors.textPrimary)
+            .padding(.horizontal, 10).padding(.vertical, 5)
+            .background(AppColors.primaryTint.opacity(0.7))
+            .clipShape(Capsule())
+    }
+
+    // MARK: - Coach Section
+
+    private func coachSection(_ viewModel: HomeViewModel) -> some View {
+        Group {
+            if !viewModel.hasLoggedAnySession {
+                HStack(spacing: AppSpacing.xs) {
+                    CoachMascot(state: .idle, size: 30)
+                    Text("Log your first session to unlock personalized coaching insights.")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+                .padding(AppSpacing.sm)
+                .background(AppColors.coachCardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+                        .stroke(AppColors.coachCardBorder.opacity(0.5), lineWidth: 0.5)
+                )
+            } else if viewModel.totalActiveSkills > 0 {
+                HStack(spacing: AppSpacing.xs) {
+                    CoachMascot(state: viewModel.mascotState, size: 36)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(viewModel.coachingMessage)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button { selectedTab = 2 } label: {
+                            Text(viewModel.coachingActionLabel)
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .foregroundStyle(AppColors.primaryLight)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(AppSpacing.sm)
+                .background(AppColors.coachCardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+                        .stroke(AppColors.coachCardBorder.opacity(0.5), lineWidth: 0.5)
+                )
+            }
+        }
     }
 
     // MARK: - Achievements
 
     private func achievementsSection(_ viewModel: HomeViewModel) -> some View {
         let unlocked = viewModel.achievements.filter(\.isUnlocked)
-        let locked = viewModel.achievements.filter { !$0.isUnlocked }
+        let locked   = viewModel.achievements.filter { !$0.isUnlocked }
 
         return VStack(alignment: .leading, spacing: AppSpacing.xs) {
             SectionHeaderView(title: "Badges", actionTitle: "See All") {
@@ -637,36 +636,26 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.sm) {
                     ForEach(unlocked.reversed(), id: \.achievement.id) { item in
-                        AchievementBadge(
-                            name: item.achievement.name,
-                            iconName: item.achievement.iconName,
-                            isUnlocked: true,
-                            badgeColor: item.achievement.color
-                        )
+                        AchievementBadge(name: item.achievement.name,
+                                         iconName: item.achievement.iconName,
+                                         isUnlocked: true,
+                                         badgeColor: item.achievement.color)
                     }
-
                     ForEach(locked.prefix(4), id: \.achievement.id) { item in
-                        AchievementBadge(
-                            name: item.achievement.name,
-                            iconName: item.achievement.iconName,
-                            isUnlocked: false,
-                            badgeColor: item.achievement.color
-                        )
+                        AchievementBadge(name: item.achievement.name,
+                                         iconName: item.achievement.iconName,
+                                         isUnlocked: false,
+                                         badgeColor: item.achievement.color)
                     }
                 }
                 .padding(.vertical, AppSpacing.xxs)
             }
 
             if let newest = viewModel.newlyUnlockedAchievements.first, celebratingAchievement == nil {
-                Color.clear
-                    .onAppear {
-                        celebratingAchievement = newest
-                    }
+                Color.clear.onAppear { celebratingAchievement = newest }
             }
         }
-        .sheet(isPresented: $showAllAchievements) {
-            allAchievementsSheet(viewModel)
-        }
+        .sheet(isPresented: $showAllAchievements) { allAchievementsSheet(viewModel) }
         .overlay {
             if let achievement = celebratingAchievement {
                 achievementCelebration(achievement)
@@ -674,44 +663,103 @@ struct HomeView: View {
         }
     }
 
-    private func achievementCelebration(_ achievement: Achievement) -> some View {
-        ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    withAnimation(AppAnimations.springSmooth) {
-                        celebratingAchievement = nil
+    // MARK: - Spotlight Cards (data state)
+
+    private struct SpotlightItem {
+        let skill: Skill; let rating: Int; let label: String; let labelColor: Color
+    }
+
+    private func buildSpotlightCards(_ viewModel: HomeViewModel) -> [SpotlightItem] {
+        var cards: [SpotlightItem] = []
+        var used: Set<UUID> = []
+
+        if let weak = viewModel.weakestSkill {
+            cards.append(.init(skill: weak.skill, rating: weak.rating, label: "Needs Work", labelColor: AppColors.coral))
+            used.insert(weak.skill.id)
+        }
+        if let focus = viewModel.focusSkill, !used.contains(focus.skill.id) {
+            cards.append(.init(skill: focus.skill, rating: focus.rating, label: "Focus", labelColor: AppColors.warningOrange))
+            used.insert(focus.skill.id)
+        }
+        if let strong = viewModel.strongestSkill, !used.contains(strong.skill.id) {
+            cards.append(.init(skill: strong.skill, rating: strong.rating, label: "Strongest", labelColor: AppColors.highlight))
+            used.insert(strong.skill.id)
+        }
+        if cards.count < 3 {
+            for item in viewModel.skillsWithRatings where !used.contains(item.skill.id) {
+                cards.append(.init(skill: item.skill, rating: item.rating, label: "", labelColor: .clear))
+                used.insert(item.skill.id)
+                if cards.count >= 3 { break }
+            }
+        }
+        return Array(cards.prefix(3))
+    }
+
+    private func spotlightCard(skill: Skill, rating: Int, label: String, labelColor: Color) -> some View {
+        let tier = SkillTier(rating: rating)
+        return HStack(spacing: AppSpacing.xs) {
+            ZStack {
+                Circle().fill(tier.color.opacity(0.1)).frame(width: 34, height: 34)
+                Text(skill.iconName).font(.system(size: 15))
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 5) {
+                    Text(skill.name)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .lineLimit(1)
+                    if !label.isEmpty {
+                        Text(label)
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(labelColor)
+                            .padding(.horizontal, 5).padding(.vertical, 2)
+                            .background(labelColor.opacity(0.1))
+                            .clipShape(Capsule())
                     }
                 }
+                ProgressBar(progress: Double(rating) / 100.0, tint: tier.color)
+            }
+            Text("\(rating)%")
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(tier.color)
+                .frame(width: 40, alignment: .trailing)
+        }
+        .padding(.horizontal, AppSpacing.xs)
+        .padding(.vertical, AppSpacing.xs)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
+        .shadow(color: Color.black.opacity(0.03), radius: 6, y: 2)
+    }
 
+    // MARK: - Achievement Celebration
+
+    private func achievementCelebration(_ achievement: Achievement) -> some View {
+        ZStack {
+            Color.black.opacity(0.4).ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(AppAnimations.springSmooth) { celebratingAchievement = nil }
+                }
             VStack(spacing: AppSpacing.sm) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(achievement.color)
                         .frame(width: 72, height: 72)
-
                     Image(systemName: achievement.iconName)
                         .font(.system(size: 32))
                         .foregroundStyle(AppColors.textPrimary)
                 }
-
                 Text("Badge Earned!")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
-
                 Text(achievement.name)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundStyle(achievement.color)
-
                 Text(achievement.description)
                     .font(.system(size: 13, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
-
                 Button {
-                    withAnimation(AppAnimations.springSmooth) {
-                        celebratingAchievement = nil
-                    }
+                    withAnimation(AppAnimations.springSmooth) { celebratingAchievement = nil }
                 } label: {
                     Text("Nice!")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
@@ -726,7 +774,7 @@ struct HomeView: View {
             .padding(AppSpacing.lg)
             .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: .black.opacity(0.12), radius: 20, y: 8)
+            .shadow(color: Color.black.opacity(0.12), radius: 20, y: 8)
             .padding(.horizontal, AppSpacing.xl)
             .transition(.scale(scale: 0.8).combined(with: .opacity))
         }
@@ -736,18 +784,14 @@ struct HomeView: View {
     private func allAchievementsSheet(_ viewModel: HomeViewModel) -> some View {
         NavigationStack {
             ScrollView {
-                LazyVGrid(columns: [
-                    GridItem(.adaptive(minimum: 80), spacing: AppSpacing.sm)
-                ], spacing: AppSpacing.md) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 80), spacing: AppSpacing.sm)],
+                          spacing: AppSpacing.md) {
                     ForEach(viewModel.achievements, id: \.achievement.id) { item in
                         VStack(spacing: AppSpacing.xxs) {
-                            AchievementBadge(
-                                name: item.achievement.name,
-                                iconName: item.achievement.iconName,
-                                isUnlocked: item.isUnlocked,
-                                badgeColor: item.achievement.color
-                            )
-
+                            AchievementBadge(name: item.achievement.name,
+                                             iconName: item.achievement.iconName,
+                                             isUnlocked: item.isUnlocked,
+                                             badgeColor: item.achievement.color)
                             Text(item.achievement.description)
                                 .font(.system(size: 10, design: .rounded))
                                 .foregroundStyle(item.isUnlocked ? AppColors.textSecondary : AppColors.lockedGray)
@@ -769,47 +813,68 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Complete Profile Banner
+    // MARK: - Name Prompt Sheet
 
-    private var completeProfileBanner: some View {
-        HStack(spacing: AppSpacing.xs) {
-            Image(systemName: "person.crop.circle.badge.exclamationmark")
-                .font(.system(size: 18))
-                .foregroundStyle(AppColors.primaryLight)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Complete your profile")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-                Text("Get personalized coaching tips")
-                    .font(.system(size: 11, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-
+    private var namePromptSheet: some View {
+        VStack(spacing: AppSpacing.lg) {
             Spacer()
 
-            Button {
-                showProfile = true
-            } label: {
-                Text("Set up")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(AppColors.primary)
-                    .clipShape(Capsule())
+            CoachMascot(state: .idle, size: 64, animated: true)
+
+            VStack(spacing: AppSpacing.xxs) {
+                Text("What's your name?")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("We'll use it to personalize your experience.")
+                    .font(.system(size: 14, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
             }
 
-            Button {
-                withAnimation { hasSeenProfilePrompt = true }
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .frame(width: 22, height: 22)
+            VStack(spacing: AppSpacing.xs) {
+                TextField("First Name", text: $namePromptFirst)
+                    .textContentType(.givenName)
+                    .autocorrectionDisabled()
+                    .padding(AppSpacing.xs)
+                    .background(AppColors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                TextField("Last Name", text: $namePromptLast)
+                    .textContentType(.familyName)
+                    .autocorrectionDisabled()
+                    .padding(AppSpacing.xs)
+                    .background(AppColors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+            .padding(.horizontal, AppSpacing.lg)
+
+            Button {
+                let first = namePromptFirst.trimmingCharacters(in: .whitespacesAndNewlines)
+                let last  = namePromptLast.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !first.isEmpty {
+                    storedFirstName = first
+                    UserDefaults.standard.set(last, forKey: "pkkl_last_name")
+                    if let vm = viewModel { Task { await vm.loadDashboard() } }
+                }
+                showNamePrompt = false
+            } label: {
+                Text(namePromptFirst.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Skip" : "Continue")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.sm)
+                    .background(namePromptFirst.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                ? AppColors.textSecondary.opacity(0.5)
+                                : AppColors.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(.horizontal, AppSpacing.lg)
+
+            Spacer()
         }
-        .infoCard()
+        .background(AppColors.background)
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }
 

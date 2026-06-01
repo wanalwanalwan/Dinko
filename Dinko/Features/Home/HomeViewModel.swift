@@ -178,6 +178,17 @@ final class HomeViewModel {
     private(set) var isLoaded = false
     var errorMessage: String?
 
+    // MARK: - Onboarding Progress
+
+    var isProfileComplete: Bool { PlayerProfile.current().isComplete }
+    var hasAnySkills: Bool { totalActiveSkills > 0 || !completedSkills.isEmpty }
+    var hasLoggedAnySession: Bool { totalSessionsAllTime > 0 }
+
+    var onboardingStepsCompleted: Int {
+        [true, isProfileComplete, hasAnySkills, hasLoggedAnySession].filter { $0 }.count
+    }
+    var allOnboardingComplete: Bool { onboardingStepsCompleted >= 4 }
+
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
