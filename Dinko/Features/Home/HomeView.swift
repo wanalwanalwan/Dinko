@@ -342,15 +342,7 @@ struct HomeView: View {
             .padding(.top, 4)
         }
         .padding(AppSpacing.sm)
-        .background(
-            LinearGradient(
-                stops: [
-                    .init(color: AppColors.primaryTint.opacity(0.45), location: 0),
-                    .init(color: AppColors.cardBackground, location: 0.28),
-                ],
-                startPoint: .top, endPoint: .bottom
-            )
-        )
+        .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
         .shadow(color: Color.black.opacity(0.05), radius: 14, y: 5)
     }
