@@ -19,22 +19,77 @@ struct SkillListView: View {
         .navigationDestination(for: Skill.self) { skill in
             SkillDetailView(skill: skill)
         }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
+        .overlay(alignment: .bottomTrailing) {
+            // FAB — fades/scales out when form is open
+            Button {
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
                     showingAddSkill = true
-                } label: {
+                }
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(AppColors.primary)
+                        .frame(width: 58, height: 58)
+                        .shadow(color: AppColors.primary.opacity(0.35), radius: 0, y: 3)
+                        .shadow(color: AppColors.primary.opacity(0.18), radius: 10, y: 6)
+                    // Gloss highlight
+                    Circle()
+                        .fill(
+                            LinearGradient(colors: [.white.opacity(0.18), .clear],
+                                           startPoint: .top, endPoint: .center)
+                        )
+                        .frame(width: 58, height: 58)
                     Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .rotationEffect(.degrees(showingAddSkill ? 45 : 0))
                 }
             }
+            .buttonStyle(.pressable)
+            .padding(.trailing, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.md)
+            .scaleEffect(showingAddSkill ? 0.001 : 1)
+            .opacity(showingAddSkill ? 0 : 1)
+            .animation(.spring(response: 0.38, dampingFraction: 0.75), value: showingAddSkill)
         }
-        .sheet(isPresented: $showingAddSkill, onDismiss: {
-            if let viewModel {
-                Task { await viewModel.loadSkills() }
+        .overlay {
+            if showingAddSkill {
+                // Backdrop
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+                            showingAddSkill = false
+                        }
+                    }
+                    .zIndex(1)
+
+                // Form card — expands from FAB (bottom-trailing anchor)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 80)
+                    AddEditSkillView(onDismiss: {
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+                            showingAddSkill = false
+                        }
+                        if let viewModel {
+                            Task { await viewModel.loadSkills() }
+                        }
+                    })
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                }
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.001,
+                                      anchor: .init(x: 0.93, y: 0.97))
+                        .combined(with: .opacity),
+                    removal: .scale(scale: 0.001,
+                                    anchor: .init(x: 0.93, y: 0.97))
+                        .combined(with: .opacity)
+                ))
+                .zIndex(2)
             }
-        }) {
-            AddEditSkillView()
         }
+        .animation(.spring(response: 0.45, dampingFraction: 0.78), value: showingAddSkill)
         .alert("Error", isPresented: Binding(
             get: { viewModel?.errorMessage != nil },
             set: { if !$0 { viewModel?.errorMessage = nil } }
@@ -87,7 +142,7 @@ struct SkillListView: View {
                 }
                 .padding(.horizontal, AppSpacing.sm)
                 .padding(.top, AppSpacing.xxs)
-                .padding(.bottom, AppSpacing.xl)
+                .padding(.bottom, AppSpacing.xl + 70) // clear the FAB
                 .contentLoadTransition(isLoaded: contentReady)
             }
             .background(AppColors.backgroundGradient)

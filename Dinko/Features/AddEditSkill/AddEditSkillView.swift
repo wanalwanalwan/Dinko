@@ -7,10 +7,16 @@ struct AddEditSkillView: View {
     @State private var showingAddSubskill = false
     let skill: Skill?
     let parentSkillId: UUID?
+    var onDismiss: (() -> Void)?
 
-    init(skill: Skill? = nil, parentSkillId: UUID? = nil) {
+    init(skill: Skill? = nil, parentSkillId: UUID? = nil, onDismiss: (() -> Void)? = nil) {
         self.skill = skill
         self.parentSkillId = parentSkillId
+        self.onDismiss = onDismiss
+    }
+
+    private func performDismiss() {
+        if let onDismiss { onDismiss() } else { dismiss() }
     }
 
     var body: some View {
@@ -43,30 +49,48 @@ struct AddEditSkillView: View {
 
     private func createFormContent(_ viewModel: AddEditSkillViewModel) -> some View {
         VStack(spacing: 0) {
-            // Header
-            HStack(alignment: .center) {
-                Text(viewModel.navigationTitle)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Spacer()
-
-                Button("Cancel") { dismiss() }
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.top, AppSpacing.sm)
-            .padding(.bottom, AppSpacing.xs)
-
-            Divider()
-                .padding(.bottom, AppSpacing.xs)
+            // Drag handle
+            Capsule()
+                .fill(AppColors.separator)
+                .frame(width: 36, height: 4)
+                .padding(.top, 10)
+                .padding(.bottom, 4)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    createNameField(viewModel)
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+
+                    // Header row
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(viewModel.navigationTitle)
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Spacer()
+                        Button("Cancel") { performDismiss() }
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding(.top, AppSpacing.xs)
+
+                    // Name field
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("SKILL NAME")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .tracking(0.8)
+                            .foregroundStyle(AppColors.textSecondary)
+                        createNameField(viewModel)
+                    }
+
+                    // Rating
                     createStartingLevel(viewModel)
-                    createNotes(viewModel)
+
+                    // Notes
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("NOTES")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .tracking(0.8)
+                            .foregroundStyle(AppColors.textSecondary)
+                        createNotes(viewModel)
+                    }
 
                     if let error = viewModel.errorMessage {
                         Text(error)
@@ -76,9 +100,9 @@ struct AddEditSkillView: View {
 
                     createButton(viewModel)
                         .padding(.top, AppSpacing.xxs)
+                        .padding(.bottom, AppSpacing.lg)
                 }
                 .padding(.horizontal, AppSpacing.sm)
-                .padding(.bottom, AppSpacing.lg)
             }
             .scrollDismissesKeyboard(.interactively)
             .onTapGesture {
@@ -87,8 +111,8 @@ struct AddEditSkillView: View {
         }
         .background(AppColors.cardBackground)
         .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-        .presentationCornerRadius(20)
+        .presentationDragIndicator(.hidden) // we draw our own
+        .presentationCornerRadius(24)
     }
 
     // MARK: - Create: Name Field
@@ -179,7 +203,7 @@ struct AddEditSkillView: View {
         return Button {
             Task {
                 if await viewModel.save() {
-                    dismiss()
+                    performDismiss()
                 }
             }
         } label: {
