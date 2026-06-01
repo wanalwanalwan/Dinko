@@ -182,6 +182,32 @@ final class HomeViewModel {
         weeklySkillMovers.filter { $0.delta > 0 }.count
     }
 
+    /// Composite 0–100 score across skill level, consistency, momentum, and engagement.
+    var brineScore: Int {
+        // Skill level: 40 pts (average rating scaled)
+        let skillPts = Double(averageRating) * 0.40
+
+        // Consistency: 25 pts
+        let streakPts   = min(Double(streakDays), 14.0) / 14.0 * 15.0
+        let sessionPts  = weeklySessionGoal > 0
+            ? min(Double(thisWeekSessionCount), Double(weeklySessionGoal)) / Double(weeklySessionGoal) * 10.0
+            : 0.0
+
+        // Momentum: 20 pts (improving skills / tracked skills)
+        let improving   = Double(weeklySkillMovers.filter { $0.delta > 0 }.count)
+        let tracked     = Double(max(totalActiveSkills, 1))
+        let momentumPts = min(improving / tracked, 1.0) * 20.0
+
+        // Engagement: 15 pts (using app features)
+        var engagePts = 0.0
+        if totalActiveSkills > 0      { engagePts += 5 }
+        if totalSessionsAllTime > 0   { engagePts += 5 }
+        if !recommendedDrills.isEmpty { engagePts += 3 }
+        if !completedSkills.isEmpty   { engagePts += 2 }
+
+        return min(100, Int(skillPts + streakPts + sessionPts + momentumPts + engagePts))
+    }
+
     private(set) var isLoaded = false
     var errorMessage: String?
 

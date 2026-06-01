@@ -116,7 +116,7 @@ struct HomeView: View {
                 headerSection(viewModel)
                     .staggeredAppearance(index: 0)
 
-                heroGoalCard(viewModel)
+                brineScoreCard(viewModel)
                     .staggeredAppearance(index: 1)
 
                 if !viewModel.allOnboardingComplete {
@@ -185,19 +185,18 @@ struct HomeView: View {
         .padding(.top, AppSpacing.xxs)
     }
 
-    // MARK: - Hero Goal Card
+    // MARK: - Brine Score Card
 
-    private func heroGoalCard(_ viewModel: HomeViewModel) -> some View {
-        let count = viewModel.thisWeekSessionCount
-        let goal  = viewModel.weeklySessionGoal
-        let progress = goal > 0 ? min(Double(count) / Double(goal), 1.0) : 0
-        let goalMet  = count >= goal
+    private func brineScoreCard(_ viewModel: HomeViewModel) -> some View {
+        let score   = viewModel.brineScore
+        let color   = brineScoreColor(score)
+        let goalMet = viewModel.thisWeekSessionCount >= viewModel.weeklySessionGoal
 
-        return VStack(alignment: .leading, spacing: AppSpacing.sm) {
+        return VStack(spacing: AppSpacing.sm) {
 
-            // ── Top row: label + streak badge ──────────────────────────────
+            // ── Top row ────────────────────────────────────────────────────
             HStack {
-                Text("THIS WEEK")
+                Text("BRINE SCORE")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .tracking(0.9)
                     .foregroundStyle(AppColors.textSecondary)
@@ -219,51 +218,55 @@ struct HomeView: View {
                 }
             }
 
-            // ── Big session count ───────────────────────────────────────────
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(count)")
-                    .font(Font.custom("Sora-Bold", size: 48))
-                    .foregroundStyle(goalMet ? AppColors.highlight : AppColors.textPrimary)
-                    .contentTransition(.numericText())
-                Text("/ \(goal) sessions")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-            }
+            // ── Gauge ──────────────────────────────────────────────────────
+            ZStack {
+                // Track arc (270°, open at bottom)
+                Circle()
+                    .trim(from: 0, to: 0.75)
+                    .stroke(AppColors.ringTrack, style: StrokeStyle(lineWidth: 11, lineCap: .round))
+                    .rotationEffect(.degrees(135))
 
-            // ── Progress track ─────────────────────────────────────────────
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(AppColors.ringTrack)
-                        .frame(height: 7)
-                    Capsule()
-                        .fill(LinearGradient(
-                            colors: goalMet
-                                ? [AppColors.highlight, AppColors.highlightLight]
-                                : [AppColors.primary, AppColors.primaryLight],
+                // Progress arc
+                Circle()
+                    .trim(from: 0, to: max(CGFloat(score) / 100.0 * 0.75, score > 0 ? 0.01 : 0))
+                    .stroke(
+                        LinearGradient(
+                            colors: [color.opacity(0.75), color],
                             startPoint: .leading, endPoint: .trailing
-                        ))
-                        .frame(width: max(geo.size.width * progress, progress > 0 ? 7 : 0), height: 7)
-                        .animation(.easeInOut(duration: 0.8), value: progress)
+                        ),
+                        style: StrokeStyle(lineWidth: 11, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(135))
+                    .animation(.easeOut(duration: 1.0), value: score)
+
+                // Center
+                VStack(spacing: 1) {
+                    Text("\(score)")
+                        .font(Font.custom("Sora-Bold", size: 46))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .contentTransition(.numericText())
+                    Text("out of 100")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
                 }
             }
-            .frame(height: 7)
+            .frame(width: 152, height: 152)
+            .padding(.vertical, 4)
 
-            // ── Motivational copy ──────────────────────────────────────────
-            Text(heroMotivationCopy(count: count, goal: goal, goalMet: goalMet))
-                .font(.system(size: 14, design: .rounded))
+            // ── Tagline ────────────────────────────────────────────────────
+            Text(brineScoreLabel(score))
+                .font(.system(size: 13, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
+                .multilineTextAlignment(.center)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
 
-            // ── Primary CTA ────────────────────────────────────────────────
-            Button {
-                showSessionTypeSheet = true
-            } label: {
+            // ── CTA ────────────────────────────────────────────────────────
+            Button { showSessionTypeSheet = true } label: {
                 HStack(spacing: 7) {
                     Image(systemName: "plus")
                         .font(.system(size: 13, weight: .bold))
-                    Text(count == 0 ? "Log First Session" : "Log Session")
+                    Text(viewModel.thisWeekSessionCount == 0 ? "Log First Session" : "Log Session")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                 }
                 .foregroundStyle(.white)
@@ -278,9 +281,8 @@ struct HomeView: View {
             }
             .buttonStyle(.pressable)
 
-            // ── Inline stats strip ─────────────────────────────────────────
-            Divider()
-                .padding(.top, 2)
+            // ── Stats strip ────────────────────────────────────────────────
+            Divider().padding(.top, 2)
 
             HStack(spacing: 0) {
                 inlineStat(value: "\(viewModel.thisWeekSessionCount)",
@@ -309,8 +311,8 @@ struct HomeView: View {
         .background(
             LinearGradient(
                 stops: [
-                    .init(color: AppColors.primaryTint.opacity(0.55), location: 0),
-                    .init(color: AppColors.cardBackground,             location: 0.30),
+                    .init(color: AppColors.primaryTint.opacity(0.45), location: 0),
+                    .init(color: AppColors.cardBackground, location: 0.28),
                 ],
                 startPoint: .top, endPoint: .bottom
             )
@@ -319,13 +321,25 @@ struct HomeView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 14, y: 5)
     }
 
-    private func heroMotivationCopy(count: Int, goal: Int, goalMet: Bool) -> String {
-        if goalMet { return "You crushed your weekly goal. Keep the momentum going!" }
-        if count == 0 { return "Your first session unlocks personalized coaching insights and starts your streak." }
-        let left = goal - count
-        return left == 1
-            ? "One more session and you hit your weekly goal — you've got this."
-            : "\(left) sessions to go. Small steps create big improvements."
+    private func brineScoreColor(_ score: Int) -> Color {
+        switch score {
+        case 0..<35:  return AppColors.coral
+        case 35..<55: return AppColors.warningOrange
+        case 55..<75: return AppColors.highlight
+        default:      return AppColors.successGreen
+        }
+    }
+
+    private func brineScoreLabel(_ score: Int) -> String {
+        switch score {
+        case 0..<20:  return "Just getting started — every session counts."
+        case 20..<40: return "Building the habit. Keep showing up."
+        case 40..<55: return "Finding your rhythm. Good consistency."
+        case 55..<70: return "Solid form. Your game is developing well."
+        case 70..<85: return "Strong all around. You're dialing it in."
+        case 85..<95: return "Elite consistency. Top of the court."
+        default:      return "All-court weapon. You're the real dill. 🥒"
+        }
     }
 
     // MARK: - Getting Started Checklist
