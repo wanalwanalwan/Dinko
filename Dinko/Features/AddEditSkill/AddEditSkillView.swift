@@ -43,34 +43,29 @@ struct AddEditSkillView: View {
 
     private func createFormContent(_ viewModel: AddEditSkillViewModel) -> some View {
         VStack(spacing: 0) {
-            // Drag handle
-            Capsule()
-                .fill(Color(.systemGray4))
-                .frame(width: 36, height: 5)
-                .padding(.top, AppSpacing.xxs)
-                .padding(.bottom, AppSpacing.xs)
-
             // Header
-            HStack {
+            HStack(alignment: .center) {
                 Text(viewModel.navigationTitle)
-                    .font(AppTypography.title)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
                 Spacer()
 
                 Button("Cancel") { dismiss() }
-                    .font(AppTypography.callout)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
             }
             .padding(.horizontal, AppSpacing.sm)
-            .padding(.bottom, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
+
+            Divider()
+                .padding(.bottom, AppSpacing.xs)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
                     createNameField(viewModel)
-
                     createStartingLevel(viewModel)
-
                     createNotes(viewModel)
 
                     if let error = viewModel.errorMessage {
@@ -92,7 +87,8 @@ struct AddEditSkillView: View {
         }
         .background(AppColors.cardBackground)
         .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.hidden)
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(20)
     }
 
     // MARK: - Create: Name Field
