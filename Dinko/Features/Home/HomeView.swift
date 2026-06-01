@@ -438,25 +438,35 @@ struct HomeView: View {
                 .font(.system(size: 17, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
-            HStack(spacing: AppSpacing.xxs) {
-                statTile(
-                    value: "\(viewModel.thisWeekSessionCount)",
-                    label: "Sessions",
-                    icon: "figure.pickleball",
-                    color: AppColors.primary
-                )
-                statTile(
-                    value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)" : "—",
-                    label: "Day Streak",
-                    icon: "flame.fill",
-                    color: AppColors.warningOrange
-                )
-                statTile(
-                    value: viewModel.improvedSkillCount > 0 ? "\(viewModel.improvedSkillCount)" : "—",
-                    label: "Improved",
-                    icon: "arrow.up.right",
-                    color: AppColors.highlight
-                )
+            VStack(spacing: AppSpacing.xxs) {
+                HStack(spacing: AppSpacing.xxs) {
+                    statTile(
+                        value: "\(viewModel.thisWeekSessionCount)",
+                        label: "Sessions",
+                        icon: "figure.pickleball",
+                        color: AppColors.primary
+                    )
+                    statTile(
+                        value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)" : "—",
+                        label: "Day Streak",
+                        icon: "flame.fill",
+                        color: AppColors.warningOrange
+                    )
+                }
+                HStack(spacing: AppSpacing.xxs) {
+                    statTile(
+                        value: viewModel.improvedSkillCount > 0 ? "\(viewModel.improvedSkillCount)" : "—",
+                        label: "Improved",
+                        icon: "arrow.up.right",
+                        color: AppColors.highlight
+                    )
+                    statTile(
+                        value: viewModel.completedSkills.isEmpty ? "—" : "\(viewModel.completedSkills.count)",
+                        label: "Completed",
+                        icon: "checkmark.seal.fill",
+                        color: AppColors.trophyGold
+                    )
+                }
             }
         }
     }
