@@ -489,12 +489,7 @@ struct HomeView: View {
                 let cards = buildSpotlightCards(viewModel)
                 VStack(spacing: AppSpacing.xxs) {
                     ForEach(cards, id: \.skill.id) { card in
-                        spotlightCard(
-                            skill: card.skill,
-                            rating: card.rating,
-                            label: card.label,
-                            labelColor: card.labelColor
-                        )
+                        spotlightCard(skill: card.skill, rating: card.rating)
                     }
                 }
             }
@@ -666,7 +661,7 @@ struct HomeView: View {
     // MARK: - Spotlight Cards (data state)
 
     private struct SpotlightItem {
-        let skill: Skill; let rating: Int; let label: String; let labelColor: Color
+        let skill: Skill; let rating: Int
     }
 
     private func buildSpotlightCards(_ viewModel: HomeViewModel) -> [SpotlightItem] {
@@ -674,20 +669,20 @@ struct HomeView: View {
         var used: Set<UUID> = []
 
         if let weak = viewModel.weakestSkill {
-            cards.append(.init(skill: weak.skill, rating: weak.rating, label: "Needs Work", labelColor: AppColors.coral))
+            cards.append(.init(skill: weak.skill, rating: weak.rating))
             used.insert(weak.skill.id)
         }
         if let focus = viewModel.focusSkill, !used.contains(focus.skill.id) {
-            cards.append(.init(skill: focus.skill, rating: focus.rating, label: "Focus", labelColor: AppColors.warningOrange))
+            cards.append(.init(skill: focus.skill, rating: focus.rating))
             used.insert(focus.skill.id)
         }
         if let strong = viewModel.strongestSkill, !used.contains(strong.skill.id) {
-            cards.append(.init(skill: strong.skill, rating: strong.rating, label: "Strongest", labelColor: AppColors.highlight))
+            cards.append(.init(skill: strong.skill, rating: strong.rating))
             used.insert(strong.skill.id)
         }
         if cards.count < 3 {
             for item in viewModel.skillsWithRatings where !used.contains(item.skill.id) {
-                cards.append(.init(skill: item.skill, rating: item.rating, label: "", labelColor: .clear))
+                cards.append(.init(skill: item.skill, rating: item.rating))
                 used.insert(item.skill.id)
                 if cards.count >= 3 { break }
             }
@@ -695,7 +690,7 @@ struct HomeView: View {
         return Array(cards.prefix(3))
     }
 
-    private func spotlightCard(skill: Skill, rating: Int, label: String, labelColor: Color) -> some View {
+    private func spotlightCard(skill: Skill, rating: Int) -> some View {
         let tier = SkillTier(rating: rating)
         return HStack(spacing: AppSpacing.xs) {
             ZStack {
@@ -703,20 +698,10 @@ struct HomeView: View {
                 Text(skill.iconName).font(.system(size: 15))
             }
             VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 5) {
-                    Text(skill.name)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                        .lineLimit(1)
-                    if !label.isEmpty {
-                        Text(label)
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(labelColor)
-                            .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(labelColor.opacity(0.1))
-                            .clipShape(Capsule())
-                    }
-                }
+                Text(skill.name)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(1)
                 ProgressBar(progress: Double(rating) / 100.0, tint: tier.color)
             }
             Text("\(rating)%")
