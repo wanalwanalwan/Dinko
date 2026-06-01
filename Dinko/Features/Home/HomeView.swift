@@ -120,19 +120,22 @@ struct HomeView: View {
                 brineScoreCard(viewModel)
                     .staggeredAppearance(index: 1)
 
+                weeklyStatsCard(viewModel)
+                    .staggeredAppearance(index: 2)
+
                 if !viewModel.allOnboardingComplete {
                     gettingStartedSection(viewModel)
-                        .staggeredAppearance(index: 2)
+                        .staggeredAppearance(index: 3)
                 }
 
                 skillsSnapshotSection(viewModel)
-                    .staggeredAppearance(index: 3)
-
-                coachSection(viewModel)
                     .staggeredAppearance(index: 4)
 
-                achievementsSection(viewModel)
+                coachSection(viewModel)
                     .staggeredAppearance(index: 5)
+
+                achievementsSection(viewModel)
+                    .staggeredAppearance(index: 6)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
@@ -304,65 +307,7 @@ struct HomeView: View {
                 .multilineTextAlignment(.center)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
-
-            // ── Stats strip ────────────────────────────────────────────────
-            Divider().padding(.top, 2)
-
-            HStack(spacing: 0) {
-                inlineStat(value: "\(viewModel.thisWeekSessionCount)",
-                           label: "Sessions",
-                           icon: "figure.pickleball",
-                           color: AppColors.primary)
-                inlineStatDivider
-                inlineStat(value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)" : "—",
-                           label: "Day Streak",
-                           icon: "flame.fill",
-                           color: AppColors.warningOrange)
-                inlineStatDivider
-                inlineStat(value: viewModel.improvedSkillCount > 0 ? "\(viewModel.improvedSkillCount)" : "—",
-                           label: "Improved",
-                           icon: "arrow.up.right",
-                           color: AppColors.highlight)
-                inlineStatDivider
-                inlineStat(value: viewModel.completedSkills.isEmpty ? "—" : "\(viewModel.completedSkills.count)",
-                           label: "Completed",
-                           icon: "checkmark.seal.fill",
-                           color: AppColors.trophyGold)
-            }
-            .padding(.top, 4)
-
-            // ── CTA — below stats so score story reads top to bottom ───────
-            Divider()
-
-            Button { showSessionTypeSheet = true } label: {
-                HStack(spacing: 7) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .bold))
-                    Text(viewModel.thisWeekSessionCount == 0 ? "Log First Session" : "Log Session")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(
-                    ZStack {
-                        LinearGradient(
-                            colors: [AppColors.primaryLight, AppColors.primaryDark],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                        // Gloss highlight — subtle white sheen at the top
-                        LinearGradient(
-                            colors: [.white.opacity(0.16), .clear],
-                            startPoint: .top,
-                            endPoint: .init(x: 0.5, y: 0.55)
-                        )
-                    }
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 13))
-                .shadow(color: AppColors.primary.opacity(0.30), radius: 0, y: 3)
-                .shadow(color: AppColors.primary.opacity(0.14), radius: 8, y: 5)
-            }
-            .buttonStyle(.pressable)
+                .padding(.bottom, AppSpacing.xxs)
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
@@ -389,6 +334,69 @@ struct HomeView: View {
         case 85..<95: return "Elite consistency. Top of the court."
         default:      return "All-court weapon. You're the real dill. 🥒"
         }
+    }
+
+    // MARK: - Weekly Stats Card (separate from score card)
+
+    private func weeklyStatsCard(_ viewModel: HomeViewModel) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                inlineStat(value: "\(viewModel.thisWeekSessionCount)",
+                           label: "Sessions",
+                           icon: "figure.pickleball",
+                           color: AppColors.primary)
+                inlineStatDivider
+                inlineStat(value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)" : "—",
+                           label: "Day Streak",
+                           icon: "flame.fill",
+                           color: AppColors.warningOrange)
+                inlineStatDivider
+                inlineStat(value: viewModel.improvedSkillCount > 0 ? "\(viewModel.improvedSkillCount)" : "—",
+                           label: "Improved",
+                           icon: "arrow.up.right",
+                           color: AppColors.highlight)
+                inlineStatDivider
+                inlineStat(value: viewModel.completedSkills.isEmpty ? "—" : "\(viewModel.completedSkills.count)",
+                           label: "Completed",
+                           icon: "checkmark.seal.fill",
+                           color: AppColors.trophyGold)
+            }
+
+            Divider().padding(.horizontal, AppSpacing.sm)
+
+            Button { showSessionTypeSheet = true } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .bold))
+                    Text(viewModel.thisWeekSessionCount == 0 ? "Log First Session" : "Log Session")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    ZStack {
+                        LinearGradient(
+                            colors: [AppColors.primaryLight, AppColors.primaryDark],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                        LinearGradient(
+                            colors: [.white.opacity(0.16), .clear],
+                            startPoint: .top,
+                            endPoint: .init(x: 0.5, y: 0.55)
+                        )
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 13))
+                .shadow(color: AppColors.primary.opacity(0.30), radius: 0, y: 3)
+                .shadow(color: AppColors.primary.opacity(0.14), radius: 8, y: 5)
+            }
+            .buttonStyle(.pressable)
+            .padding(AppSpacing.sm)
+        }
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+        .shadow(color: Color.black.opacity(0.05), radius: 14, y: 5)
     }
 
     // MARK: - Brine Score Inline Breakdown
