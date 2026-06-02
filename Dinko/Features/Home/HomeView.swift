@@ -642,8 +642,33 @@ struct HomeView: View {
         let calendar = Calendar.current
 
         return VStack(spacing: AppSpacing.xs) {
+            // Header
+            HStack {
+                Text("THIS WEEK")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .tracking(0.8)
+                    .foregroundStyle(AppColors.textSecondary)
+                Spacer()
+                Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    showSessionTypeSheet = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("Log Session")
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(AppColors.primary)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(AppColors.primary.opacity(0.1))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
             // 7-circle strip
-            HStack(spacing: 0) {
+            HStack(spacing: 2) {
                 ForEach(viewModel.scheduledDays) { day in
                     let dayDate = calendar.startOfDay(for: day.date)
                     let isExpanded = expandedWeekDay == dayDate
@@ -656,12 +681,12 @@ struct HomeView: View {
                         ZStack {
                             Circle()
                                 .fill(stripDayFill(day))
-                                .frame(width: 34, height: 34)
+                                .frame(width: 32, height: 32)
 
                             if day.isToday && !day.hasLoggedSession && day.isPracticeDay {
                                 Circle()
                                     .stroke(AppColors.primary, lineWidth: 1.5)
-                                    .frame(width: 34, height: 34)
+                                    .frame(width: 32, height: 32)
                             }
 
                             if day.hasLoggedSession {
