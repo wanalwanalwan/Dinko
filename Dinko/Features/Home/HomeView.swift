@@ -839,9 +839,9 @@ struct HomeView: View {
         switch score {
         case 0..<20:  return "Just getting started — every session counts."
         case 20..<40: return "Building the habit. Keep showing up."
-        case 40..<55: return "Finding your rhythm. Good consistency."
-        case 55..<70: return "Solid form. Your game is developing well."
-        case 70..<85: return "Strong all around. You're dialing it in."
+        case 40..<55: return "Finding your rhythm. Consistency is key."
+        case 55..<70: return "Solid momentum. Your effort is showing."
+        case 70..<85: return "Strong and consistent. You're dialing it in."
         case 85..<95: return "Elite consistency. Top of the court."
         default:      return "All-court weapon. You're the real dill. 🥒"
         }
@@ -913,37 +913,59 @@ struct HomeView: View {
     // MARK: - Brine Score Inline Breakdown
 
     private func brineScoreBreakdown(_ viewModel: HomeViewModel) -> some View {
-        let skillPts   = Int(Double(viewModel.averageRating) * 0.40)
+        let fm = FocusSkillManager.shared
+
+        // Consistency: 40 pts
+        let weeklyPts  = viewModel.weeklySessionGoal > 0
+            ? Int(min(Double(viewModel.thisWeekSessionCount) / Double(viewModel.weeklySessionGoal), 1.0) * 15.0) : 0
         let streakPts  = Int(min(Double(viewModel.streakDays), 14.0) / 14.0 * 15.0)
-        let sessionPts = viewModel.weeklySessionGoal > 0
-            ? Int(min(Double(viewModel.thisWeekSessionCount), Double(viewModel.weeklySessionGoal)) / Double(viewModel.weeklySessionGoal) * 10.0)
-            : 0
-        let momentumPts = Int(min(Double(viewModel.improvedSkillCount) / Double(max(viewModel.totalActiveSkills, 1)), 1.0) * 20.0)
+        let habitPts   = Int(min(Double(viewModel.totalSessionsAllTime), 20.0) / 20.0 * 10.0)
+        let consistencyPts = weeklyPts + streakPts + habitPts
+
+        // Momentum: 25 pts
+        let improving   = Double(viewModel.improvedSkillCount)
+        let tracked     = Double(max(viewModel.totalActiveSkills, 1))
+        let trendPts    = Int(min(improving / tracked, 1.0) * 15.0)
+        let focusMPts   = fm.hasFocusSkills ? 5 : 0
+        let ratedPts    = viewModel.weeklySkillMovers.isEmpty ? 0 : 5
+        let momentumPts = trendPts + focusMPts + ratedPts
+
+        // Engagement: 20 pts
         var engagePts = 0
-        if viewModel.totalActiveSkills > 0      { engagePts += 5 }
-        if viewModel.totalSessionsAllTime > 0   { engagePts += 5 }
-        if !viewModel.recommendedDrills.isEmpty { engagePts += 3 }
-        if !viewModel.completedSkills.isEmpty   { engagePts += 2 }
+        if viewModel.totalActiveSkills > 0    { engagePts += 5 }
+        if viewModel.totalSessionsAllTime > 0 { engagePts += 5 }
+        let drillsDone = UserDefaults.standard.integer(forKey: "pkkl_total_drills_completed")
+        engagePts += Int(min(Double(drillsDone), 5.0) / 5.0 * 7.0)
+        if !viewModel.completedSkills.isEmpty { engagePts += 3 }
+        let engageTotal = min(engagePts, 20)
+
+        // Focus: 15 pts
+        var focusPts = 0
+        if fm.hasFocusSkills                  { focusPts += 5 }
+        if DUPRService.shared.isConnected      { focusPts += 4 }
+        if PlayerProfile.current().isComplete  { focusPts += 3 }
+        if !fm.skillIdeas.isEmpty              { focusPts += 3 }
+        let focusTotal = min(focusPts, 15)
 
         return VStack(spacing: 0) {
             Divider()
 
             VStack(spacing: 0) {
-                scoreRow(icon: "chart.bar.fill",  color: AppColors.primary,
-                         title: "Skill Level",    subtitle: "Average rating across all skills",
-                         pts: skillPts,            maxPts: 40)
+                scoreRow(icon: "flame.fill",      color: AppColors.warningOrange,
+                         title: "Consistency",    subtitle: "Weekly goal, streak & session history",
+                         pts: consistencyPts,      maxPts: 40)
                 Divider().padding(.leading, 52)
-                scoreRow(icon: "flame.fill",       color: AppColors.warningOrange,
-                         title: "Consistency",    subtitle: "Day streak + weekly session goal",
-                         pts: streakPts + sessionPts, maxPts: 25)
+                scoreRow(icon: "arrow.up.right",  color: AppColors.highlight,
+                         title: "Momentum",       subtitle: "Skills improving & rated this week",
+                         pts: momentumPts,         maxPts: 25)
                 Divider().padding(.leading, 52)
-                scoreRow(icon: "arrow.up.right",   color: AppColors.highlight,
-                         title: "Momentum",       subtitle: "Skills improving this week",
-                         pts: momentumPts,         maxPts: 20)
+                scoreRow(icon: "sparkles",        color: AppColors.trophyGold,
+                         title: "Engagement",     subtitle: "Active skills, drills & completions",
+                         pts: engageTotal,         maxPts: 20)
                 Divider().padding(.leading, 52)
-                scoreRow(icon: "sparkles",         color: AppColors.trophyGold,
-                         title: "Engagement",     subtitle: "Using skills, drills & features",
-                         pts: engagePts,           maxPts: 15)
+                scoreRow(icon: "target",          color: AppColors.primary,
+                         title: "Focus",          subtitle: "Focus skills, DUPR & profile",
+                         pts: focusTotal,          maxPts: 15)
             }
 
             Divider()

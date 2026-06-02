@@ -196,30 +196,44 @@ final class HomeViewModel {
         weeklySkillMovers.filter { $0.delta > 0 }.count
     }
 
-    /// Composite 0–100 score across skill level, consistency, momentum, and engagement.
+    /// Composite 0–100 score. Consistency is the primary driver.
     var brineScore: Int {
-        // Skill level: 40 pts (average rating scaled)
-        let skillPts = Double(averageRating) * 0.40
+        let fm = FocusSkillManager.shared
 
-        // Consistency: 25 pts
-        let streakPts   = min(Double(streakDays), 14.0) / 14.0 * 15.0
-        let sessionPts  = weeklySessionGoal > 0
-            ? min(Double(thisWeekSessionCount), Double(weeklySessionGoal)) / Double(weeklySessionGoal) * 10.0
+        // 1. Consistency: 40 pts
+        let weeklyPts = weeklySessionGoal > 0
+            ? min(Double(thisWeekSessionCount) / Double(weeklySessionGoal), 1.0) * 15.0
             : 0.0
+        let streakPts  = min(Double(streakDays), 14.0) / 14.0 * 15.0
+        let habitPts   = min(Double(totalSessionsAllTime), 20.0) / 20.0 * 10.0
+        let consistencyTotal = weeklyPts + streakPts + habitPts
 
-        // Momentum: 20 pts (improving skills / tracked skills)
+        // 2. Momentum: 25 pts
         let improving   = Double(weeklySkillMovers.filter { $0.delta > 0 }.count)
         let tracked     = Double(max(totalActiveSkills, 1))
-        let momentumPts = min(improving / tracked, 1.0) * 20.0
+        let trendPts    = min(improving / tracked, 1.0) * 15.0
+        let focusMPts   = fm.hasFocusSkills ? 5.0 : 0.0
+        let ratedPts    = !weeklySkillMovers.isEmpty ? 5.0 : 0.0
+        let momentumTotal = trendPts + focusMPts + ratedPts
 
-        // Engagement: 15 pts (using app features)
+        // 3. Engagement: 20 pts
         var engagePts = 0.0
-        if totalActiveSkills > 0      { engagePts += 5 }
-        if totalSessionsAllTime > 0   { engagePts += 5 }
-        if !recommendedDrills.isEmpty { engagePts += 3 }
-        if !completedSkills.isEmpty   { engagePts += 2 }
+        if totalActiveSkills > 0    { engagePts += 5 }
+        if totalSessionsAllTime > 0 { engagePts += 5 }
+        let drillsDone = UserDefaults.standard.integer(forKey: "pkkl_total_drills_completed")
+        engagePts += min(Double(drillsDone), 5.0) / 5.0 * 7.0
+        if !completedSkills.isEmpty { engagePts += 3 }
+        let engageTotal = min(engagePts, 20.0)
 
-        return min(100, Int(skillPts + streakPts + sessionPts + momentumPts + engagePts))
+        // 4. Focus: 15 pts
+        var focusPts = 0.0
+        if fm.hasFocusSkills                  { focusPts += 5 }
+        if DUPRService.shared.isConnected      { focusPts += 4 }
+        if PlayerProfile.current().isComplete  { focusPts += 3 }
+        if !fm.skillIdeas.isEmpty              { focusPts += 3 }
+        let focusTotal = min(focusPts, 15.0)
+
+        return min(100, Int(consistencyTotal + momentumTotal + engageTotal + focusTotal))
     }
 
     private(set) var scheduledDays: [WeekScheduleDay] = []
