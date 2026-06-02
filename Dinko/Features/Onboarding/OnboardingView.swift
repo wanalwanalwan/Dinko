@@ -4,6 +4,9 @@ struct OnboardingView: View {
     @State private var viewModel = OnboardingViewModel()
     @State private var currentStep = 0
     @State private var isCompleting = false
+    @State private var duprService = DUPRService.shared
+    @State private var showDUPRSheet = false
+    @State private var showManualRangePicker = false
 
     var onComplete: () -> Void
 
@@ -42,31 +45,168 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 1: DUPR Range
+    // MARK: - Step 1: DUPR Connect + Range
 
     private var duprStep: some View {
         stepContainer(
             title: "What's your skill level?",
-            subtitle: "We'll personalize your experience based on your DUPR range."
+            subtitle: duprService.isConnected
+                ? "Your real DUPR rating is synced."
+                : "Connect DUPR for your real rating, or pick your level."
         ) {
-            VStack(spacing: AppSpacing.xs) {
-                selectionCard("Beginner (2.0-3.0)", icon: "figure.walk", isSelected: viewModel.duprRange == "Beginner (2.0-3.0)") {
-                    viewModel.duprRange = "Beginner (2.0-3.0)"
-                    advanceAfterDelay()
-                }
-                selectionCard("Intermediate (3.0-4.0)", icon: "figure.run", isSelected: viewModel.duprRange == "Intermediate (3.0-4.0)") {
-                    viewModel.duprRange = "Intermediate (3.0-4.0)"
-                    advanceAfterDelay()
-                }
-                selectionCard("Advanced (4.0-5.0)", icon: "figure.highintensity.intervaltraining", isSelected: viewModel.duprRange == "Advanced (4.0-5.0)") {
-                    viewModel.duprRange = "Advanced (4.0-5.0)"
-                    advanceAfterDelay()
-                }
-                selectionCard("Pro (5.0+)", icon: "trophy.fill", isSelected: viewModel.duprRange == "Pro (5.0+)") {
-                    viewModel.duprRange = "Pro (5.0+)"
-                    advanceAfterDelay()
+            VStack(spacing: AppSpacing.sm) {
+                if duprService.isConnected, let profile = duprService.profile {
+                    // Connected — show rating and continue button
+                    VStack(spacing: AppSpacing.xs) {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(AppColors.successGreen)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("DUPR Connected")
+                                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(AppColors.textPrimary)
+                                Text("ID: \(profile.duprId)")
+                                    .font(.system(size: 12, design: .rounded))
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(AppSpacing.sm)
+                        .background(AppColors.successGreen.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+
+                        HStack(spacing: AppSpacing.md) {
+                            duprRatingChip(label: "Singles", value: profile.formattedSingles)
+                            duprRatingChip(label: "Doubles", value: profile.formattedDoubles)
+                        }
+
+                        Button {
+                            advanceAfterDelay()
+                        } label: {
+                            Text("Continue")
+                                .font(AppTypography.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppSpacing.sm)
+                                .background(AppColors.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, AppSpacing.xxs)
+                    }
+                } else {
+                    // Not connected — offer DUPR connect or manual picker
+                    Button {
+                        showDUPRSheet = true
+                    } label: {
+                        HStack(spacing: AppSpacing.xs) {
+                            Image(systemName: "link.badge.plus")
+                                .font(.system(size: 20))
+                                .foregroundStyle(.white)
+                                .frame(width: 28)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Connect DUPR Account")
+                                    .font(AppTypography.headline)
+                                    .foregroundStyle(.white)
+                                Text("Get your real, official rating")
+                                    .font(.system(size: 12, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.7))
+                        }
+                        .padding(AppSpacing.sm)
+                        .background(AppColors.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            showManualRangePicker.toggle()
+                        }
+                    } label: {
+                        HStack {
+                            Text(showManualRangePicker ? "Hide manual entry" : "Enter level manually instead")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                            Image(systemName: showManualRangePicker ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 11))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    if showManualRangePicker {
+                        VStack(spacing: AppSpacing.xxs) {
+                            selectionCard("Beginner (2.0-3.0)", icon: "figure.walk", isSelected: viewModel.duprRange == "Beginner (2.0-3.0)") {
+                                viewModel.duprRange = "Beginner (2.0-3.0)"
+                                advanceAfterDelay()
+                            }
+                            selectionCard("Intermediate (3.0-4.0)", icon: "figure.run", isSelected: viewModel.duprRange == "Intermediate (3.0-4.0)") {
+                                viewModel.duprRange = "Intermediate (3.0-4.0)"
+                                advanceAfterDelay()
+                            }
+                            selectionCard("Advanced (4.0-5.0)", icon: "figure.highintensity.intervaltraining", isSelected: viewModel.duprRange == "Advanced (4.0-5.0)") {
+                                viewModel.duprRange = "Advanced (4.0-5.0)"
+                                advanceAfterDelay()
+                            }
+                            selectionCard("Pro (5.0+)", icon: "trophy.fill", isSelected: viewModel.duprRange == "Pro (5.0+)") {
+                                viewModel.duprRange = "Pro (5.0+)"
+                                advanceAfterDelay()
+                            }
+                        }
+                        .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+                    }
                 }
             }
+        }
+        .sheet(isPresented: $showDUPRSheet) {
+            NavigationStack {
+                DUPRConnectSheet(duprService: duprService, onConnected: {
+                    showDUPRSheet = false
+                    if let profile = duprService.profile {
+                        viewModel.duprRange = duprRangeFromRating(profile.singlesRating ?? profile.doublesRating)
+                    }
+                })
+                .navigationTitle("Connect DUPR")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Cancel") { showDUPRSheet = false }
+                            .foregroundStyle(AppColors.primary)
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+        }
+    }
+
+    private func duprRatingChip(label: String, value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.primary)
+            Text(label)
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.xs)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func duprRangeFromRating(_ rating: Double?) -> String {
+        guard let rating else { return "Intermediate (3.0-4.0)" }
+        switch rating {
+        case ..<3.0: return "Beginner (2.0-3.0)"
+        case 3.0..<4.0: return "Intermediate (3.0-4.0)"
+        case 4.0..<5.0: return "Advanced (4.0-5.0)"
+        default: return "Pro (5.0+)"
         }
     }
 

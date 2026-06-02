@@ -140,7 +140,13 @@
 		T10000010000000000000001 /* GameTip.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000001 /* GameTip.swift */; };
 		T10000010000000000000002 /* SkillCoachingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000002 /* SkillCoachingViewModel.swift */; };
 		T10000010000000000000003 /* SkillCoachingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000003 /* SkillCoachingView.swift */; };
-/* End PBXBuildFile section */
+		D11000010000000000000001 /* DUPRConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000001 /* DUPRConfig.swift */; };
+		D11000010000000000000002 /* DUPRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000002 /* DUPRService.swift */; };
+		D11000010000000000000003 /* DUPRModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000003 /* DUPRModels.swift */; };
+		D11000010000000000000004 /* DUPRWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000004 /* DUPRWebView.swift */; };
+		D11000010000000000000005 /* DUPRConnectSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000005 /* DUPRConnectSheet.swift */; };
+		D11000010000000000000006 /* DUPRStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000006 /* DUPRStatsView.swift */; };
+		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		A30000010000000000000001 /* PBXContainerItemProxy */ = {
@@ -299,7 +305,13 @@
 		T20000010000000000000001 /* GameTip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTip.swift; sourceTree = "<group>"; };
 		T20000010000000000000002 /* SkillCoachingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCoachingViewModel.swift; sourceTree = "<group>"; };
 		T20000010000000000000003 /* SkillCoachingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCoachingView.swift; sourceTree = "<group>"; };
-/* End PBXFileReference section */
+		D12000010000000000000001 /* DUPRConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRConfig.swift; sourceTree = "<group>"; };
+		D12000010000000000000002 /* DUPRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRService.swift; sourceTree = "<group>"; };
+		D12000010000000000000003 /* DUPRModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRModels.swift; sourceTree = "<group>"; };
+		D12000010000000000000004 /* DUPRWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRWebView.swift; sourceTree = "<group>"; };
+		D12000010000000000000005 /* DUPRConnectSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRConnectSheet.swift; sourceTree = "<group>"; };
+		D12000010000000000000006 /* DUPRStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRStatsView.swift; sourceTree = "<group>"; };
+		/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A60000010000000000000001 /* Frameworks */ = {
@@ -539,6 +551,7 @@
 				CC200001000000000000000D /* ConversationStatus.swift */,
 				CC200001000000000000000E /* CoachProfile.swift */,
 				AC2000010000000000000001 /* Achievement.swift */,
+				D12000010000000000000003 /* DUPRModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -558,6 +571,7 @@
 				S70000010000000000000001 /* LogSession */,
 				31B7AF8619F60639D1269F73 /* Profile */,
 				CC7000010000000000000001 /* CoachChat */,
+				D17000010000000000000001 /* DUPR */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -641,6 +655,8 @@
 				N20000010000000000000001 /* NetworkMonitor.swift */,
 				CC2000010000000000000004 /* CoachChatService.swift */,
 				CC2000010000000000000005 /* RealtimeService.swift */,
+				D12000010000000000000001 /* DUPRConfig.swift */,
+				D12000010000000000000002 /* DUPRService.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -727,7 +743,17 @@
 			path = LogSession;
 			sourceTree = "<group>";
 		};
-/* End PBXGroup section */
+		D17000010000000000000001 /* DUPR */ = {
+			isa = PBXGroup;
+			children = (
+				D12000010000000000000004 /* DUPRWebView.swift */,
+				D12000010000000000000005 /* DUPRConnectSheet.swift */,
+				D12000010000000000000006 /* DUPRStatsView.swift */,
+			);
+			path = DUPR;
+			sourceTree = "<group>";
+		};
+		/* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		A40000010000000000000001 /* Dinko */ = {
@@ -914,6 +940,13 @@
 				AC1000010000000000000002 /* AchievementManager.swift in Sources */,
 				E10000020000000000000001 /* ChatMessage.swift in Sources */,
 				E10000020000000000000002 /* SupabaseConfig.swift in Sources */,
+				D11000010000000000000001 /* DUPRConfig.swift in Sources */,
+				D11000010000000000000002 /* DUPRService.swift in Sources */,
+				D11000010000000000000003 /* DUPRModels.swift in Sources */,
+				D11000010000000000000004 /* DUPRWebView.swift in Sources */,
+				D11000010000000000000005 /* DUPRConnectSheet.swift in Sources */,
+				D11000010000000000000006 /* DUPRStatsView.swift in Sources */,
+
 				E10000020000000000000003 /* AgentService.swift in Sources */,
 				E10000020000000000000004 /* ChatViewModel.swift in Sources */,
 				E10000020000000000000005 /* SessionPreviewCard.swift in Sources */,

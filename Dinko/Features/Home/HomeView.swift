@@ -20,6 +20,8 @@ struct HomeView: View {
     @State private var showNamePrompt = false
     @State private var namePromptFirst = ""
     @State private var namePromptLast = ""
+    @State private var duprService = DUPRService.shared
+    @State private var showDUPRStats = false
 
     var body: some View {
         Group {
@@ -123,19 +125,22 @@ struct HomeView: View {
                 weeklyStatsCard(viewModel)
                     .staggeredAppearance(index: 2)
 
+                duprRatingCard
+                    .staggeredAppearance(index: 3)
+
                 if !viewModel.allOnboardingComplete {
                     gettingStartedSection(viewModel)
-                        .staggeredAppearance(index: 3)
+                        .staggeredAppearance(index: 4)
                 }
 
                 skillsSnapshotSection(viewModel)
-                    .staggeredAppearance(index: 4)
-
-                coachSection(viewModel)
                     .staggeredAppearance(index: 5)
 
-                achievementsSection(viewModel)
+                coachSection(viewModel)
                     .staggeredAppearance(index: 6)
+
+                achievementsSection(viewModel)
+                    .staggeredAppearance(index: 7)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
@@ -145,11 +150,110 @@ struct HomeView: View {
         .background(homeBackground)
         .refreshable { await viewModel.loadDashboard() }
         .sheet(isPresented: $showProfile) { ProfileView() }
+        .sheet(isPresented: $showDUPRStats) { DUPRStatsView() }
         .sheet(isPresented: $showAddSkill) {
             AddEditSkillView()
                 .presentationDetents([.medium])
                 .onDisappear { Task { await viewModel.loadDashboard() } }
         }
+    }
+
+    // MARK: - DUPR Rating Card
+
+    @ViewBuilder
+    private var duprRatingCard: some View {
+        if duprService.isConnected, let profile = duprService.profile {
+            Button { showDUPRStats = true } label: {
+                VStack(spacing: 0) {
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("DUPR RATING")
+                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .tracking(0.8)
+                                .foregroundStyle(AppColors.textSecondary)
+                            HStack(spacing: 14) {
+                                duprRatingPair(label: "S", value: profile.formattedSingles, provisional: profile.singlesProvisional)
+                                duprRatingPair(label: "D", value: profile.formattedDoubles, provisional: profile.doublesProvisional)
+                            }
+                            .padding(.top, 2)
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 6) {
+                            if let delta = duprService.singlesRatingDelta, abs(delta) > 0.001 {
+                                homeDeltaBadge(delta)
+                            }
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                    .padding(AppSpacing.sm)
+                }
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+                .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button { showProfile = true } label: {
+                HStack(spacing: AppSpacing.xs) {
+                    ZStack {
+                        Circle()
+                            .fill(AppColors.primary.opacity(0.1))
+                            .frame(width: 34, height: 34)
+                        Image(systemName: "link.badge.plus")
+                            .font(.system(size: 15))
+                            .foregroundStyle(AppColors.primary)
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Connect DUPR")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Text("Sync your official pickleball rating")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .padding(AppSpacing.sm)
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+                .shadow(color: .black.opacity(0.04), radius: 10, y: 3)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func duprRatingPair(label: String, value: String, provisional: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 3) {
+            Text(label)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+            Text(value + (provisional ? " P" : ""))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.primary)
+                .contentTransition(.numericText())
+        }
+    }
+
+    private func homeDeltaBadge(_ delta: Double) -> some View {
+        let positive = delta > 0
+        return HStack(spacing: 3) {
+            Image(systemName: positive ? "arrow.up" : "arrow.down")
+                .font(.system(size: 9, weight: .bold))
+            Text(String(format: "%.2f", abs(delta)))
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+        }
+        .foregroundStyle(positive ? AppColors.successGreen : AppColors.coral)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background((positive ? AppColors.successGreen : AppColors.coral).opacity(0.12))
+        .clipShape(Capsule())
     }
 
     // MARK: - Background

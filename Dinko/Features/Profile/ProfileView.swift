@@ -4,11 +4,15 @@ struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.authViewModel) private var authViewModel
     @State private var viewModel = ProfileViewModel()
+    @State private var duprService = DUPRService.shared
+    @State private var showDUPRConnect = false
+    @State private var showDUPRStats = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
+                    duprSection
                     playerProfileSection
                     trainingSection
                     accountSection
@@ -27,6 +31,138 @@ struct ProfileView: View {
                 }
             }
         }
+    }
+
+    // MARK: - DUPR Section
+
+    private var duprSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("DUPR RATING")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+
+            if duprService.isConnected, let profile = duprService.profile {
+                connectedDUPRCard(profile)
+            } else {
+                disconnectedDUPRCard
+            }
+        }
+        .sheet(isPresented: $showDUPRConnect) {
+            NavigationStack {
+                DUPRConnectSheet(duprService: duprService)
+                    .navigationTitle("Connect DUPR")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Done") { showDUPRConnect = false }
+                                .foregroundStyle(AppColors.primary)
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showDUPRStats) {
+            DUPRStatsView()
+        }
+    }
+
+    private func connectedDUPRCard(_ profile: DUPRProfile) -> some View {
+        VStack(spacing: 0) {
+            Button {
+                showDUPRStats = true
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    ZStack {
+                        Circle()
+                            .fill(AppColors.primary.opacity(0.1))
+                            .frame(width: 38, height: 38)
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(AppColors.primary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Connected · ID \(profile.duprId)")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        HStack(spacing: 10) {
+                            Text("S \(profile.formattedSingles)")
+                            Text("D \(profile.formattedDoubles)")
+                        }
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.primary)
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 4) {
+                        Text("Stats")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.primary)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.sm)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            Divider().padding(.leading, AppSpacing.md)
+
+            Button {
+                duprService.disconnect()
+            } label: {
+                HStack {
+                    Label("Disconnect DUPR", systemImage: "link.slash")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.coral)
+                    Spacer()
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.sm)
+            }
+        }
+        .floatingCard()
+    }
+
+    private var disconnectedDUPRCard: some View {
+        Button {
+            showDUPRConnect = true
+        } label: {
+            HStack(spacing: AppSpacing.sm) {
+                ZStack {
+                    Circle()
+                        .fill(AppColors.primary.opacity(0.1))
+                        .frame(width: 38, height: 38)
+                    Image(systemName: "link.badge.plus")
+                        .font(.system(size: 17))
+                        .foregroundStyle(AppColors.primary)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Connect DUPR Account")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text("Sync your official pickleball rating")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .floatingCard()
     }
 
     // MARK: - Player Profile Section

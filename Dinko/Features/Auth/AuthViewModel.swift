@@ -311,6 +311,7 @@ final class AuthViewModel {
         UserDefaults.standard.removeObject(forKey: "pkkl_primary_goal")
         UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
         UserDefaults.standard.removeObject(forKey: "pkkl_has_seen_profile_prompt")
+        DUPRService.shared.disconnect()
 
         accessToken = ""
         userId = ""
@@ -336,6 +337,7 @@ final class AuthViewModel {
         UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
         UserDefaults.standard.removeObject(forKey: "pkkl_has_seen_profile_prompt")
         UserDefaults.standard.removeObject(forKey: "pkkl_user_role")
+        DUPRService.shared.disconnect()
         accessToken = ""
         userId = ""
         isAuthenticated = false
