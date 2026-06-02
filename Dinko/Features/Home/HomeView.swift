@@ -415,12 +415,12 @@ struct HomeView: View {
             if viewModel.scheduledDays.isEmpty {
                 ProgressView().padding(AppSpacing.md)
             } else {
-                ForEach(viewModel.scheduledDays) { day in
-                    scheduleDayRow(day, viewModel: viewModel)
-                    if day.id != viewModel.scheduledDays.last?.id {
-                        Divider().padding(.leading, AppSpacing.md)
+                VStack(spacing: 0) {
+                    ForEach(viewModel.scheduledDays) { day in
+                        scheduleDayRow(day, viewModel: viewModel)
                     }
                 }
+                .padding(.vertical, AppSpacing.xxs)
             }
         }
         .background(AppColors.cardBackground)
@@ -429,31 +429,50 @@ struct HomeView: View {
     }
 
     private func scheduleDayRow(_ day: WeekScheduleDay, viewModel: HomeViewModel) -> some View {
-        HStack(spacing: AppSpacing.xs) {
-            VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 4) {
-                    Text(day.dayName)
-                        .font(.system(size: 14, weight: day.isToday ? .bold : .medium, design: .rounded))
-                        .foregroundStyle(day.isToday ? AppColors.primary : AppColors.textPrimary)
-                    Text("\(day.monthAbbrev) \(day.dayNumber)")
-                        .font(.system(size: 12, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-                if day.isToday {
-                    Text("Today")
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.primary)
+        let isPast = !day.isToday && !day.isFuture
+
+        return HStack(spacing: AppSpacing.sm) {
+            // Date badge circle
+            ZStack {
+                Circle()
+                    .fill(dayBadgeColor(day))
+                    .frame(width: 38, height: 38)
+                VStack(spacing: 0) {
+                    Text(day.dayName.prefix(1))
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundStyle(dayBadgeTextColor(day))
+                    Text("\(day.dayNumber)")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(dayBadgeTextColor(day))
                 }
             }
-            .frame(minWidth: 80, alignment: .leading)
+
+            // Day label + Today badge
+            HStack(spacing: 6) {
+                Text(day.dayName)
+                    .font(.system(size: 14, weight: day.isToday ? .semibold : .regular, design: .rounded))
+                    .foregroundStyle(day.isToday ? AppColors.primary : isPast ? AppColors.textSecondary : AppColors.textPrimary)
+                if day.isToday {
+                    Text("Today")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.primary)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(AppColors.primary.opacity(0.1))
+                        .clipShape(Capsule())
+                }
+            }
 
             Spacer()
 
             if day.hasLoggedSession {
-                Label("Logged", systemImage: "checkmark.circle.fill")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.successGreen)
-                    .labelStyle(.titleAndIcon)
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(AppColors.successGreen)
+                    Text("Logged")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.successGreen)
+                }
             } else if day.isPracticeDay {
                 Button { showSessionTypeSheet = true } label: {
                     HStack(spacing: 5) {
@@ -461,21 +480,49 @@ struct HomeView: View {
                         Text("Log Session").font(.system(size: 12, weight: .semibold, design: .rounded))
                     }
                     .foregroundStyle(day.isToday ? .white : AppColors.primary)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .background(day.isToday ? AppColors.primary : AppColors.primary.opacity(0.1))
+                    .padding(.horizontal, 12).padding(.vertical, 7)
+                    .background(day.isToday
+                        ? LinearGradient(colors: [AppColors.primaryLight, AppColors.primaryDark], startPoint: .top, endPoint: .bottom)
+                        : LinearGradient(colors: [AppColors.primary.opacity(0.12), AppColors.primary.opacity(0.12)], startPoint: .top, endPoint: .bottom))
                     .clipShape(Capsule())
+                    .shadow(color: day.isToday ? AppColors.primary.opacity(0.3) : .clear, radius: 4, y: 2)
                 }
                 .buttonStyle(.plain)
-                .opacity(day.isFuture && !day.isToday ? 0.65 : 1)
+                .opacity(day.isFuture && !day.isToday ? 0.7 : 1)
             } else {
-                Text("Rest")
-                    .font(.system(size: 12, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                HStack(spacing: 4) {
+                    Image(systemName: "moon.zzz")
+                        .font(.system(size: 11))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                    Text("Rest")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.45))
+                }
             }
         }
-        .padding(.horizontal, AppSpacing.sm)
-        .padding(.vertical, 11)
-        .background(day.isToday ? AppColors.primary.opacity(0.04) : Color.clear)
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.vertical, 10)
+        .background(
+            day.isToday
+                ? AppColors.primary.opacity(0.05)
+                : day.hasLoggedSession
+                ? AppColors.successGreen.opacity(0.03)
+                : Color.clear
+        )
+    }
+
+    private func dayBadgeColor(_ day: WeekScheduleDay) -> Color {
+        if day.hasLoggedSession { return AppColors.successGreen }
+        if day.isToday && day.isPracticeDay { return AppColors.primary }
+        if day.isPracticeDay { return AppColors.primary.opacity(0.1) }
+        return AppColors.separator.opacity(0.4)
+    }
+
+    private func dayBadgeTextColor(_ day: WeekScheduleDay) -> Color {
+        if day.hasLoggedSession { return .white }
+        if day.isToday && day.isPracticeDay { return .white }
+        if day.isPracticeDay { return AppColors.primary }
+        return AppColors.textSecondary.opacity(0.5)
     }
 
     // MARK: - Skill Ideas Card
