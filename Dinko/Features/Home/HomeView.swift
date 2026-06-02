@@ -195,11 +195,16 @@ struct HomeView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("THIS WEEK")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .tracking(0.8)
-                        .foregroundStyle(AppColors.textSecondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text("THIS WEEK'S FOCUS")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .tracking(0.8)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Image(systemName: "target")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(AppColors.primary)
+                    }
                     if let first = viewModel.scheduledDays.first, let last = viewModel.scheduledDays.last {
                         Text("\(first.monthAbbrev) \(first.dayNumber) – \(last.monthAbbrev) \(last.dayNumber)")
                             .font(.system(size: 13, design: .rounded))
@@ -286,13 +291,22 @@ struct HomeView: View {
             // Skill header row
             HStack(spacing: AppSpacing.xs) {
                 Text(entry.icon).font(.system(size: 26))
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(entry.name)
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
-                    Text("Skill \(index + 1) of \(focusManager.focusSkills.count)")
-                        .font(.system(size: 11, design: .rounded))
-                        .foregroundStyle(AppColors.textSecondary)
+                    HStack(spacing: 5) {
+                        Text("FOCUS")
+                            .font(.system(size: 9, weight: .bold, design: .rounded))
+                            .tracking(0.5)
+                            .foregroundStyle(AppColors.primary)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(AppColors.primary.opacity(0.1))
+                            .clipShape(Capsule())
+                        Text("\(index + 1) of \(focusManager.focusSkills.count)")
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 1) {
