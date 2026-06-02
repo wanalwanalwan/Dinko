@@ -1019,6 +1019,41 @@ final class HomeViewModel {
         buildScheduledDays()
     }
 
+    // MARK: - Public Chart Data
+
+    struct WeekRatingPoint {
+        let date: Date
+        let rating: Int
+    }
+
+    func weeklyRatings(for skillId: UUID) -> [WeekRatingPoint] {
+        guard let weekStart = scheduledDays.first?.date,
+              let weekEnd   = scheduledDays.last.flatMap({ Calendar.current.date(byAdding: .day, value: 1, to: $0.date) })
+        else { return [] }
+
+        let calendar = Calendar.current
+        let ratings = (cachedRatings[skillId] ?? [])
+            .filter { $0.date >= weekStart && $0.date < weekEnd }
+            .sorted { $0.date < $1.date }
+
+        if ratings.isEmpty {
+            // Return most recent rating before this week as a flat baseline
+            if let last = (cachedRatings[skillId] ?? []).sorted(by: { $0.date < $1.date }).last {
+                return [WeekRatingPoint(date: weekStart, rating: last.rating)]
+            }
+            return []
+        }
+
+        // Deduplicate by day, keeping the latest
+        var byDay: [Date: SkillRating] = [:]
+        for r in ratings {
+            let day = calendar.startOfDay(for: r.date)
+            if byDay[day] == nil || r.date > byDay[day]!.date { byDay[day] = r }
+        }
+        return byDay.sorted { $0.key < $1.key }
+                    .map { WeekRatingPoint(date: $0.key, rating: $0.value.rating) }
+    }
+
     // MARK: - Weekly Schedule
 
     private func buildScheduledDays() {

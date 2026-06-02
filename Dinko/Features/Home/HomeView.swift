@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct HomeView: View {
     @Environment(\.dependencies) private var dependencies
@@ -24,6 +25,7 @@ struct HomeView: View {
     @State private var showDUPRStats = false
     @State private var focusManager = FocusSkillManager.shared
     @State private var showFocusPicker = false
+    @State private var focusSkillPage = 0
     @State private var showAddIdeaSheet = false
     @State private var newIdeaName = ""
     @State private var newIdeaNotes = ""
@@ -125,26 +127,29 @@ struct HomeView: View {
                 headerSection(viewModel)
                     .staggeredAppearance(index: 0)
 
-                weeklyPlanCard(viewModel)
+                weeklySkillSwipeCard(viewModel)
                     .staggeredAppearance(index: 1)
 
-                duprRatingCard
+                weeklyScheduleCard(viewModel)
                     .staggeredAppearance(index: 2)
 
-                weeklyStatsCard(viewModel)
+                duprRatingCard
                     .staggeredAppearance(index: 3)
 
-                skillIdeasCard(viewModel)
+                weeklyStatsCard(viewModel)
                     .staggeredAppearance(index: 4)
 
-                skillsSnapshotSection(viewModel)
+                skillIdeasCard(viewModel)
                     .staggeredAppearance(index: 5)
 
-                brineScoreCard(viewModel)
+                skillsSnapshotSection(viewModel)
                     .staggeredAppearance(index: 6)
 
-                achievementsSection(viewModel)
+                brineScoreCard(viewModel)
                     .staggeredAppearance(index: 7)
+
+                achievementsSection(viewModel)
+                    .staggeredAppearance(index: 8)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
@@ -177,70 +182,91 @@ struct HomeView: View {
 
     // MARK: - Weekly Plan Card
 
-    private func weeklyPlanCard(_ viewModel: HomeViewModel) -> some View {
+    // MARK: - Weekly Skill Swipe Card (top, decoupled)
+
+    private func weeklySkillSwipeCard(_ viewModel: HomeViewModel) -> some View {
         VStack(spacing: 0) {
-            // Header row
+            // Header
             HStack {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("THIS WEEK")
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .tracking(0.8)
                         .foregroundStyle(AppColors.textSecondary)
-                    if let first = viewModel.scheduledDays.first,
-                       let last  = viewModel.scheduledDays.last {
+                    if let first = viewModel.scheduledDays.first, let last = viewModel.scheduledDays.last {
                         Text("\(first.monthAbbrev) \(first.dayNumber) – \(last.monthAbbrev) \(last.dayNumber)")
                             .font(.system(size: 13, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
                     }
                 }
                 Spacer()
-                if viewModel.thisWeekSessionCount > 0 {
-                    Label("\(viewModel.thisWeekSessionCount) logged", systemImage: "checkmark.circle.fill")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.successGreen)
-                        .padding(.horizontal, 8).padding(.vertical, 4)
-                        .background(AppColors.successGreen.opacity(0.1))
-                        .clipShape(Capsule())
+                Button {
+                    focusSkillPage = min(focusSkillPage, max(focusManager.focusSkills.count - 1, 0))
+                    showFocusPicker = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("Add skill")
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(AppColors.primary)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(AppColors.primary.opacity(0.1))
+                    .clipShape(Capsule())
                 }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.sm)
             .padding(.bottom, AppSpacing.xs)
 
-            // Focus skill banner
-            if focusManager.hasFocusSkills {
-                focusBanner
-                    .padding(.horizontal, AppSpacing.sm)
-                    .padding(.bottom, AppSpacing.xs)
+            if focusManager.focusSkills.isEmpty {
+                // Setup CTA
+                Button { showFocusPicker = true } label: {
+                    HStack(spacing: AppSpacing.xs) {
+                        Image(systemName: "target").font(.system(size: 16)).foregroundStyle(AppColors.primary)
+                        Text("Set focus skills to track your progress")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.system(size: 11)).foregroundStyle(AppColors.textSecondary)
+                    }
+                    .padding(AppSpacing.xs)
+                    .background(AppColors.primary.opacity(0.07))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.sm)
             } else {
-                setupFocusCTA
-                    .padding(.horizontal, AppSpacing.sm)
-                    .padding(.bottom, AppSpacing.xs)
-            }
-
-            Divider().padding(.horizontal, AppSpacing.sm)
-
-            // Day rows
-            if viewModel.scheduledDays.isEmpty {
-                ProgressView()
-                    .padding(AppSpacing.md)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(viewModel.scheduledDays) { day in
-                        scheduleDayRow(day, viewModel: viewModel)
-                        if day.id != viewModel.scheduledDays.last?.id {
-                            Divider().padding(.leading, 52)
-                        }
+                // Swipeable skill pages
+                TabView(selection: $focusSkillPage) {
+                    ForEach(Array(focusManager.focusSkills.enumerated()), id: \.element.id) { index, skill in
+                        skillChartPage(skill, index: index, viewModel: viewModel)
+                            .tag(index)
                     }
                 }
-            }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 190)
+                .animation(.easeInOut(duration: 0.25), value: focusSkillPage)
 
-            // Bottom: advance skill
-            if focusManager.hasFocusSkills {
-                Divider().padding(.horizontal, AppSpacing.sm)
-                advanceSkillFooter
-                    .padding(.horizontal, AppSpacing.sm)
-                    .padding(.vertical, AppSpacing.xs)
+                // Page dots
+                if focusManager.focusSkills.count > 1 {
+                    HStack(spacing: 6) {
+                        ForEach(0..<focusManager.focusSkills.count, id: \.self) { i in
+                            Circle()
+                                .fill(i == focusSkillPage ? AppColors.primary : AppColors.separator)
+                                .frame(width: i == focusSkillPage ? 8 : 6,
+                                       height: i == focusSkillPage ? 8 : 6)
+                                .animation(.easeInOut(duration: 0.2), value: focusSkillPage)
+                        }
+                    }
+                    .padding(.bottom, AppSpacing.sm)
+                    .padding(.top, AppSpacing.xxs)
+                } else {
+                    Spacer().frame(height: AppSpacing.sm)
+                }
             }
         }
         .background(AppColors.cardBackground)
@@ -248,60 +274,139 @@ struct HomeView: View {
         .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
     }
 
-    @ViewBuilder
-    private var focusBanner: some View {
-        if let skill = focusManager.currentFocusSkill {
+    private func skillChartPage(_ entry: FocusSkillEntry, index: Int, viewModel: HomeViewModel) -> some View {
+        VStack(spacing: AppSpacing.xs) {
+            // Skill header row
             HStack(spacing: AppSpacing.xs) {
-                Text(skill.icon)
-                    .font(.system(size: 22))
+                Text(entry.icon).font(.system(size: 26))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(skill.name)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                    Text(entry.name)
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
-                    Text("Focus skill \(focusManager.currentFocusIndex + 1) of \(focusManager.focusSkills.count)")
+                    Text("Skill \(index + 1) of \(focusManager.focusSkills.count)")
                         .font(.system(size: 11, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
                 }
                 Spacer()
-                HStack(spacing: 4) {
-                    ForEach(0..<focusManager.focusSkills.count, id: \.self) { i in
-                        Circle()
-                            .fill(i <= focusManager.currentFocusIndex ? AppColors.primary : AppColors.separator)
-                            .frame(width: i == focusManager.currentFocusIndex ? 8 : 6,
-                                   height: i == focusManager.currentFocusIndex ? 8 : 6)
+                VStack(alignment: .trailing, spacing: 1) {
+                    if let rating = viewModel.skillsWithRatings.first(where: { $0.skill.id == entry.id })?.rating {
+                        Text("\(rating)%")
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.primary)
+                            .contentTransition(.numericText())
+                    } else {
+                        Text("—")
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
                     }
+                    Text("this week")
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
                 }
             }
-            .padding(AppSpacing.xs)
-            .background(AppColors.primary.opacity(0.07))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal, AppSpacing.sm)
+
+            // Weekly chart
+            weeklySkillChart(for: entry.id, viewModel: viewModel)
+                .padding(.horizontal, AppSpacing.sm)
+        }
+        .padding(.vertical, AppSpacing.xs)
+    }
+
+    private func weeklySkillChart(for skillId: UUID, viewModel: HomeViewModel) -> some View {
+        let data  = viewModel.weeklyRatings(for: skillId)
+        let days  = viewModel.scheduledDays
+        let minR  = max((data.map(\.rating).min() ?? 0) - 10, 0)
+        let maxR  = min((data.map(\.rating).max() ?? 100) + 10, 100)
+        let weekStart = days.first?.date ?? Date()
+        let weekEnd   = days.last?.date  ?? Date()
+
+        return Group {
+            if data.isEmpty {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 18))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.3))
+                    Text("Rate this skill after a session to see your trend")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .lineLimit(2)
+                }
+                .frame(height: 90)
+            } else {
+                Chart {
+                    ForEach(data, id: \.date) { point in
+                        LineMark(
+                            x: .value("Day", point.date, unit: .day),
+                            y: .value("Rating", point.rating)
+                        )
+                        .foregroundStyle(AppColors.coral.gradient)
+                        .lineStyle(StrokeStyle(lineWidth: 2.5))
+                        .interpolationMethod(.catmullRom)
+
+                        AreaMark(
+                            x: .value("Day", point.date, unit: .day),
+                            yStart: .value("Base", minR),
+                            yEnd:   .value("Rating", point.rating)
+                        )
+                        .foregroundStyle(LinearGradient(
+                            colors: [AppColors.coral.opacity(0.2), .clear],
+                            startPoint: .top, endPoint: .bottom
+                        ))
+                        .interpolationMethod(.catmullRom)
+
+                        PointMark(
+                            x: .value("Day", point.date, unit: .day),
+                            y: .value("Rating", point.rating)
+                        )
+                        .foregroundStyle(AppColors.coral)
+                        .symbolSize(data.count == 1 ? 60 : 30)
+                    }
+                }
+                .chartXScale(domain: weekStart...weekEnd)
+                .chartYScale(domain: minR...maxR)
+                .chartXAxis {
+                    AxisMarks(values: days.filter { $0.isPracticeDay || $0.isToday }.map(\.date)) { _ in
+                        AxisValueLabel(format: .dateTime.weekday(.abbreviated))
+                            .font(.system(size: 9, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(position: .trailing, values: .automatic(desiredCount: 3)) { _ in
+                        AxisValueLabel()
+                            .font(.system(size: 9, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                        AxisGridLine().foregroundStyle(AppColors.separator.opacity(0.35))
+                    }
+                }
+                .frame(height: 90)
+            }
         }
     }
 
-    private var setupFocusCTA: some View {
-        Button { showFocusPicker = true } label: {
-            HStack(spacing: AppSpacing.xs) {
-                Image(systemName: "target")
-                    .font(.system(size: 16))
-                    .foregroundStyle(AppColors.primary)
-                Text("Set your focus skills to get started")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.primary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11))
-                    .foregroundStyle(AppColors.textSecondary)
+    // MARK: - Weekly Schedule Card (bottom, decoupled)
+
+    private func weeklyScheduleCard(_ viewModel: HomeViewModel) -> some View {
+        VStack(spacing: 0) {
+            if viewModel.scheduledDays.isEmpty {
+                ProgressView().padding(AppSpacing.md)
+            } else {
+                ForEach(viewModel.scheduledDays) { day in
+                    scheduleDayRow(day, viewModel: viewModel)
+                    if day.id != viewModel.scheduledDays.last?.id {
+                        Divider().padding(.leading, AppSpacing.md)
+                    }
+                }
             }
-            .padding(AppSpacing.xs)
-            .background(AppColors.primary.opacity(0.07))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
-        .buttonStyle(.plain)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
     }
 
     private func scheduleDayRow(_ day: WeekScheduleDay, viewModel: HomeViewModel) -> some View {
         HStack(spacing: AppSpacing.xs) {
-            // Date column
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 4) {
                     Text(day.dayName)
@@ -321,25 +426,19 @@ struct HomeView: View {
 
             Spacer()
 
-            // Action column
             if day.hasLoggedSession {
                 Label("Logged", systemImage: "checkmark.circle.fill")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.successGreen)
                     .labelStyle(.titleAndIcon)
             } else if day.isPracticeDay {
-                Button {
-                    showSessionTypeSheet = true
-                } label: {
+                Button { showSessionTypeSheet = true } label: {
                     HStack(spacing: 5) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 10, weight: .bold))
-                        Text("Log Session")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        Image(systemName: "plus").font(.system(size: 10, weight: .bold))
+                        Text("Log Session").font(.system(size: 12, weight: .semibold, design: .rounded))
                     }
                     .foregroundStyle(day.isToday ? .white : AppColors.primary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12).padding(.vertical, 6)
                     .background(day.isToday ? AppColors.primary : AppColors.primary.opacity(0.1))
                     .clipShape(Capsule())
                 }
@@ -354,32 +453,6 @@ struct HomeView: View {
         .padding(.horizontal, AppSpacing.sm)
         .padding(.vertical, 11)
         .background(day.isToday ? AppColors.primary.opacity(0.04) : Color.clear)
-    }
-
-    @ViewBuilder
-    private var advanceSkillFooter: some View {
-        if focusManager.isAllDone {
-            Text("All focus skills completed! Add new ones in Skills.")
-                .font(.system(size: 12, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .center)
-        } else if !focusManager.isOnLastSkill, let next = focusManager.nextFocusSkill {
-            Button {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    focusManager.advanceToNext()
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    Text("Move to \(next.icon) \(next.name)")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.textPrimary)
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(AppColors.primary)
-                }
-            }
-            .buttonStyle(.plain)
-        }
     }
 
     // MARK: - Skill Ideas Card

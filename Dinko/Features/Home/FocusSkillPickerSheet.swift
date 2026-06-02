@@ -9,13 +9,12 @@ struct FocusSkillPickerSheet: View {
     @State private var selectedSkills: [Skill] = []
     @State private var showNewSkillField = false
     @State private var newSkillName = ""
-
-    // Skills the user created inline during this session (before CoreData)
     @State private var inlineCustomSkills: [Skill] = []
 
+    private let maxSkills = 5
+
     private var allSkills: [(skill: Skill, rating: Int)] {
-        let customs = inlineCustomSkills.map { (skill: $0, rating: 0) }
-        return existingSkills + customs
+        existingSkills + inlineCustomSkills.map { (skill: $0, rating: 0) }
     }
 
     var body: some View {
@@ -132,6 +131,7 @@ struct FocusSkillPickerSheet: View {
                 }
             }
             .toolbarBackground(AppColors.background, for: .navigationBar)
+            .onAppear { prePopulateFromFocusManager() }
         }
         .presentationBackground(AppColors.background)
     }
@@ -184,13 +184,32 @@ struct FocusSkillPickerSheet: View {
         .animation(.easeInOut(duration: 0.15), value: isSelected)
     }
 
+    // MARK: - Pre-populate
+
+    private func prePopulateFromFocusManager() {
+        let fm = FocusSkillManager.shared
+        guard !fm.focusSkills.isEmpty, selectedSkills.isEmpty else { return }
+        // Match existing focus skills to the allSkills list by ID
+        let ordered = fm.focusSkills.sorted { $0.priorityIndex < $1.priorityIndex }
+        for entry in ordered {
+            if let match = allSkills.first(where: { $0.skill.id == entry.id })?.skill {
+                selectedSkills.append(match)
+            } else {
+                // Focus skill exists in manager but not in CoreData list — create an inline proxy
+                let proxy = Skill(id: entry.id, name: entry.name, iconName: entry.icon)
+                inlineCustomSkills.append(proxy)
+                selectedSkills.append(proxy)
+            }
+        }
+    }
+
     // MARK: - Actions
 
     private func toggle(_ skill: Skill) {
         if let idx = selectedSkills.firstIndex(where: { $0.id == skill.id }) {
             selectedSkills.remove(at: idx)
         } else {
-            guard selectedSkills.count < 3 else { return }
+            guard selectedSkills.count < maxSkills else { return }
             selectedSkills.append(skill)
         }
     }
