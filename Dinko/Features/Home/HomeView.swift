@@ -131,11 +131,8 @@ struct HomeView: View {
                 weeklySkillSwipeCard(viewModel)
                     .staggeredAppearance(index: 1)
 
-                todayActionBlock(viewModel)
-                    .staggeredAppearance(index: 2)
-
                 compactWeekStripCard(viewModel)
-                    .staggeredAppearance(index: 3)
+                    .staggeredAppearance(index: 2)
 
                 duprRatingCard
                     .staggeredAppearance(index: 4)
