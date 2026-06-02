@@ -360,9 +360,11 @@ struct HomeView: View {
                 .chartXScale(domain: weekStart...weekEnd)
                 .chartYScale(domain: minR...maxR)
                 .chartXAxis {
-                    AxisMarks(values: days.filter { $0.isPracticeDay || $0.isToday }.map(\.date)) { _ in
-                        AxisValueLabel(format: .dateTime.weekday(.abbreviated))
-                            .font(.system(size: 9, design: .rounded))
+                    AxisMarks(values: days.map(\.date)) { _ in
+                        AxisGridLine()
+                            .foregroundStyle(AppColors.separator.opacity(0.35))
+                        AxisValueLabel(format: .dateTime.weekday(.narrow))
+                            .font(.system(size: 9, weight: .medium, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
                     }
                 }
