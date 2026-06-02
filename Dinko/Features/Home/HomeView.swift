@@ -714,10 +714,9 @@ struct HomeView: View {
     }
 
     private func dotStripColor(_ day: WeekScheduleDay) -> Color {
-        if day.hasLoggedSession { return AppColors.successGreen }
-        if day.isToday && day.isPracticeDay { return AppColors.primary.opacity(0.5) }
-        if day.isPracticeDay && !day.isFuture { return AppColors.separator }
-        return AppColors.separator.opacity(0.4)
+        if day.isToday { return AppColors.primary }
+        if !day.isFuture { return AppColors.primary.opacity(0.22) }
+        return AppColors.separator.opacity(0.35)
     }
 
     // MARK: - Skill Ideas Card
