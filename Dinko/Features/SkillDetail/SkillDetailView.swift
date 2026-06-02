@@ -52,6 +52,8 @@ struct SkillDetailView: View {
                 VStack(spacing: AppSpacing.md) {
                     ratingHero(viewModel)
 
+                    coachingCard(viewModel)
+
                     if viewModel.isParentSkill {
                         subskillsSection(viewModel)
                     }
@@ -61,7 +63,6 @@ struct SkillDetailView: View {
                     }
 
                     notesSection(viewModel)
-                    coachingCard(viewModel)
                     drillsSection(viewModel)
                     ratingNotesSection(viewModel)
 
@@ -625,35 +626,46 @@ struct SkillDetailView: View {
                     Button {
                         startInlineCoaching(detailVM)
                     } label: {
-                        HStack(spacing: AppSpacing.xs) {
+                        HStack(spacing: 14) {
                             ZStack {
                                 Circle()
-                                    .fill(.white.opacity(0.2))
-                                    .frame(width: 40, height: 40)
+                                    .fill(.white.opacity(0.18))
+                                    .frame(width: 46, height: 46)
                                 Image(systemName: "sparkles")
-                                    .font(.system(size: 18, weight: .semibold))
+                                    .font(.system(size: 20, weight: .semibold))
                                     .foregroundStyle(.white)
                             }
-                            VStack(alignment: .leading, spacing: 3) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text("Get AI Coaching")
-                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .font(.system(size: 17, weight: .bold, design: .rounded))
                                     .foregroundStyle(.white)
                                 Text("Personalized drills & game tips")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.75))
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.78))
                             }
                             Spacer()
-                            Image(systemName: "arrow.right.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(.white.opacity(0.8))
+                            Image(systemName: "chevron.right.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.white.opacity(0.85))
                         }
-                        .padding(AppSpacing.sm)
-                        .background(LinearGradient(
-                            colors: [AppColors.primary, Color(hex: "2A4935")],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        ))
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.vertical, AppSpacing.md)
+                        .background(
+                            ZStack {
+                                LinearGradient(
+                                    colors: [AppColors.primaryLight, AppColors.primaryDark],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                )
+                                LinearGradient(
+                                    colors: [.white.opacity(0.14), .clear],
+                                    startPoint: .top,
+                                    endPoint: .init(x: 0.5, y: 0.55)
+                                )
+                            }
+                        )
                         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-                        .shadow(color: AppColors.primary.opacity(0.3), radius: 8, y: 4)
+                        .shadow(color: AppColors.primary.opacity(0.30), radius: 0, y: 3)
+                        .shadow(color: AppColors.primary.opacity(0.16), radius: 10, y: 6)
                     }
                     .buttonStyle(.pressable)
                 }
