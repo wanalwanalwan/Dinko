@@ -23,6 +23,7 @@ struct HomeView: View {
     @State private var duprService = DUPRService.shared
     @State private var showDUPRStats = false
     @State private var focusManager = FocusSkillManager.shared
+    @State private var showFocusPicker = false
     @State private var showAddIdeaSheet = false
     @State private var newIdeaName = ""
     @State private var newIdeaNotes = ""
@@ -154,6 +155,19 @@ struct HomeView: View {
         .refreshable { await viewModel.loadDashboard() }
         .sheet(isPresented: $showProfile) { ProfileView() }
         .sheet(isPresented: $showDUPRStats) { DUPRStatsView() }
+        .sheet(isPresented: $showFocusPicker) {
+            FocusSkillPickerSheet(existingSkills: viewModel.skillsWithRatings) { entries in
+                focusManager.setFocusSkills(entries)
+                Task {
+                    let existingIds = viewModel.skillsWithRatings.map(\.skill.id)
+                    for entry in entries where !existingIds.contains(entry.id) {
+                        let skill = Skill(id: entry.id, name: entry.name, iconName: entry.icon)
+                        try? await dependencies.skillRepository.save(skill)
+                    }
+                    await viewModel.loadDashboard()
+                }
+            }
+        }
         .sheet(isPresented: $showAddSkill) {
             AddEditSkillView()
                 .presentationDetents([.medium])
@@ -265,7 +279,7 @@ struct HomeView: View {
     }
 
     private var setupFocusCTA: some View {
-        Button { showAddSkill = true } label: {
+        Button { showFocusPicker = true } label: {
             HStack(spacing: AppSpacing.xs) {
                 Image(systemName: "target")
                     .font(.system(size: 16))
