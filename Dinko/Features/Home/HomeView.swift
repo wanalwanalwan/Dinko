@@ -26,6 +26,7 @@ struct HomeView: View {
     @State private var focusManager = FocusSkillManager.shared
     @State private var showFocusPicker = false
     @State private var focusSkillPage = 0
+    @State private var expandedWeekDay: Date? = nil
     @State private var showAddIdeaSheet = false
     @State private var newIdeaName = ""
     @State private var newIdeaNotes = ""
@@ -630,9 +631,15 @@ struct HomeView: View {
     // MARK: - Compact Week Strip Card
 
     private func compactWeekStripCard(_ viewModel: HomeViewModel) -> some View {
-        VStack(spacing: AppSpacing.xs) {
+        let calendar = Calendar.current
+
+        return VStack(spacing: AppSpacing.xs) {
+            // 7-circle strip
             HStack(spacing: 0) {
                 ForEach(viewModel.scheduledDays) { day in
+                    let dayDate = calendar.startOfDay(for: day.date)
+                    let isExpanded = expandedWeekDay == dayDate
+
                     VStack(spacing: 5) {
                         Text(String(day.dayName.prefix(1)))
                             .font(.system(size: 10, weight: .medium, design: .rounded))
@@ -650,20 +657,32 @@ struct HomeView: View {
                             }
 
                             if day.hasLoggedSession {
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 11, weight: .bold))
+                                Image(systemName: isExpanded ? "chevron.up" : "checkmark")
+                                    .font(.system(size: isExpanded ? 9 : 11, weight: .bold))
                                     .foregroundStyle(.white)
+                                    .animation(.easeInOut(duration: 0.15), value: isExpanded)
                             } else {
                                 Text("\(day.dayNumber)")
                                     .font(.system(size: 12, weight: day.isToday ? .bold : .regular, design: .rounded))
                                     .foregroundStyle(stripDayTextColor(day))
                             }
                         }
+                        .scaleEffect(isExpanded ? 1.1 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isExpanded)
                     }
                     .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        guard day.hasLoggedSession else { return }
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                            expandedWeekDay = (expandedWeekDay == dayDate) ? nil : dayDate
+                        }
+                    }
                 }
             }
 
+            // Session / streak caption
             HStack(spacing: 4) {
                 Text("\(viewModel.thisWeekSessionCount) of \(viewModel.weeklySessionGoal) sessions")
                     .font(.system(size: 12, design: .rounded))
@@ -680,11 +699,128 @@ struct HomeView: View {
                         .foregroundStyle(AppColors.warningOrange)
                 }
             }
+
+            // Expandable day detail
+            if let date = expandedWeekDay, let detail = viewModel.weekDayDetails[date] {
+                dayDetailExpansion(detail: detail, date: date, viewModel: viewModel)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .top)),
+                        removal:   .opacity.combined(with: .scale(scale: 0.97, anchor: .top))
+                    ))
+            }
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
         .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+        .animation(.spring(response: 0.4, dampingFraction: 0.82), value: expandedWeekDay)
+    }
+
+    // MARK: - Day Detail Expansion
+
+    private func dayDetailExpansion(detail: DaySessionInfo, date: Date, viewModel: HomeViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Divider()
+                .padding(.horizontal, -AppSpacing.sm)
+
+            // Type chips + duration
+            HStack(spacing: AppSpacing.xs) {
+                ForEach(detail.sessionTypes, id: \.self) { type in
+                    sessionTypeChip(type)
+                }
+                Spacer()
+                if detail.totalDuration > 0 {
+                    HStack(spacing: 3) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppColors.textSecondary)
+                        Text("\(detail.totalDuration) min")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+            }
+
+            // Skill changes
+            if detail.skillChanges.isEmpty {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "figure.pickleball")
+                        .font(.system(size: 13))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                    Text("Session logged — no skills rated")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .padding(.vertical, AppSpacing.xxs)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(detail.skillChanges) { change in
+                        skillChangeRow(change)
+                    }
+                }
+            }
+        }
+    }
+
+    private func sessionTypeChip(_ type: SessionType) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: type.iconName)
+                .font(.system(size: 10, weight: .semibold))
+            Text(type.displayName)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+        }
+        .foregroundStyle(AppColors.primary)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 4)
+        .background(AppColors.primary.opacity(0.1))
+        .clipShape(Capsule())
+    }
+
+    private func skillChangeRow(_ change: DaySkillChange) -> some View {
+        HStack(spacing: 10) {
+            Text(change.iconName)
+                .font(.system(size: 16))
+                .frame(width: 24, alignment: .center)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(change.skillName)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(1)
+                ProgressBar(
+                    progress: Double(change.newRating) / 100.0,
+                    tint: change.delta > 0 ? AppColors.successGreen : AppColors.primary
+                )
+                .frame(height: 4)
+            }
+
+            HStack(spacing: 6) {
+                Text("\(change.newRating)%")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .frame(width: 34, alignment: .trailing)
+
+                if change.delta > 0 {
+                    Text("+\(change.delta)")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.successGreen)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(AppColors.successGreen.opacity(0.12))
+                        .clipShape(Capsule())
+                        .frame(width: 42)
+                } else if change.delta < 0 {
+                    Text("\(change.delta)")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.coral)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(AppColors.coral.opacity(0.12))
+                        .clipShape(Capsule())
+                        .frame(width: 42)
+                } else {
+                    Spacer().frame(width: 42)
+                }
+            }
+        }
     }
 
     private func stripDayFill(_ day: WeekScheduleDay) -> Color {

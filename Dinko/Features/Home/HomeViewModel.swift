@@ -55,6 +55,24 @@ struct CompletedSkillItem: Identifiable {
     let subskills: [CompletedSubskill]
 }
 
+// MARK: - Day Detail Models
+
+struct DaySkillChange: Identifiable {
+    let id: UUID
+    let skillName: String
+    let iconName: String
+    let newRating: Int
+    let delta: Int
+}
+
+struct DaySessionInfo {
+    let sessions: [Session]
+    let skillChanges: [DaySkillChange]
+
+    var totalDuration: Int { sessions.map(\.duration).reduce(0, +) }
+    var sessionTypes: [SessionType] { Array(Set(sessions.map(\.sessionType))).sorted { $0.rawValue < $1.rawValue } }
+}
+
 // MARK: - Week Day Model
 
 struct HomeWeekDay: Identifiable {
@@ -237,6 +255,7 @@ final class HomeViewModel {
     }
 
     private(set) var scheduledDays: [WeekScheduleDay] = []
+    private(set) var weekDayDetails: [Date: DaySessionInfo] = [:]
 
     private(set) var isLoaded = false
     var errorMessage: String?
@@ -251,6 +270,8 @@ final class HomeViewModel {
         [true, isProfileComplete, hasAnySkills, hasLoggedAnySession].filter { $0 }.count
     }
     var allOnboardingComplete: Bool { onboardingStepsCompleted >= 4 }
+
+    private var cachedSessions: [Session] = []
 
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
@@ -921,6 +942,7 @@ final class HomeViewModel {
 
     private func computeStreak() async throws {
         let sessions = try await sessionRepository.fetchAll()
+        cachedSessions = sessions
         let calendar = Calendar.current
 
         let savedGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
@@ -1019,6 +1041,66 @@ final class HomeViewModel {
         buildScheduledDays()
     }
 
+    // MARK: - Week Day Details
+
+    private func buildWeekDayDetails() {
+        let calendar = Calendar.current
+        var details: [Date: DaySessionInfo] = [:]
+
+        for day in scheduledDays where day.hasLoggedSession {
+            let dayStart = calendar.startOfDay(for: day.date)
+            guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { continue }
+
+            let daySessions = cachedSessions.filter {
+                calendar.startOfDay(for: $0.date) == dayStart
+            }
+            guard !daySessions.isEmpty else { continue }
+
+            var seenIds = Set<UUID>()
+            var skillChanges: [DaySkillChange] = []
+
+            for session in daySessions {
+                for skillId in session.skillIdArray where !seenIds.contains(skillId) {
+                    seenIds.insert(skillId)
+                    guard let skill = cachedAllSkills.first(where: { $0.id == skillId }) else { continue }
+                    let ratings = (cachedRatings[skillId] ?? []).sorted { $0.date < $1.date }
+
+                    let dayRatings = ratings.filter { $0.date >= dayStart && $0.date < dayEnd }
+                    let currentRating: Int
+                    let delta: Int
+
+                    if let latest = dayRatings.last {
+                        currentRating = latest.rating
+                        let prev = ratings.last(where: { $0.date < dayStart })?.rating ?? latest.rating
+                        delta = currentRating - prev
+                    } else if let last = ratings.last(where: { $0.date < dayEnd }) {
+                        currentRating = last.rating
+                        delta = 0
+                    } else {
+                        continue
+                    }
+
+                    skillChanges.append(DaySkillChange(
+                        id: skillId,
+                        skillName: skill.name,
+                        iconName: skill.iconName,
+                        newRating: currentRating,
+                        delta: delta
+                    ))
+                }
+            }
+
+            skillChanges.sort { a, b in
+                if a.delta != b.delta { return a.delta > b.delta }
+                return a.newRating > b.newRating
+            }
+
+            details[dayStart] = DaySessionInfo(sessions: daySessions, skillChanges: skillChanges)
+        }
+
+        weekDayDetails = details
+    }
+
     // MARK: - Public Chart Data
 
     struct WeekRatingPoint {
@@ -1101,6 +1183,7 @@ final class HomeViewModel {
                 hasLoggedSession: sessionDatesThisWeek.contains(calendar.startOfDay(for: date))
             )
         }
+        buildWeekDayDetails()
     }
 
     // MARK: - Focus Skill Setup
