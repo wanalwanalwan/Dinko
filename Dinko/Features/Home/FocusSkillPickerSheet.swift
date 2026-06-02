@@ -9,12 +9,16 @@ struct FocusSkillPickerSheet: View {
     @State private var selectedSkills: [Skill] = []
     @State private var showNewSkillField = false
     @State private var newSkillName = ""
+    @State private var newSkillRating: Double = 50
     @State private var inlineCustomSkills: [Skill] = []
+    @State private var inlineRatings: [UUID: Int] = [:]  // starting % per inline skill
 
     private let maxSkills = 5
 
     private var allSkills: [(skill: Skill, rating: Int)] {
-        existingSkills + inlineCustomSkills.map { (skill: $0, rating: 0) }
+        existingSkills + inlineCustomSkills.map { s in
+            (skill: s, rating: inlineRatings[s.id] ?? 0)
+        }
     }
 
     var body: some View {
@@ -74,26 +78,49 @@ struct FocusSkillPickerSheet: View {
                     // Add new skill section
                     Section {
                         if showNewSkillField {
-                            HStack(spacing: AppSpacing.xs) {
-                                TextField("Skill name...", text: $newSkillName)
-                                    .font(.system(size: 15, design: .rounded))
-                                    .autocorrectionDisabled()
-                                    .onSubmit { addCustomSkill() }
+                            VStack(spacing: AppSpacing.sm) {
+                                // Name + dismiss
+                                HStack(spacing: AppSpacing.xs) {
+                                    TextField("Skill name...", text: $newSkillName)
+                                        .font(.system(size: 15, design: .rounded))
+                                        .autocorrectionDisabled()
 
-                                Button("Add") { addCustomSkill() }
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(newSkillName.trimmingCharacters(in: .whitespaces).isEmpty
-                                                     ? AppColors.textSecondary : AppColors.primary)
-                                    .disabled(newSkillName.trimmingCharacters(in: .whitespaces).isEmpty)
-
-                                Button {
-                                    withAnimation { showNewSkillField = false; newSkillName = "" }
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(AppColors.textSecondary)
+                                    Button {
+                                        withAnimation { showNewSkillField = false; newSkillName = ""; newSkillRating = 50 }
+                                    } label: {
+                                        Image(systemName: "xmark")
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(AppColors.textSecondary)
+                                    }
                                 }
+
+                                // Starting rating
+                                VStack(spacing: 4) {
+                                    HStack {
+                                        Text("Starting rating")
+                                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                                            .foregroundStyle(AppColors.textSecondary)
+                                        Spacer()
+                                        Text("\(Int(newSkillRating.rounded()))%")
+                                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                                            .foregroundStyle(AppColors.primary)
+                                            .contentTransition(.numericText())
+                                    }
+                                    PremiumRatingSlider(value: $newSkillRating, showLevelLabel: false, showRails: false)
+                                }
+
+                                Button("Add Skill") { addCustomSkill() }
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(newSkillName.trimmingCharacters(in: .whitespaces).isEmpty
+                                                     ? AppColors.textSecondary : .white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 9)
+                                    .background(newSkillName.trimmingCharacters(in: .whitespaces).isEmpty
+                                                ? AppColors.separator : AppColors.primary)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .disabled(newSkillName.trimmingCharacters(in: .whitespaces).isEmpty)
                             }
+                            .padding(.vertical, AppSpacing.xs)
                             .listRowBackground(AppColors.cardBackground)
                         } else {
                             Button {
@@ -218,20 +245,22 @@ struct FocusSkillPickerSheet: View {
         let trimmed = newSkillName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         let skill = Skill(name: trimmed, iconName: "✨")
+        inlineRatings[skill.id] = Int(newSkillRating.rounded())
         inlineCustomSkills.append(skill)
-        withAnimation { showNewSkillField = false; newSkillName = "" }
-        // Auto-select it if slots remain
-        if selectedSkills.count < 3 { selectedSkills.append(skill) }
+        withAnimation { showNewSkillField = false; newSkillName = ""; newSkillRating = 50 }
+        if selectedSkills.count < maxSkills { selectedSkills.append(skill) }
     }
 
     private func save() {
+        let isInline = Set(inlineCustomSkills.map(\.id))
         let entries = selectedSkills.enumerated().map { idx, skill in
             FocusSkillEntry(
                 id: skill.id,
                 name: skill.name,
                 icon: skill.iconName,
                 categoryRaw: skill.category.rawValue,
-                priorityIndex: idx
+                priorityIndex: idx,
+                startingRating: isInline.contains(skill.id) ? (inlineRatings[skill.id] ?? 50) : nil
             )
         }
         onSave(entries)

@@ -160,8 +160,21 @@ struct HomeView: View {
                 Task {
                     let existingIds = viewModel.skillsWithRatings.map(\.skill.id)
                     for entry in entries where !existingIds.contains(entry.id) {
+                        // Create the skill in CoreData
                         let skill = Skill(id: entry.id, name: entry.name, iconName: entry.icon)
                         try? await dependencies.skillRepository.save(skill)
+                        // Save starting rating if provided
+                        if let rating = entry.startingRating {
+                            let skillRating = SkillRating(
+                                id: UUID(),
+                                skillId: entry.id,
+                                rating: rating,
+                                date: Date(),
+                                notes: "Starting rating",
+                                updatedAt: Date()
+                            )
+                            try? await dependencies.skillRatingRepository.save(skillRating)
+                        }
                     }
                     await viewModel.loadDashboard()
                 }

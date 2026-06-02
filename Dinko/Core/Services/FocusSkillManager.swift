@@ -9,6 +9,7 @@ struct FocusSkillEntry: Codable, Identifiable {
     var icon: String
     var categoryRaw: String
     var priorityIndex: Int // 0, 1, 2
+    var startingRating: Int? // only set for inline-created skills
 }
 
 struct PendingFocusSkill: Codable, Identifiable {
