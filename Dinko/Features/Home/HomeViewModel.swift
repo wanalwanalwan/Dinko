@@ -1031,27 +1031,34 @@ final class HomeViewModel {
               let weekEnd   = scheduledDays.last.flatMap({ Calendar.current.date(byAdding: .day, value: 1, to: $0.date) })
         else { return [] }
 
-        let calendar = Calendar.current
-        let ratings = (cachedRatings[skillId] ?? [])
-            .filter { $0.date >= weekStart && $0.date < weekEnd }
-            .sorted { $0.date < $1.date }
+        let calendar  = Calendar.current
+        let today     = calendar.startOfDay(for: Date())
+        let allRatings = (cachedRatings[skillId] ?? []).sorted { $0.date < $1.date }
+        let weekRatings = allRatings.filter { $0.date >= weekStart && $0.date < weekEnd }
 
-        if ratings.isEmpty {
-            // Return most recent rating before this week as a flat baseline
-            if let last = (cachedRatings[skillId] ?? []).sorted(by: { $0.date < $1.date }).last {
-                return [WeekRatingPoint(date: weekStart, rating: last.rating)]
+        var points: [WeekRatingPoint]
+
+        if weekRatings.isEmpty {
+            // No ratings this week — use most recent pre-week rating as baseline at Monday
+            guard let last = allRatings.last else { return [] }
+            points = [WeekRatingPoint(date: weekStart, rating: last.rating)]
+        } else {
+            // Deduplicate by day, keeping the latest rating per day
+            var byDay: [Date: SkillRating] = [:]
+            for r in weekRatings {
+                let day = calendar.startOfDay(for: r.date)
+                if byDay[day] == nil || r.date > byDay[day]!.date { byDay[day] = r }
             }
-            return []
+            points = byDay.sorted { $0.key < $1.key }
+                          .map { WeekRatingPoint(date: $0.key, rating: $0.value.rating) }
         }
 
-        // Deduplicate by day, keeping the latest
-        var byDay: [Date: SkillRating] = [:]
-        for r in ratings {
-            let day = calendar.startOfDay(for: r.date)
-            if byDay[day] == nil || r.date > byDay[day]!.date { byDay[day] = r }
+        // Carry the last known point forward to today so the line reaches the current day
+        if let last = points.last, last.date < today, today < weekEnd {
+            points.append(WeekRatingPoint(date: today, rating: last.rating))
         }
-        return byDay.sorted { $0.key < $1.key }
-                    .map { WeekRatingPoint(date: $0.key, rating: $0.value.rating) }
+
+        return points
     }
 
     // MARK: - Weekly Schedule
