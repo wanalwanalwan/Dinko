@@ -139,17 +139,11 @@ struct HomeView: View {
                 weeklyStatsCard(viewModel)
                     .staggeredAppearance(index: 4)
 
-                skillIdeasCard(viewModel)
+                brineScoreCard(viewModel)
                     .staggeredAppearance(index: 5)
 
-                skillsSnapshotSection(viewModel)
-                    .staggeredAppearance(index: 6)
-
-                brineScoreCard(viewModel)
-                    .staggeredAppearance(index: 7)
-
                 achievementsSection(viewModel)
-                    .staggeredAppearance(index: 8)
+                    .staggeredAppearance(index: 6)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
@@ -946,37 +940,6 @@ struct HomeView: View {
                            color: AppColors.trophyGold)
             }
 
-            Divider().padding(.horizontal, AppSpacing.sm)
-
-            Button { showSessionTypeSheet = true } label: {
-                HStack(spacing: 7) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .bold))
-                    Text(viewModel.thisWeekSessionCount == 0 ? "Log First Session" : "Log Session")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(
-                    ZStack {
-                        LinearGradient(
-                            colors: [AppColors.primaryLight, AppColors.primaryDark],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                        LinearGradient(
-                            colors: [.white.opacity(0.16), .clear],
-                            startPoint: .top,
-                            endPoint: .init(x: 0.5, y: 0.55)
-                        )
-                    }
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 13))
-                .shadow(color: AppColors.primary.opacity(0.30), radius: 0, y: 3)
-                .shadow(color: AppColors.primary.opacity(0.14), radius: 8, y: 5)
-            }
-            .buttonStyle(.pressable)
-            .padding(AppSpacing.sm)
         }
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
