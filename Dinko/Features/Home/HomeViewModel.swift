@@ -999,7 +999,7 @@ final class HomeViewModel {
         }
 
         sessionDatesThisWeek = weekSessionDates
-        thisWeekSessionCount = weekCount
+        thisWeekSessionCount = weekSessionDates.count
         thisWeekTotalMinutes = weekMinutes
 
         var days: [HomeWeekDay] = []
