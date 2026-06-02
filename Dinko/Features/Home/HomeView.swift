@@ -264,7 +264,7 @@ struct HomeView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 230)
+                .frame(height: 210)
                 .animation(.easeInOut(duration: 0.25), value: focusSkillPage)
 
                 // Page dots
@@ -337,10 +337,6 @@ struct HomeView: View {
             weeklySkillChart(for: entry.id, viewModel: viewModel)
                 .padding(.horizontal, AppSpacing.sm)
 
-            // 7-dot session strip
-            weekDotStrip(viewModel: viewModel)
-                .padding(.horizontal, AppSpacing.sm)
-                .padding(.bottom, AppSpacing.xxs)
         }
         .padding(.vertical, AppSpacing.xs)
     }
@@ -880,25 +876,6 @@ struct HomeView: View {
         if day.isToday { return AppColors.primary }
         if day.isFuture { return AppColors.textSecondary.opacity(0.35) }
         return AppColors.textSecondary
-    }
-
-    // MARK: - Week Dot Strip (inside focus card)
-
-    private func weekDotStrip(viewModel: HomeViewModel) -> some View {
-        HStack(spacing: 0) {
-            ForEach(viewModel.scheduledDays) { day in
-                Circle()
-                    .fill(dotStripColor(day))
-                    .frame(width: 6, height: 6)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-    }
-
-    private func dotStripColor(_ day: WeekScheduleDay) -> Color {
-        if day.isToday { return AppColors.primary }
-        if !day.isFuture { return AppColors.primary.opacity(0.22) }
-        return AppColors.separator.opacity(0.35)
     }
 
     // MARK: - Skill Ideas Card
