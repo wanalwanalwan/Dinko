@@ -10,7 +10,11 @@ struct OnboardingView: View {
 
     var onComplete: () -> Void
 
-    private let totalSteps = 7
+    private let totalSteps = 8
+    @State private var selectedSkills: [PendingFocusSkill] = []
+    @State private var customSkillInput = ""
+    @State private var showCustomInput = false
+    @State private var customSkillList: [SuggestedSkill] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,6 +26,7 @@ struct OnboardingView: View {
                 frequencyStep.tag(4)
                 ageRangeStep.tag(5)
                 drillPreferencesStep.tag(6)
+                focusSkillsStep.tag(7)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: currentStep)
@@ -481,6 +486,215 @@ struct OnboardingView: View {
 
     // MARK: - Actions
 
+    // MARK: - Step 8: Focus Skills
+
+    private var focusSkillsStep: some View {
+        stepContainer(
+            title: "What skills do you want to work on?",
+            subtitle: "Pick up to 3 in the order you want to tackle them. You can always change this later."
+        ) {
+            VStack(spacing: AppSpacing.sm) {
+                // Selected preview
+                if !selectedSkills.isEmpty {
+                    HStack(spacing: AppSpacing.xs) {
+                        ForEach(selectedSkills) { skill in
+                            HStack(spacing: 5) {
+                                Text("\(skill.priorityIndex + 1)")
+                                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 18, height: 18)
+                                    .background(AppColors.primary)
+                                    .clipShape(Circle())
+                                Text(skill.icon)
+                                    .font(.system(size: 14))
+                                Text(skill.name)
+                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(AppColors.textPrimary)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(AppColors.primary.opacity(0.1))
+                            .clipShape(Capsule())
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, AppSpacing.xxs)
+                }
+
+                // Skill grid
+                let allSuggested = Self.suggestedSkills + customSkillList
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: AppSpacing.xxs) {
+                    ForEach(allSuggested) { skill in
+                        skillChip(skill)
+                    }
+                }
+
+                // Add your own
+                if showCustomInput {
+                    HStack(spacing: AppSpacing.xxs) {
+                        TextField("Skill name...", text: $customSkillInput)
+                            .font(.system(size: 14, design: .rounded))
+                            .padding(.horizontal, AppSpacing.xs)
+                            .padding(.vertical, AppSpacing.xxs)
+                            .background(AppColors.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .autocorrectionDisabled()
+
+                        Button {
+                            let trimmed = customSkillInput.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !trimmed.isEmpty else { showCustomInput = false; return }
+                            let custom = SuggestedSkill(name: trimmed, icon: "✨", categoryRaw: "offense")
+                            customSkillList.append(custom)
+                            customSkillInput = ""
+                            showCustomInput = false
+                            toggleSkillSelection(custom)
+                        } label: {
+                            Text("Add")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .background(AppColors.primary)
+                                .clipShape(Capsule())
+                        }
+
+                        Button { showCustomInput = false; customSkillInput = "" } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
+                } else {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { showCustomInput = true }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle")
+                                .font(.system(size: 14))
+                            Text("Add your own skill")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                        }
+                        .foregroundStyle(AppColors.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Continue / Skip
+                HStack(spacing: AppSpacing.xs) {
+                    if !selectedSkills.isEmpty {
+                        Button { completeOnboarding() } label: {
+                            Text("Continue")
+                                .font(AppTypography.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppSpacing.sm)
+                                .background(AppColors.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isCompleting)
+                    }
+
+                    Button { completeOnboarding() } label: {
+                        Text("Skip")
+                            .font(AppTypography.headline)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .frame(maxWidth: selectedSkills.isEmpty ? .infinity : nil)
+                            .padding(.vertical, AppSpacing.sm)
+                            .padding(.horizontal, selectedSkills.isEmpty ? 0 : AppSpacing.lg)
+                            .background(AppColors.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isCompleting)
+                }
+                .padding(.top, AppSpacing.xxs)
+
+                if isCompleting { ProgressView().padding(.top, AppSpacing.xxs) }
+            }
+        }
+    }
+
+    private func skillChip(_ skill: SuggestedSkill) -> some View {
+        let selectedIndex = selectedSkills.firstIndex(where: { $0.name == skill.name })
+        let isSelected = selectedIndex != nil
+
+        return Button { toggleSkillSelection(skill) } label: {
+            VStack(spacing: 4) {
+                ZStack(alignment: .topTrailing) {
+                    Text(skill.icon)
+                        .font(.system(size: 22))
+                    if let idx = selectedIndex {
+                        Text("\(idx + 1)")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 16, height: 16)
+                            .background(AppColors.primary)
+                            .clipShape(Circle())
+                            .offset(x: 6, y: -4)
+                    }
+                }
+                Text(skill.name)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .rounded))
+                    .foregroundStyle(isSelected ? AppColors.primary : AppColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppSpacing.xs)
+            .background(isSelected ? AppColors.primary.opacity(0.1) : AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isSelected ? AppColors.primary : Color.clear, lineWidth: 1.5)
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
+    }
+
+    private func toggleSkillSelection(_ skill: SuggestedSkill) {
+        if let idx = selectedSkills.firstIndex(where: { $0.name == skill.name }) {
+            selectedSkills.remove(at: idx)
+            // Re-index remaining skills
+            for i in selectedSkills.indices {
+                selectedSkills[i].priorityIndex = i
+            }
+        } else {
+            guard selectedSkills.count < 3 else { return }
+            let pending = PendingFocusSkill(
+                name: skill.name,
+                icon: skill.icon,
+                categoryRaw: skill.categoryRaw,
+                priorityIndex: selectedSkills.count
+            )
+            selectedSkills.append(pending)
+        }
+    }
+
+    static let suggestedSkills: [SuggestedSkill] = [
+        SuggestedSkill(name: "Dinking",          icon: "🥒", categoryRaw: "dinking"),
+        SuggestedSkill(name: "3rd Shot Drop",    icon: "⬇️", categoryRaw: "drops"),
+        SuggestedSkill(name: "Reset",            icon: "🔄", categoryRaw: "defense"),
+        SuggestedSkill(name: "Drive",            icon: "🚀", categoryRaw: "drives"),
+        SuggestedSkill(name: "Serve",            icon: "🎯", categoryRaw: "serves"),
+        SuggestedSkill(name: "Return of Serve",  icon: "↩️", categoryRaw: "strategy"),
+        SuggestedSkill(name: "Speed-Up",         icon: "⚡", categoryRaw: "offense"),
+        SuggestedSkill(name: "Volley",           icon: "🤚", categoryRaw: "offense"),
+        SuggestedSkill(name: "Overhead",         icon: "💥", categoryRaw: "offense"),
+        SuggestedSkill(name: "Lob",              icon: "🪂", categoryRaw: "offense"),
+        SuggestedSkill(name: "Block",            icon: "🛡️", categoryRaw: "defense"),
+        SuggestedSkill(name: "Footwork",         icon: "👟", categoryRaw: "drives"),
+        SuggestedSkill(name: "Court Position",   icon: "📍", categoryRaw: "strategy"),
+        SuggestedSkill(name: "Stacking",         icon: "♟️", categoryRaw: "strategy"),
+        SuggestedSkill(name: "Erne",             icon: "✈️", categoryRaw: "offense"),
+    ]
+
+    // MARK: - Actions
+
     private func advanceAfterDelay() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             withAnimation { currentStep += 1 }
@@ -491,9 +705,19 @@ struct OnboardingView: View {
         guard !isCompleting else { return }
         isCompleting = true
 
+        viewModel.pendingFocusSkills = selectedSkills
         viewModel.completeOnboarding()
         onComplete()
     }
+}
+
+// MARK: - Suggested Skill
+
+struct SuggestedSkill: Identifiable {
+    let id = UUID()
+    let name: String
+    let icon: String
+    let categoryRaw: String
 }
 
 // MARK: - Flow Layout for Pills

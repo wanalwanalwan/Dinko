@@ -11,12 +11,21 @@ final class OnboardingViewModel {
     var ageRange: String?
     var trainingDaysPerWeek: Int?
     var drillPreferences: Set<String> = []
+    var pendingFocusSkills: [PendingFocusSkill] = []
 
     func completeOnboarding() {
         persistPreferences()
+        savePendingFocusSkills()
     }
 
     // MARK: - Private Helpers
+
+    private func savePendingFocusSkills() {
+        guard !pendingFocusSkills.isEmpty else { return }
+        if let data = try? JSONEncoder().encode(pendingFocusSkills) {
+            UserDefaults.standard.set(data, forKey: FocusSkillManager.pendingKey)
+        }
+    }
 
     private func persistPreferences() {
         if let dupr = duprRange {

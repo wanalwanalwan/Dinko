@@ -146,6 +146,7 @@
 		D11000010000000000000004 /* DUPRWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000004 /* DUPRWebView.swift */; };
 		D11000010000000000000005 /* DUPRConnectSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000005 /* DUPRConnectSheet.swift */; };
 		D11000010000000000000006 /* DUPRStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000006 /* DUPRStatsView.swift */; };
+				FS1000010000000000000001 /* FocusSkillManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS2000010000000000000001 /* FocusSkillManager.swift */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -311,6 +312,7 @@
 		D12000010000000000000004 /* DUPRWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRWebView.swift; sourceTree = "<group>"; };
 		D12000010000000000000005 /* DUPRConnectSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRConnectSheet.swift; sourceTree = "<group>"; };
 		D12000010000000000000006 /* DUPRStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRStatsView.swift; sourceTree = "<group>"; };
+				FS2000010000000000000001 /* FocusSkillManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSkillManager.swift; sourceTree = "<group>"; };
 		/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -611,6 +613,7 @@
 			isa = PBXGroup;
 			children = (
 				AC2000010000000000000002 /* AchievementManager.swift */,
+				FS2000010000000000000001 /* FocusSkillManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -940,6 +943,7 @@
 				AC1000010000000000000002 /* AchievementManager.swift in Sources */,
 				E10000020000000000000001 /* ChatMessage.swift in Sources */,
 				E10000020000000000000002 /* SupabaseConfig.swift in Sources */,
+				FS1000010000000000000001 /* FocusSkillManager.swift in Sources */,
 				D11000010000000000000001 /* DUPRConfig.swift in Sources */,
 				D11000010000000000000002 /* DUPRService.swift in Sources */,
 				D11000010000000000000003 /* DUPRModels.swift in Sources */,

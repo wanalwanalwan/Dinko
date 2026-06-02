@@ -65,6 +65,20 @@ struct HomeWeekDay: Identifiable {
     let hasSession: Bool
 }
 
+// MARK: - Weekly Schedule Day
+
+struct WeekScheduleDay: Identifiable {
+    let id: Date
+    let date: Date
+    let dayName: String      // "Mon", "Tue"...
+    let dayNumber: Int
+    let monthAbbrev: String
+    let isPracticeDay: Bool
+    let isToday: Bool
+    let isFuture: Bool
+    let hasLoggedSession: Bool
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -208,6 +222,8 @@ final class HomeViewModel {
         return min(100, Int(skillPts + streakPts + sessionPts + momentumPts + engagePts))
     }
 
+    private(set) var scheduledDays: [WeekScheduleDay] = []
+
     private(set) var isLoaded = false
     var errorMessage: String?
 
@@ -248,6 +264,7 @@ final class HomeViewModel {
     }
 
     func loadDashboard() async {
+        await setupFocusSkillsIfNeeded()
         do {
             updateGreeting()
             resolvePlayerName()
@@ -985,6 +1002,110 @@ final class HomeViewModel {
         }
 
         weekDays = days
+        buildScheduledDays()
+    }
+
+    // MARK: - Weekly Schedule
+
+    private func buildScheduledDays() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekday = calendar.component(.weekday, from: today)
+
+        // Monday = 0 offset (weekday: Sun=1, Mon=2 → offset = weekday-2, wrapping)
+        let daysFromMonday = (weekday + 5) % 7
+        guard let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) else { return }
+
+        // Distribute practice days evenly based on weekly goal
+        let practiceIndices: Set<Int>
+        switch weeklySessionGoal {
+        case 1:      practiceIndices = [0]
+        case 2:      practiceIndices = [0, 3]
+        case 3:      practiceIndices = [0, 2, 4]
+        case 4:      practiceIndices = [0, 1, 3, 4]
+        case 5:      practiceIndices = [0, 1, 2, 3, 4]
+        case 6:      practiceIndices = [0, 1, 2, 3, 4, 5]
+        default:     practiceIndices = Set(0...6)
+        }
+
+        let dayNames   = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        let monthFmt   = DateFormatter(); monthFmt.dateFormat = "MMM"
+
+        scheduledDays = (0..<7).compactMap { offset in
+            guard let date = calendar.date(byAdding: .day, value: offset, to: monday) else { return nil }
+            return WeekScheduleDay(
+                id: date,
+                date: date,
+                dayName: dayNames[offset],
+                dayNumber: calendar.component(.day, from: date),
+                monthAbbrev: monthFmt.string(from: date),
+                isPracticeDay: practiceIndices.contains(offset),
+                isToday: calendar.isDateInToday(date),
+                isFuture: date > today,
+                hasLoggedSession: sessionDatesThisWeek.contains(calendar.startOfDay(for: date))
+            )
+        }
+    }
+
+    // MARK: - Focus Skill Setup
+
+    /// Creates CoreData skills from any pending focus skills saved during onboarding.
+    func setupFocusSkillsIfNeeded() async {
+        guard let data = UserDefaults.standard.data(forKey: FocusSkillManager.pendingKey),
+              let pending = try? JSONDecoder().decode([PendingFocusSkill].self, from: data),
+              !pending.isEmpty else { return }
+
+        UserDefaults.standard.removeObject(forKey: FocusSkillManager.pendingKey)
+
+        var entries: [FocusSkillEntry] = []
+        let existing = (try? await skillRepository.fetchActive()) ?? []
+
+        for item in pending {
+            // Avoid duplicates
+            if let match = existing.first(where: { $0.name.lowercased() == item.name.lowercased() }) {
+                entries.append(FocusSkillEntry(
+                    id: match.id, name: match.name, icon: item.icon,
+                    categoryRaw: item.categoryRaw, priorityIndex: item.priorityIndex
+                ))
+                continue
+            }
+
+            let category = SkillCategory(rawValue: item.categoryRaw) ?? .offense
+            let skill = Skill(
+                name: item.name,
+                category: category,
+                displayOrder: item.priorityIndex,
+                iconName: item.icon
+            )
+            do {
+                try await skillRepository.save(skill)
+                entries.append(FocusSkillEntry(
+                    id: skill.id, name: skill.name, icon: item.icon,
+                    categoryRaw: item.categoryRaw, priorityIndex: item.priorityIndex
+                ))
+            } catch {}
+        }
+
+        if !entries.isEmpty {
+            FocusSkillManager.shared.setFocusSkills(entries.sorted { $0.priorityIndex < $1.priorityIndex })
+        }
+    }
+
+    /// Converts a SkillIdea into a real CoreData Skill and removes it from ideas.
+    func convertIdeaToSkill(_ idea: SkillIdea) async {
+        let skill = Skill(
+            name: idea.name,
+            description: idea.notes,
+            displayOrder: (cachedSkills.map(\.displayOrder).max() ?? 0) + 1,
+            iconName: "✨"
+        )
+        do {
+            try await skillRepository.save(skill)
+            FocusSkillManager.shared.deleteIdea(id: idea.id)
+            await loadDashboard()
+        } catch {
+            errorMessage = "Failed to add skill."
+        }
     }
 
     private func priorityValue(_ priority: String) -> Int {

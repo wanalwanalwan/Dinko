@@ -22,6 +22,11 @@ struct HomeView: View {
     @State private var namePromptLast = ""
     @State private var duprService = DUPRService.shared
     @State private var showDUPRStats = false
+    @State private var focusManager = FocusSkillManager.shared
+    @State private var showAddIdeaSheet = false
+    @State private var newIdeaName = ""
+    @State private var newIdeaNotes = ""
+    @State private var expandedIdeaId: UUID? = nil
 
     var body: some View {
         Group {
@@ -119,24 +124,22 @@ struct HomeView: View {
                 headerSection(viewModel)
                     .staggeredAppearance(index: 0)
 
-                brineScoreCard(viewModel)
+                weeklyPlanCard(viewModel)
                     .staggeredAppearance(index: 1)
 
-                weeklyStatsCard(viewModel)
+                duprRatingCard
                     .staggeredAppearance(index: 2)
 
-                duprRatingCard
+                weeklyStatsCard(viewModel)
                     .staggeredAppearance(index: 3)
 
-                if !viewModel.allOnboardingComplete {
-                    gettingStartedSection(viewModel)
-                        .staggeredAppearance(index: 4)
-                }
+                skillIdeasCard(viewModel)
+                    .staggeredAppearance(index: 4)
 
                 skillsSnapshotSection(viewModel)
                     .staggeredAppearance(index: 5)
 
-                coachSection(viewModel)
+                brineScoreCard(viewModel)
                     .staggeredAppearance(index: 6)
 
                 achievementsSection(viewModel)
@@ -156,6 +159,396 @@ struct HomeView: View {
                 .presentationDetents([.medium])
                 .onDisappear { Task { await viewModel.loadDashboard() } }
         }
+    }
+
+    // MARK: - Weekly Plan Card
+
+    private func weeklyPlanCard(_ viewModel: HomeViewModel) -> some View {
+        VStack(spacing: 0) {
+            // Header row
+            HStack {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("THIS WEEK")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .tracking(0.8)
+                        .foregroundStyle(AppColors.textSecondary)
+                    if let first = viewModel.scheduledDays.first,
+                       let last  = viewModel.scheduledDays.last {
+                        Text("\(first.monthAbbrev) \(first.dayNumber) – \(last.monthAbbrev) \(last.dayNumber)")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+                Spacer()
+                if viewModel.thisWeekSessionCount > 0 {
+                    Label("\(viewModel.thisWeekSessionCount) logged", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.successGreen)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(AppColors.successGreen.opacity(0.1))
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
+
+            // Focus skill banner
+            if focusManager.hasFocusSkills {
+                focusBanner
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.bottom, AppSpacing.xs)
+            } else {
+                setupFocusCTA
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.bottom, AppSpacing.xs)
+            }
+
+            Divider().padding(.horizontal, AppSpacing.sm)
+
+            // Day rows
+            if viewModel.scheduledDays.isEmpty {
+                ProgressView()
+                    .padding(AppSpacing.md)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(viewModel.scheduledDays) { day in
+                        scheduleDayRow(day, viewModel: viewModel)
+                        if day.id != viewModel.scheduledDays.last?.id {
+                            Divider().padding(.leading, 52)
+                        }
+                    }
+                }
+            }
+
+            // Bottom: advance skill
+            if focusManager.hasFocusSkills {
+                Divider().padding(.horizontal, AppSpacing.sm)
+                advanceSkillFooter
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.vertical, AppSpacing.xs)
+            }
+        }
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+    }
+
+    @ViewBuilder
+    private var focusBanner: some View {
+        if let skill = focusManager.currentFocusSkill {
+            HStack(spacing: AppSpacing.xs) {
+                Text(skill.icon)
+                    .font(.system(size: 22))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(skill.name)
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text("Focus skill \(focusManager.currentFocusIndex + 1) of \(focusManager.focusSkills.count)")
+                        .font(.system(size: 11, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                Spacer()
+                HStack(spacing: 4) {
+                    ForEach(0..<focusManager.focusSkills.count, id: \.self) { i in
+                        Circle()
+                            .fill(i <= focusManager.currentFocusIndex ? AppColors.primary : AppColors.separator)
+                            .frame(width: i == focusManager.currentFocusIndex ? 8 : 6,
+                                   height: i == focusManager.currentFocusIndex ? 8 : 6)
+                    }
+                }
+            }
+            .padding(AppSpacing.xs)
+            .background(AppColors.primary.opacity(0.07))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+    }
+
+    private var setupFocusCTA: some View {
+        Button { showAddSkill = true } label: {
+            HStack(spacing: AppSpacing.xs) {
+                Image(systemName: "target")
+                    .font(.system(size: 16))
+                    .foregroundStyle(AppColors.primary)
+                Text("Set your focus skills to get started")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .padding(AppSpacing.xs)
+            .background(AppColors.primary.opacity(0.07))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func scheduleDayRow(_ day: WeekScheduleDay, viewModel: HomeViewModel) -> some View {
+        HStack(spacing: AppSpacing.xs) {
+            // Date column
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 4) {
+                    Text(day.dayName)
+                        .font(.system(size: 14, weight: day.isToday ? .bold : .medium, design: .rounded))
+                        .foregroundStyle(day.isToday ? AppColors.primary : AppColors.textPrimary)
+                    Text("\(day.monthAbbrev) \(day.dayNumber)")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                if day.isToday {
+                    Text("Today")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.primary)
+                }
+            }
+            .frame(minWidth: 80, alignment: .leading)
+
+            Spacer()
+
+            // Action column
+            if day.hasLoggedSession {
+                Label("Logged", systemImage: "checkmark.circle.fill")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.successGreen)
+                    .labelStyle(.titleAndIcon)
+            } else if day.isPracticeDay {
+                Button {
+                    showSessionTypeSheet = true
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("Log Session")
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(day.isToday ? .white : AppColors.primary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(day.isToday ? AppColors.primary : AppColors.primary.opacity(0.1))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .opacity(day.isFuture && !day.isToday ? 0.65 : 1)
+            } else {
+                Text("Rest")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+            }
+        }
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.vertical, 11)
+        .background(day.isToday ? AppColors.primary.opacity(0.04) : Color.clear)
+    }
+
+    @ViewBuilder
+    private var advanceSkillFooter: some View {
+        if focusManager.isAllDone {
+            Text("All focus skills completed! Add new ones in Skills.")
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+        } else if !focusManager.isOnLastSkill, let next = focusManager.nextFocusSkill {
+            Button {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    focusManager.advanceToNext()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Text("Move to \(next.icon) \(next.name)")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(AppColors.primary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - Skill Ideas Card
+
+    private func skillIdeasCard(_ viewModel: HomeViewModel) -> some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("SKILL IDEAS")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .tracking(0.8)
+                    .foregroundStyle(AppColors.textSecondary)
+                Spacer()
+                Button {
+                    newIdeaName = ""; newIdeaNotes = ""
+                    showAddIdeaSheet = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("Add")
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(AppColors.primary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
+
+            if focusManager.skillIdeas.isEmpty {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "lightbulb")
+                        .font(.system(size: 14))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                    Text("Jot down skills you want to explore later")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.sm)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(focusManager.skillIdeas) { idea in
+                        ideaRow(idea, viewModel: viewModel)
+                        if idea.id != focusManager.skillIdeas.last?.id {
+                            Divider().padding(.leading, AppSpacing.sm)
+                        }
+                    }
+                }
+            }
+        }
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
+        .sheet(isPresented: $showAddIdeaSheet) { addIdeaSheet }
+    }
+
+    private func ideaRow(_ idea: SkillIdea, viewModel: HomeViewModel) -> some View {
+        let isExpanded = expandedIdeaId == idea.id
+
+        return VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    expandedIdeaId = isExpanded ? nil : idea.id
+                }
+            } label: {
+                HStack(spacing: AppSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(idea.name)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        if !idea.notes.isEmpty && !isExpanded {
+                            Text(idea.notes)
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                                .lineLimit(1)
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.vertical, AppSpacing.xs)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    if !idea.notes.isEmpty {
+                        Text(idea.notes)
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    HStack(spacing: AppSpacing.xs) {
+                        Button {
+                            Task { await viewModel.convertIdeaToSkill(idea) }
+                        } label: {
+                            Label("Add to Skills", systemImage: "plus.circle")
+                                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                .foregroundStyle(AppColors.primary)
+                                .padding(.horizontal, 10).padding(.vertical, 5)
+                                .background(AppColors.primary.opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer()
+
+                        Button {
+                            withAnimation { focusManager.deleteIdea(id: idea.id) }
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 13))
+                                .foregroundStyle(AppColors.coral)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+                .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+            }
+        }
+    }
+
+    private var addIdeaSheet: some View {
+        NavigationStack {
+            VStack(spacing: AppSpacing.lg) {
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    Text("Skill name")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                    TextField("e.g. ATP, Erne, Backhand roll...", text: $newIdeaName)
+                        .font(.system(size: 15, design: .rounded))
+                        .padding(AppSpacing.xs)
+                        .background(AppColors.background)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .autocorrectionDisabled()
+                }
+
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    Text("Notes (optional)")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                    TextField("What do you want to remember about this skill?", text: $newIdeaNotes, axis: .vertical)
+                        .font(.system(size: 15, design: .rounded))
+                        .lineLimit(3...5)
+                        .padding(AppSpacing.xs)
+                        .background(AppColors.background)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+
+                Spacer()
+            }
+            .padding(AppSpacing.md)
+            .background(AppColors.cardBackground)
+            .navigationTitle("Add Skill Idea")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { showAddIdeaSheet = false }
+                        .foregroundStyle(AppColors.primary)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Add") {
+                        focusManager.addIdea(name: newIdeaName, notes: newIdeaNotes)
+                        showAddIdeaSheet = false
+                    }
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.primary)
+                    .disabled(newIdeaName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationBackground(AppColors.cardBackground)
     }
 
     // MARK: - DUPR Rating Card
