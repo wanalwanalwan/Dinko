@@ -335,15 +335,30 @@ struct HomeView: View {
     }
 
     private func weeklySkillChart(for skillId: UUID, viewModel: HomeViewModel) -> some View {
-        let data  = viewModel.weeklyRatings(for: skillId)
-        let days  = viewModel.scheduledDays
-        let minR  = max((data.map(\.rating).min() ?? 0) - 10, 0)
-        let maxR  = min((data.map(\.rating).max() ?? 100) + 10, 100)
+        let days      = viewModel.scheduledDays
         let weekStart = days.first?.date ?? Date()
-        let weekEnd   = days.last?.date  ?? Date()
+        let rawData   = viewModel.weeklyRatings(for: skillId)
+        let calendar  = Calendar.current
+
+        // Convert dates → integer offsets from Monday (0…6) so marks sit
+        // exactly on tick positions — no half-day bucketing drift.
+        struct OffsetPoint: Identifiable {
+            let id = UUID()
+            let offset: Int
+            let rating: Int
+        }
+
+        let points: [OffsetPoint] = rawData.map { pt in
+            let offset = max(0, min(6, calendar.dateComponents([.day], from: weekStart, to: pt.date).day ?? 0))
+            return OffsetPoint(offset: offset, rating: pt.rating)
+        }
+
+        let minR = max((points.map(\.rating).min() ?? 0) - 10, 0)
+        let maxR = min((points.map(\.rating).max() ?? 100) + 10, 100)
+        let dayLabels = ["M", "T", "W", "T", "F", "S", "S"]
 
         return Group {
-            if data.isEmpty {
+            if points.isEmpty {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
                         .font(.system(size: 18))
@@ -356,17 +371,17 @@ struct HomeView: View {
                 .frame(height: 90)
             } else {
                 Chart {
-                    ForEach(data, id: \.date) { point in
+                    ForEach(points) { point in
                         LineMark(
-                            x: .value("Day", point.date, unit: .day),
+                            x: .value("Day", point.offset),
                             y: .value("Rating", point.rating)
                         )
                         .foregroundStyle(AppColors.coral.gradient)
                         .lineStyle(StrokeStyle(lineWidth: 2.5))
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
 
                         AreaMark(
-                            x: .value("Day", point.date, unit: .day),
+                            x: .value("Day", point.offset),
                             yStart: .value("Base", minR),
                             yEnd:   .value("Rating", point.rating)
                         )
@@ -374,25 +389,29 @@ struct HomeView: View {
                             colors: [AppColors.coral.opacity(0.2), .clear],
                             startPoint: .top, endPoint: .bottom
                         ))
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
 
                         PointMark(
-                            x: .value("Day", point.date, unit: .day),
+                            x: .value("Day", point.offset),
                             y: .value("Rating", point.rating)
                         )
                         .foregroundStyle(AppColors.coral)
-                        .symbolSize(data.count == 1 ? 60 : 30)
+                        .symbolSize(points.count == 1 ? 60 : 30)
                     }
                 }
-                .chartXScale(domain: weekStart...weekEnd)
+                .chartXScale(domain: 0...6)
                 .chartYScale(domain: minR...maxR)
                 .chartXAxis {
-                    AxisMarks(values: days.map(\.date)) { _ in
+                    AxisMarks(values: Array(0...6)) { value in
                         AxisGridLine()
                             .foregroundStyle(AppColors.separator.opacity(0.35))
-                        AxisValueLabel(format: .dateTime.weekday(.narrow))
-                            .font(.system(size: 9, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
+                        AxisValueLabel {
+                            if let i = value.as(Int.self) {
+                                Text(dayLabels[i])
+                                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                        }
                     }
                 }
                 .chartYAxis {
