@@ -1121,7 +1121,7 @@ struct HomeView: View {
             }
             .buttonStyle(.plain)
         } else {
-            Button { showProfile = true } label: {
+            Button { showDUPRStats = true } label: {
                 HStack(spacing: AppSpacing.xs) {
                     ZStack {
                         Circle()
