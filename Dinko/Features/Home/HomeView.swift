@@ -123,27 +123,30 @@ struct HomeView: View {
 
     private func mainContent(_ viewModel: HomeViewModel) -> some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 14) {
                 headerSection(viewModel)
                     .staggeredAppearance(index: 0)
 
                 weeklySkillSwipeCard(viewModel)
                     .staggeredAppearance(index: 1)
 
-                weeklyScheduleCard(viewModel)
+                todayActionBlock(viewModel)
                     .staggeredAppearance(index: 2)
 
-                duprRatingCard
+                compactWeekStripCard(viewModel)
                     .staggeredAppearance(index: 3)
 
-                weeklyStatsCard(viewModel)
+                duprRatingCard
                     .staggeredAppearance(index: 4)
 
-                brineScoreCard(viewModel)
+                weeklyStatsCard(viewModel)
                     .staggeredAppearance(index: 5)
 
-                achievementsSection(viewModel)
+                brineScoreCard(viewModel)
                     .staggeredAppearance(index: 6)
+
+                achievementsSection(viewModel)
+                    .staggeredAppearance(index: 7)
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
@@ -260,7 +263,7 @@ struct HomeView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 190)
+                .frame(height: 230)
                 .animation(.easeInOut(duration: 0.25), value: focusSkillPage)
 
                 // Page dots
@@ -290,10 +293,10 @@ struct HomeView: View {
         VStack(spacing: AppSpacing.xs) {
             // Skill header row
             HStack(spacing: AppSpacing.xs) {
-                Text(entry.icon).font(.system(size: 26))
+                Text(entry.icon).font(.system(size: 28))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(entry.name)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(Font.custom("Sora-Bold", size: 20))
                         .foregroundStyle(AppColors.textPrimary)
                     HStack(spacing: 5) {
                         Text("FOCUS")
@@ -303,21 +306,23 @@ struct HomeView: View {
                             .padding(.horizontal, 6).padding(.vertical, 2)
                             .background(AppColors.primary.opacity(0.1))
                             .clipShape(Capsule())
-                        Text("\(index + 1) of \(focusManager.focusSkills.count)")
-                            .font(.system(size: 11, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
+                        if focusManager.focusSkills.count > 1 {
+                            Text("\(index + 1) of \(focusManager.focusSkills.count)")
+                                .font(.system(size: 11, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
                     }
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 1) {
                     if let rating = viewModel.skillsWithRatings.first(where: { $0.skill.id == entry.id })?.rating {
                         Text("\(rating)%")
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .font(Font.custom("Sora-Bold", size: 32))
                             .foregroundStyle(AppColors.primary)
                             .contentTransition(.numericText())
                     } else {
                         Text("—")
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .font(Font.custom("Sora-Bold", size: 32))
                             .foregroundStyle(AppColors.textSecondary)
                     }
                     Text("this week")
@@ -330,6 +335,11 @@ struct HomeView: View {
             // Weekly chart
             weeklySkillChart(for: entry.id, viewModel: viewModel)
                 .padding(.horizontal, AppSpacing.sm)
+
+            // 7-dot session strip
+            weekDotStrip(viewModel: viewModel)
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xxs)
         }
         .padding(.vertical, AppSpacing.xs)
     }
@@ -368,7 +378,7 @@ struct HomeView: View {
                         .foregroundStyle(AppColors.textSecondary)
                         .lineLimit(2)
                 }
-                .frame(height: 90)
+                .frame(height: 110)
             } else {
                 Chart {
                     ForEach(points) { point in
@@ -415,14 +425,11 @@ struct HomeView: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks(position: .trailing, values: .automatic(desiredCount: 3)) { _ in
-                        AxisValueLabel()
-                            .font(.system(size: 9, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                        AxisGridLine().foregroundStyle(AppColors.separator.opacity(0.35))
+                    AxisMarks(values: .automatic(desiredCount: 3)) { _ in
+                        AxisGridLine().foregroundStyle(AppColors.separator.opacity(0.3))
                     }
                 }
-                .frame(height: 90)
+                .frame(height: 110)
             }
         }
     }
@@ -542,6 +549,175 @@ struct HomeView: View {
         if day.isToday && day.isPracticeDay { return .white }
         if day.isPracticeDay { return AppColors.primary }
         return AppColors.textSecondary.opacity(0.5)
+    }
+
+    // MARK: - Today Action Block
+
+    @ViewBuilder
+    private func todayActionBlock(_ viewModel: HomeViewModel) -> some View {
+        if let today = viewModel.scheduledDays.first(where: { $0.isToday }) {
+            HStack(spacing: AppSpacing.sm) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(AppColors.primary)
+                    .frame(width: 3, height: 32)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    HStack {
+                        Text("TODAY")
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .tracking(1.0)
+                            .foregroundStyle(AppColors.primary)
+                        Spacer()
+                        Text(viewModel.todayDateText)
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    if today.hasLoggedSession {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 15))
+                                .foregroundStyle(AppColors.successGreen)
+                            Text("Session logged — great work!")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundStyle(AppColors.successGreen)
+                        }
+                    } else if today.isPracticeDay {
+                        Button { showSessionTypeSheet = true } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus").font(.system(size: 12, weight: .bold))
+                                Text("Log Today's Session")
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .background(
+                                LinearGradient(
+                                    colors: [AppColors.primaryLight, AppColors.primary],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .shadow(color: AppColors.primary.opacity(0.25), radius: 6, y: 3)
+                        }
+                        .buttonStyle(.pressable)
+                    } else {
+                        HStack(spacing: 6) {
+                            Image(systemName: "moon.zzz")
+                                .font(.system(size: 13))
+                                .foregroundStyle(AppColors.textSecondary.opacity(0.45))
+                            Text("Rest day — recovery is part of the process")
+                                .font(.system(size: 13, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+            .shadow(
+                color: today.isPracticeDay && !today.hasLoggedSession
+                    ? AppColors.primary.opacity(0.08)
+                    : .black.opacity(0.05),
+                radius: 14, y: 5
+            )
+        }
+    }
+
+    // MARK: - Compact Week Strip Card
+
+    private func compactWeekStripCard(_ viewModel: HomeViewModel) -> some View {
+        VStack(spacing: AppSpacing.xs) {
+            HStack(spacing: 0) {
+                ForEach(viewModel.scheduledDays) { day in
+                    VStack(spacing: 5) {
+                        Text(String(day.dayName.prefix(1)))
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundStyle(day.isToday ? AppColors.primary : AppColors.textSecondary.opacity(0.7))
+
+                        ZStack {
+                            Circle()
+                                .fill(stripDayFill(day))
+                                .frame(width: 34, height: 34)
+
+                            if day.isToday && !day.hasLoggedSession && day.isPracticeDay {
+                                Circle()
+                                    .stroke(AppColors.primary, lineWidth: 1.5)
+                                    .frame(width: 34, height: 34)
+                            }
+
+                            if day.hasLoggedSession {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(.white)
+                            } else {
+                                Text("\(day.dayNumber)")
+                                    .font(.system(size: 12, weight: day.isToday ? .bold : .regular, design: .rounded))
+                                    .foregroundStyle(stripDayTextColor(day))
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+
+            HStack(spacing: 4) {
+                Text("\(viewModel.thisWeekSessionCount) of \(viewModel.weeklySessionGoal) sessions")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                if viewModel.streakDays > 0 {
+                    Text("·")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(AppColors.warningOrange)
+                    Text("\(viewModel.streakDays)-day streak")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.warningOrange)
+                }
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
+        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+    }
+
+    private func stripDayFill(_ day: WeekScheduleDay) -> Color {
+        if day.hasLoggedSession { return AppColors.successGreen }
+        if day.isToday && day.isPracticeDay { return AppColors.primary.opacity(0.1) }
+        if !day.isFuture && day.isPracticeDay { return AppColors.separator.opacity(0.5) }
+        return AppColors.separator.opacity(0.25)
+    }
+
+    private func stripDayTextColor(_ day: WeekScheduleDay) -> Color {
+        if day.isToday { return AppColors.primary }
+        if day.isFuture { return AppColors.textSecondary.opacity(0.35) }
+        return AppColors.textSecondary
+    }
+
+    // MARK: - Week Dot Strip (inside focus card)
+
+    private func weekDotStrip(viewModel: HomeViewModel) -> some View {
+        HStack(spacing: 0) {
+            ForEach(viewModel.scheduledDays) { day in
+                Circle()
+                    .fill(dotStripColor(day))
+                    .frame(width: 6, height: 6)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private func dotStripColor(_ day: WeekScheduleDay) -> Color {
+        if day.hasLoggedSession { return AppColors.successGreen }
+        if day.isToday && day.isPracticeDay { return AppColors.primary.opacity(0.5) }
+        if day.isPracticeDay && !day.isFuture { return AppColors.separator }
+        return AppColors.separator.opacity(0.4)
     }
 
     // MARK: - Skill Ideas Card
@@ -844,13 +1020,37 @@ struct HomeView: View {
 
     private func headerSection(_ viewModel: HomeViewModel) -> some View {
         HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(viewModel.greetingText + ",")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                 Text(viewModel.playerName)
-                    .font(Font.custom("Sora-Bold", size: 28))
+                    .font(Font.custom("Sora-Bold", size: 26))
                     .foregroundStyle(AppColors.textPrimary)
+                if viewModel.thisWeekSessionCount > 0 || viewModel.streakDays > 0 {
+                    HStack(spacing: 6) {
+                        if viewModel.thisWeekSessionCount > 0 {
+                            Text("\(viewModel.thisWeekSessionCount) session\(viewModel.thisWeekSessionCount == 1 ? "" : "s") this week")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(AppColors.primary)
+                        }
+                        if viewModel.thisWeekSessionCount > 0 && viewModel.streakDays > 0 {
+                            Text("·")
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                        if viewModel.streakDays > 0 {
+                            HStack(spacing: 3) {
+                                Image(systemName: "flame.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(AppColors.warningOrange)
+                                Text("\(viewModel.streakDays)-day streak")
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundStyle(AppColors.warningOrange)
+                            }
+                        }
+                    }
+                }
             }
             Spacer()
             Button { showProfile = true } label: {
