@@ -575,13 +575,28 @@ struct HomeView: View {
                     }
 
                     if today.hasLoggedSession {
-                        HStack(spacing: 6) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 15))
-                                .foregroundStyle(AppColors.successGreen)
-                            Text("Session logged — great work!")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundStyle(AppColors.successGreen)
+                        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(AppColors.successGreen)
+                                Text("Session logged — great work!")
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(AppColors.successGreen)
+                            }
+                            Button { showSessionTypeSheet = true } label: {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "plus").font(.system(size: 11, weight: .bold))
+                                    Text("Log another session")
+                                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundStyle(AppColors.primary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 9)
+                                .background(AppColors.primary.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .buttonStyle(.plain)
                         }
                     } else if today.isPracticeDay {
                         Button { showSessionTypeSheet = true } label: {
@@ -661,6 +676,15 @@ struct HomeView: View {
                                     .font(.system(size: isExpanded ? 9 : 11, weight: .bold))
                                     .foregroundStyle(.white)
                                     .animation(.easeInOut(duration: 0.15), value: isExpanded)
+                            } else if day.isPracticeDay {
+                                VStack(spacing: 0) {
+                                    Text("\(day.dayNumber)")
+                                        .font(.system(size: 11, weight: day.isToday ? .bold : .medium, design: .rounded))
+                                        .foregroundStyle(stripDayTextColor(day))
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 7, weight: .bold))
+                                        .foregroundStyle(stripDayTextColor(day).opacity(0.55))
+                                }
                             } else {
                                 Text("\(day.dayNumber)")
                                     .font(.system(size: 12, weight: day.isToday ? .bold : .regular, design: .rounded))
@@ -673,10 +697,14 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        guard day.hasLoggedSession else { return }
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                            expandedWeekDay = (expandedWeekDay == dayDate) ? nil : dayDate
+                        if day.hasLoggedSession {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                                expandedWeekDay = (expandedWeekDay == dayDate) ? nil : dayDate
+                            }
+                        } else if day.isPracticeDay {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            showSessionTypeSheet = true
                         }
                     }
                 }
@@ -759,6 +787,24 @@ struct HomeView: View {
                     }
                 }
             }
+
+            // Log another session
+            Button {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                showSessionTypeSheet = true
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "plus").font(.system(size: 11, weight: .bold))
+                    Text("Log another session")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(AppColors.primary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+                .background(AppColors.primary.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .buttonStyle(.plain)
         }
     }
 
