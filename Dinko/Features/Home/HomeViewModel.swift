@@ -1186,6 +1186,94 @@ final class HomeViewModel {
         buildWeekDayDetails()
     }
 
+    // MARK: - Arbitrary-Week Helpers (used by the scrollable week strip)
+
+    func scheduledDays(forWeekOffset weekOffset: Int) -> [WeekScheduleDay] {
+        guard weekOffset != 0 else { return scheduledDays }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let daysFromMonday = (calendar.component(.weekday, from: today) + 5) % 7
+        guard let currentMonday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today),
+              let targetMonday  = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: currentMonday),
+              let targetEnd     = calendar.date(byAdding: .day, value: 7, to: targetMonday)
+        else { return [] }
+
+        var sessionDates: Set<Date> = []
+        for session in cachedSessions {
+            let d = calendar.startOfDay(for: session.date)
+            if d >= targetMonday && d < targetEnd { sessionDates.insert(d) }
+        }
+
+        let practiceIndices = practiceIndicesForGoal(weeklySessionGoal)
+        let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        let monthFmt = DateFormatter(); monthFmt.dateFormat = "MMM"
+
+        return (0..<7).compactMap { i in
+            guard let date = calendar.date(byAdding: .day, value: i, to: targetMonday) else { return nil }
+            return WeekScheduleDay(
+                id: date, date: date,
+                dayName: dayNames[i],
+                dayNumber: calendar.component(.day, from: date),
+                monthAbbrev: monthFmt.string(from: date),
+                isPracticeDay: practiceIndices.contains(i),
+                isToday: calendar.isDateInToday(date),
+                isFuture: date > today,
+                hasLoggedSession: sessionDates.contains(calendar.startOfDay(for: date))
+            )
+        }
+    }
+
+    func dayDetails(for days: [WeekScheduleDay]) -> [Date: DaySessionInfo] {
+        let calendar = Calendar.current
+        var result: [Date: DaySessionInfo] = [:]
+        for day in days where day.hasLoggedSession {
+            let dayStart = calendar.startOfDay(for: day.date)
+            guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { continue }
+            let daySessions = cachedSessions.filter { calendar.startOfDay(for: $0.date) == dayStart }
+            guard !daySessions.isEmpty else { continue }
+            var seenIds = Set<UUID>()
+            var changes: [DaySkillChange] = []
+            for session in daySessions {
+                for skillId in session.skillIdArray where !seenIds.contains(skillId) {
+                    seenIds.insert(skillId)
+                    guard let skill = cachedAllSkills.first(where: { $0.id == skillId }) else { continue }
+                    let ratings = (cachedRatings[skillId] ?? []).sorted { $0.date < $1.date }
+                    let dayRatings = ratings.filter { $0.date >= dayStart && $0.date < dayEnd }
+                    let currentRating: Int; let delta: Int
+                    if let latest = dayRatings.last {
+                        currentRating = latest.rating
+                        delta = currentRating - (ratings.last(where: { $0.date < dayStart })?.rating ?? currentRating)
+                    } else if let last = ratings.last(where: { $0.date < dayEnd }) {
+                        currentRating = last.rating; delta = 0
+                    } else { continue }
+                    changes.append(DaySkillChange(id: skillId, skillName: skill.name, iconName: skill.iconName, newRating: currentRating, delta: delta))
+                }
+            }
+            changes.sort { a, b in a.delta != b.delta ? a.delta > b.delta : a.newRating > b.newRating }
+            result[dayStart] = DaySessionInfo(sessions: daySessions, skillChanges: changes)
+        }
+        return result
+    }
+
+    func weekHeaderLabel(forOffset offset: Int, days: [WeekScheduleDay]) -> String {
+        if offset == 0 { return "THIS WEEK" }
+        guard let first = days.first, let last = days.last else { return "THIS WEEK" }
+        let fmt = DateFormatter(); fmt.dateFormat = "MMM d"
+        return "\(fmt.string(from: first.date)) – \(fmt.string(from: last.date))".uppercased()
+    }
+
+    private func practiceIndicesForGoal(_ goal: Int) -> Set<Int> {
+        switch goal {
+        case 1: return [0]
+        case 2: return [0, 3]
+        case 3: return [0, 2, 4]
+        case 4: return [0, 1, 3, 4]
+        case 5: return [0, 1, 2, 3, 4]
+        case 6: return [0, 1, 2, 3, 4, 5]
+        default: return Set(0...6)
+        }
+    }
+
     // MARK: - Focus Skill Setup
 
     /// Creates CoreData skills from any pending focus skills saved during onboarding.

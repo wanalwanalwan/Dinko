@@ -27,6 +27,8 @@ struct HomeView: View {
     @State private var showFocusPicker = false
     @State private var focusSkillPage = 0
     @State private var expandedWeekDay: Date? = nil
+    @State private var weekStripOffset: Int = 0
+    @State private var weekNavDirection: Int = -1
     @State private var showAddIdeaSheet = false
     @State private var newIdeaName = ""
     @State private var newIdeaNotes = ""
@@ -638,17 +640,52 @@ struct HomeView: View {
 
     // MARK: - Compact Week Strip Card
 
+    private func navigateWeek(_ delta: Int) {
+        let next = weekStripOffset + delta
+        guard next <= 0 && next >= -12 else { return }
+        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        weekNavDirection = delta
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+            weekStripOffset = next
+            expandedWeekDay = nil
+        }
+    }
+
     private func compactWeekStripCard(_ viewModel: HomeViewModel) -> some View {
         let calendar = Calendar.current
+        let days    = weekStripOffset == 0 ? viewModel.scheduledDays : viewModel.scheduledDays(forWeekOffset: weekStripOffset)
+        let details = weekStripOffset == 0 ? viewModel.weekDayDetails : viewModel.dayDetails(for: days)
+        let count   = days.filter(\.hasLoggedSession).count
+        let header  = viewModel.weekHeaderLabel(forOffset: weekStripOffset, days: days)
 
         return VStack(spacing: AppSpacing.xs) {
-            // Header
-            HStack {
-                Text("THIS WEEK")
+            // Header with week navigation
+            HStack(spacing: 6) {
+                Button { navigateWeek(-1) } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(weekStripOffset > -12 ? AppColors.primary : AppColors.textSecondary.opacity(0.25))
+                }
+                .buttonStyle(.plain)
+                .disabled(weekStripOffset <= -12)
+
+                Text(header)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .tracking(0.8)
                     .foregroundStyle(AppColors.textSecondary)
-                Spacer()
+                    .frame(maxWidth: .infinity)
+                    .contentTransition(.numericText())
+
+                Button { navigateWeek(1) } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(weekStripOffset < 0 ? AppColors.primary : AppColors.textSecondary.opacity(0.25))
+                }
+                .buttonStyle(.plain)
+                .disabled(weekStripOffset >= 0)
+
+                Spacer(minLength: AppSpacing.xs)
+
                 Button {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     showSessionTypeSheet = true
@@ -669,7 +706,7 @@ struct HomeView: View {
 
             // 7-circle strip
             HStack(spacing: 2) {
-                ForEach(viewModel.scheduledDays) { day in
+                ForEach(days) { day in
                     let dayDate = calendar.startOfDay(for: day.date)
                     let isExpanded = expandedWeekDay == dayDate
 
@@ -730,10 +767,11 @@ struct HomeView: View {
 
             // Session / streak caption
             HStack(spacing: 4) {
-                Text("\(viewModel.thisWeekSessionCount) of \(viewModel.weeklySessionGoal) sessions")
+                Text("\(count) of \(viewModel.weeklySessionGoal) sessions")
                     .font(.system(size: 12, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
-                if viewModel.streakDays > 0 {
+                    .contentTransition(.numericText())
+                if weekStripOffset == 0 && viewModel.streakDays > 0 {
                     Text("·")
                         .font(.system(size: 12, design: .rounded))
                         .foregroundStyle(AppColors.textSecondary)
@@ -747,7 +785,7 @@ struct HomeView: View {
             }
 
             // Expandable day detail
-            if let date = expandedWeekDay, let detail = viewModel.weekDayDetails[date] {
+            if let date = expandedWeekDay, let detail = details[date] {
                 dayDetailExpansion(detail: detail, date: date, viewModel: viewModel)
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .top)),
@@ -760,6 +798,15 @@ struct HomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
         .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
         .animation(.spring(response: 0.4, dampingFraction: 0.82), value: expandedWeekDay)
+        .animation(.spring(response: 0.35, dampingFraction: 0.82), value: weekStripOffset)
+        .gesture(
+            DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                .onEnded { value in
+                    guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                    if value.translation.width < -30 { navigateWeek(-1) }
+                    else if value.translation.width > 30 { navigateWeek(1) }
+                }
+        )
     }
 
     // MARK: - Day Detail Expansion
