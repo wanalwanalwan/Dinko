@@ -3,6 +3,7 @@ import Foundation
 @Observable
 final class LogSessionViewModel {
     var sessionType: SessionType = .game
+    var sessionDate: Date = Date()
     var selectedSkillIds: Set<UUID> = []
     var notes: String = ""
     var duration: Int = 60
@@ -110,7 +111,7 @@ final class LogSessionViewModel {
                 .joined(separator: ", ")
 
             let session = Session(
-                date: Date(),
+                date: sessionDate,
                 duration: duration,
                 notes: notes.isEmpty ? nil : notes,
                 sessionType: sessionType,
@@ -134,7 +135,7 @@ final class LogSessionViewModel {
             for (skillId, value) in skillRatings {
                 let newRating = Int(value)
                 if newRating != currentRatings[skillId] {
-                    let rating = SkillRating(skillId: skillId, rating: newRating)
+                    let rating = SkillRating(skillId: skillId, rating: newRating, date: sessionDate)
                     try await skillRatingRepository.save(rating)
                 }
             }

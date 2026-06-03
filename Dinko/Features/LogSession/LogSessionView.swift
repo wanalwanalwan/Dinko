@@ -15,6 +15,7 @@ struct LogSessionView: View {
             ScrollView {
                 VStack(spacing: AppSpacing.sm) {
                     sessionTypeCard
+                    dateCard
                     durationCard
                     skillsCard
                     notesCard
@@ -93,6 +94,34 @@ struct LogSessionView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 20))
                 .foregroundStyle(AppColors.highlight)
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+    }
+
+    // MARK: - Date Card
+
+    private var dateCard: some View {
+        HStack {
+            HStack(spacing: 7) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppColors.primary)
+                Text("Date")
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+            }
+            Spacer()
+            DatePicker(
+                "",
+                selection: $viewModel.sessionDate,
+                in: ...Date(),
+                displayedComponents: .date
+            )
+            .labelsHidden()
+            .tint(AppColors.primary)
         }
         .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
