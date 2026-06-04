@@ -95,6 +95,7 @@ struct WeekScheduleDay: Identifiable {
     let isToday: Bool
     let isFuture: Bool
     let hasLoggedSession: Bool
+    let sessionCount: Int
 }
 
 // MARK: - ViewModel
@@ -1169,8 +1170,18 @@ final class HomeViewModel {
         let dayNames   = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         let monthFmt   = DateFormatter(); monthFmt.dateFormat = "MMM"
 
+        // Build a count of sessions per day for the badge
+        var sessionCountByDay: [Date: Int] = [:]
+        for session in cachedSessions {
+            let d = calendar.startOfDay(for: session.date)
+            if sessionDatesThisWeek.contains(d) {
+                sessionCountByDay[d, default: 0] += 1
+            }
+        }
+
         scheduledDays = (0..<7).compactMap { offset in
             guard let date = calendar.date(byAdding: .day, value: offset, to: monday) else { return nil }
+            let dayStart = calendar.startOfDay(for: date)
             return WeekScheduleDay(
                 id: date,
                 date: date,
@@ -1180,7 +1191,8 @@ final class HomeViewModel {
                 isPracticeDay: practiceIndices.contains(offset),
                 isToday: calendar.isDateInToday(date),
                 isFuture: date > today,
-                hasLoggedSession: sessionDatesThisWeek.contains(calendar.startOfDay(for: date))
+                hasLoggedSession: sessionDatesThisWeek.contains(dayStart),
+                sessionCount: sessionCountByDay[dayStart] ?? 0
             )
         }
         buildWeekDayDetails()
@@ -1199,9 +1211,13 @@ final class HomeViewModel {
         else { return [] }
 
         var sessionDates: Set<Date> = []
+        var sessionCountByDay: [Date: Int] = [:]
         for session in cachedSessions {
             let d = calendar.startOfDay(for: session.date)
-            if d >= targetMonday && d < targetEnd { sessionDates.insert(d) }
+            if d >= targetMonday && d < targetEnd {
+                sessionDates.insert(d)
+                sessionCountByDay[d, default: 0] += 1
+            }
         }
 
         let practiceIndices = practiceIndicesForGoal(weeklySessionGoal)
@@ -1210,6 +1226,7 @@ final class HomeViewModel {
 
         return (0..<7).compactMap { i in
             guard let date = calendar.date(byAdding: .day, value: i, to: targetMonday) else { return nil }
+            let dayStart = calendar.startOfDay(for: date)
             return WeekScheduleDay(
                 id: date, date: date,
                 dayName: dayNames[i],
@@ -1218,7 +1235,8 @@ final class HomeViewModel {
                 isPracticeDay: practiceIndices.contains(i),
                 isToday: calendar.isDateInToday(date),
                 isFuture: date > today,
-                hasLoggedSession: sessionDates.contains(calendar.startOfDay(for: date))
+                hasLoggedSession: sessionDates.contains(dayStart),
+                sessionCount: sessionCountByDay[dayStart] ?? 0
             )
         }
     }

@@ -6,6 +6,7 @@ struct HomeView: View {
     @Environment(\.authViewModel) private var authViewModel
     @Binding var selectedTab: Int
     @Binding var showSessionTypeSheet: Bool
+    @Binding var selectedSessionDate: Date
     var refreshID: UUID = UUID()
 
     @State private var viewModel: HomeViewModel?
@@ -496,7 +497,7 @@ struct HomeView: View {
                         .foregroundStyle(AppColors.successGreen)
                 }
             } else if day.isPracticeDay {
-                Button { showSessionTypeSheet = true } label: {
+                Button { selectedSessionDate = day.date; showSessionTypeSheet = true } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "plus").font(.system(size: 10, weight: .bold))
                         Text("Log Session").font(.system(size: 12, weight: .semibold, design: .rounded))
@@ -579,7 +580,7 @@ struct HomeView: View {
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                                     .foregroundStyle(AppColors.successGreen)
                             }
-                            Button { showSessionTypeSheet = true } label: {
+                            Button { selectedSessionDate = Date(); showSessionTypeSheet = true } label: {
                                 HStack(spacing: 5) {
                                     Image(systemName: "plus").font(.system(size: 11, weight: .bold))
                                     Text("Log another session")
@@ -594,7 +595,7 @@ struct HomeView: View {
                             .buttonStyle(.plain)
                         }
                     } else if today.isPracticeDay {
-                        Button { showSessionTypeSheet = true } label: {
+                        Button { selectedSessionDate = Date(); showSessionTypeSheet = true } label: {
                             HStack(spacing: 6) {
                                 Image(systemName: "plus").font(.system(size: 12, weight: .bold))
                                 Text("Log Today's Session")
@@ -658,7 +659,7 @@ struct HomeView: View {
         let count   = days.filter(\.hasLoggedSession).count
         let header  = viewModel.weekHeaderLabel(forOffset: weekStripOffset, days: days)
 
-        return VStack(spacing: AppSpacing.xs) {
+        return VStack(spacing: 0) {
             // Header with week navigation
             HStack(spacing: 6) {
                 Button { navigateWeek(-1) } label: {
@@ -683,83 +684,102 @@ struct HomeView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(weekStripOffset >= 0)
-
-                Spacer(minLength: AppSpacing.xs)
-
-                Button {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    showSessionTypeSheet = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
-                        Text("Log Session")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    }
-                    .foregroundStyle(AppColors.primary)
-                    .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(AppColors.primary.opacity(0.1))
-                    .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
             }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
 
-            // 7-circle strip
-            HStack(spacing: 2) {
+            // Day rows
+            VStack(spacing: 0) {
                 ForEach(days) { day in
                     let dayDate = calendar.startOfDay(for: day.date)
                     let isExpanded = expandedWeekDay == dayDate
+                    let detail = details[dayDate]
 
-                    VStack(spacing: 5) {
-                        Text(String(day.dayName.prefix(1)))
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundStyle(day.isToday ? AppColors.primary : AppColors.textSecondary.opacity(0.7))
+                    VStack(spacing: 0) {
+                        // Day row
+                        HStack(spacing: AppSpacing.xs) {
+                            // Day name
+                            Text(day.dayName)
+                                .font(.system(size: 13, weight: day.isToday ? .bold : .medium, design: .rounded))
+                                .foregroundStyle(day.isFuture ? AppColors.textSecondary.opacity(0.35) : day.isToday ? AppColors.primary : AppColors.textPrimary)
+                                .frame(width: 32, alignment: .leading)
 
-                        ZStack {
-                            Circle()
-                                .fill(stripDayFill(day))
-                                .frame(width: 32, height: 32)
+                            // Date number
+                            Text("\(day.dayNumber)")
+                                .font(.system(size: 13, weight: day.isToday ? .bold : .regular, design: .rounded))
+                                .foregroundStyle(day.isFuture ? AppColors.textSecondary.opacity(0.35) : AppColors.textSecondary)
+                                .frame(width: 22, alignment: .leading)
 
-                            if day.isToday && !day.hasLoggedSession && day.isPracticeDay {
-                                Circle()
-                                    .stroke(AppColors.primary, lineWidth: 1.5)
-                                    .frame(width: 32, height: 32)
+                            if day.isToday {
+                                Text("TODAY")
+                                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                                    .tracking(0.5)
+                                    .foregroundStyle(AppColors.primary)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(AppColors.primary.opacity(0.1))
+                                    .clipShape(Capsule())
                             }
 
-                            if day.hasLoggedSession {
-                                Image(systemName: isExpanded ? "chevron.up" : "checkmark")
-                                    .font(.system(size: isExpanded ? 9 : 11, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .animation(.easeInOut(duration: 0.15), value: isExpanded)
-                            } else if day.isPracticeDay {
-                                VStack(spacing: 0) {
-                                    Text("\(day.dayNumber)")
-                                        .font(.system(size: 11, weight: day.isToday ? .bold : .medium, design: .rounded))
-                                        .foregroundStyle(stripDayTextColor(day))
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 7, weight: .bold))
-                                        .foregroundStyle(stripDayTextColor(day).opacity(0.55))
+                            Spacer()
+
+                            // Session count badge
+                            if day.sessionCount > 0 {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 9, weight: .bold))
+                                    Text("\(day.sessionCount)")
+                                        .font(.system(size: 12, weight: .bold, design: .rounded))
                                 }
-                            } else {
-                                Text("\(day.dayNumber)")
-                                    .font(.system(size: 12, weight: day.isToday ? .bold : .regular, design: .rounded))
-                                    .foregroundStyle(stripDayTextColor(day))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(AppColors.successGreen)
+                                .clipShape(Capsule())
+                            }
+
+                            // Expand chevron
+                            if !day.isFuture {
+                                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(AppColors.textSecondary.opacity(0.4))
+                                    .animation(.easeInOut(duration: 0.15), value: isExpanded)
                             }
                         }
-                        .scaleEffect(isExpanded ? 1.1 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isExpanded)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if day.hasLoggedSession {
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.vertical, 10)
+                        .background(day.isToday ? AppColors.primary.opacity(0.04) : Color.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            guard !day.isFuture else { return }
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                                expandedWeekDay = (expandedWeekDay == dayDate) ? nil : dayDate
+                                expandedWeekDay = isExpanded ? nil : dayDate
                             }
-                        } else if day.isPracticeDay {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            showSessionTypeSheet = true
+                        }
+
+                        // Expanded detail
+                        if isExpanded {
+                            VStack(spacing: 0) {
+                                if let detail {
+                                    dayDetailExpansion(detail: detail, date: dayDate, viewModel: viewModel)
+                                } else {
+                                    emptyDayExpansion(date: dayDate)
+                                }
+                            }
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.bottom, AppSpacing.xs)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .top)),
+                                removal:   .opacity
+                            ))
+                        }
+
+                        // Separator between rows (not after last)
+                        if day.id != days.last?.id {
+                            Divider()
+                                .padding(.horizontal, AppSpacing.sm)
                         }
                     }
                 }
@@ -783,17 +803,8 @@ struct HomeView: View {
                         .foregroundStyle(AppColors.warningOrange)
                 }
             }
-
-            // Expandable day detail
-            if let date = expandedWeekDay, let detail = details[date] {
-                dayDetailExpansion(detail: detail, date: date, viewModel: viewModel)
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .top)),
-                        removal:   .opacity.combined(with: .scale(scale: 0.97, anchor: .top))
-                    ))
-            }
+            .padding(.vertical, AppSpacing.xs)
         }
-        .padding(AppSpacing.sm)
         .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
         .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
@@ -813,9 +824,6 @@ struct HomeView: View {
 
     private func dayDetailExpansion(detail: DaySessionInfo, date: Date, viewModel: HomeViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Divider()
-                .padding(.horizontal, -AppSpacing.sm)
-
             // Type chips + duration
             HStack(spacing: AppSpacing.xs) {
                 ForEach(detail.sessionTypes, id: \.self) { type in
@@ -854,23 +862,44 @@ struct HomeView: View {
             }
 
             // Log another session
-            Button {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                showSessionTypeSheet = true
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "plus").font(.system(size: 11, weight: .bold))
-                    Text("Log another session")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                }
-                .foregroundStyle(AppColors.primary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 9)
-                .background(AppColors.primary.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-            .buttonStyle(.plain)
+            logSessionButton(for: date, label: "Log another session")
         }
+    }
+
+    private func emptyDayExpansion(date: Date) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack(spacing: AppSpacing.xs) {
+                Image(systemName: "figure.pickleball")
+                    .font(.system(size: 13))
+                    .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                Text("No sessions logged")
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .padding(.vertical, AppSpacing.xxs)
+
+            logSessionButton(for: date, label: "Log Session")
+        }
+    }
+
+    private func logSessionButton(for date: Date, label: String) -> some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            selectedSessionDate = date
+            showSessionTypeSheet = true
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "plus").font(.system(size: 11, weight: .bold))
+                Text(label)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(AppColors.primary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 9)
+            .background(AppColors.primary.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
     }
 
     private func sessionTypeChip(_ type: SessionType) -> some View {
@@ -934,18 +963,6 @@ struct HomeView: View {
         }
     }
 
-    private func stripDayFill(_ day: WeekScheduleDay) -> Color {
-        if day.hasLoggedSession { return AppColors.successGreen }
-        if day.isToday && day.isPracticeDay { return AppColors.primary.opacity(0.1) }
-        if !day.isFuture && day.isPracticeDay { return AppColors.separator.opacity(0.5) }
-        return AppColors.separator.opacity(0.25)
-    }
-
-    private func stripDayTextColor(_ day: WeekScheduleDay) -> Color {
-        if day.isToday { return AppColors.primary }
-        if day.isFuture { return AppColors.textSecondary.opacity(0.35) }
-        return AppColors.textSecondary
-    }
 
     // MARK: - Skill Ideas Card
 
@@ -1642,7 +1659,7 @@ struct HomeView: View {
                     isComplete: viewModel.hasLoggedAnySession,
                     isNext: viewModel.isProfileComplete && viewModel.hasAnySkills && !viewModel.hasLoggedAnySession,
                     actionLabel: "Log",
-                    action: { showSessionTypeSheet = true }
+                    action: { selectedSessionDate = Date(); showSessionTypeSheet = true }
                 )
             }
             .padding(.bottom, AppSpacing.xxs)
@@ -2231,6 +2248,6 @@ private struct AchievementCelebrationView: View {
 
 #Preview {
     NavigationStack {
-        HomeView(selectedTab: .constant(0), showSessionTypeSheet: .constant(false), refreshID: UUID())
+        HomeView(selectedTab: .constant(0), showSessionTypeSheet: .constant(false), selectedSessionDate: .constant(Date()), refreshID: UUID())
     }
 }

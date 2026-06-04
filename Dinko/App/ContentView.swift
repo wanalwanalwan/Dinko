@@ -6,12 +6,13 @@ struct ContentView: View {
     @State private var showTypeSelection = false
     @State private var showSessionForm = false
     @State private var selectedSessionType: SessionType = .game
+    @State private var selectedSessionDate: Date = Date()
     @State private var homeRefreshID = UUID()
 
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                HomeView(selectedTab: $selectedTab, showSessionTypeSheet: $showTypeSelection, refreshID: homeRefreshID)
+                HomeView(selectedTab: $selectedTab, showSessionTypeSheet: $showTypeSelection, selectedSessionDate: $selectedSessionDate, refreshID: homeRefreshID)
             }
             .tag(0)
 
@@ -62,6 +63,7 @@ struct ContentView: View {
             LogSessionView(
                 viewModel: {
                     viewModel.sessionType = selectedSessionType
+                    viewModel.sessionDate = selectedSessionDate
                     return viewModel
                 }(),
                 selectedTab: $selectedTab
