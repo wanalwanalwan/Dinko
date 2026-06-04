@@ -23,7 +23,7 @@ final class LogSessionViewModel {
     private let drillRepository: DrillRepository
 
     var canSave: Bool {
-        !selectedSkillIds.isEmpty && !isSaving
+        !isSaving
     }
 
     var skillsByCategory: [(category: SkillCategory, skills: [Skill])] {
