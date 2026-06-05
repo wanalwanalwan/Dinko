@@ -14,4 +14,8 @@ enum AppSpacing {
     static let badgeSize: CGFloat = 44
     static let iconSize: CGFloat = 40
     static let sparklineHeight: CGFloat = 30
+
+    // MARK: - Neumorphic
+    static let neumorphicCornerRadius: CGFloat = 16
+    static let neumorphicCornerRadiusSmall: CGFloat = 12
 }

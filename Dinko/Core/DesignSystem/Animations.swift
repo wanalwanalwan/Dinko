@@ -31,4 +31,15 @@ enum AppAnimations {
 
     /// Button press feedback scale
     static let pressedScale: CGFloat = 0.97
+
+    // MARK: - Neumorphic
+
+    /// Neumorphic press — easeInOut for smooth depress
+    static let neumorphicPress = Animation.easeInOut(duration: 0.2)
+
+    /// Neumorphic release — spring bounce back
+    static let neumorphicRelease = Animation.spring(response: 0.3, dampingFraction: 0.7)
+
+    /// Neumorphic toggle — state change (checked/unchecked)
+    static let neumorphicToggle = Animation.easeInOut(duration: 0.25)
 }

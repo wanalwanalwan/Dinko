@@ -15,24 +15,38 @@ struct RatingBadge: View {
 
     var body: some View {
         ZStack {
-            // Track ring with subtle inner depth
-            Circle()
-                .stroke(AppColors.ringTrack, lineWidth: lineWidth)
-
-            // Inner shadow for depth
+            // Neumorphic bezel for hero size
             if isHero {
                 Circle()
-                    .stroke(Color.black.opacity(0.04), lineWidth: lineWidth * 0.5)
-                    .blur(radius: 2)
-                    .padding(lineWidth * 0.25)
+                    .fill(AppColors.background)
+                    .shadow(
+                        color: AppColors.neumorphicLight.opacity(0.9),
+                        radius: 10, x: -6, y: -6
+                    )
+                    .shadow(
+                        color: AppColors.neumorphicDark.opacity(0.6),
+                        radius: 10, x: 6, y: 6
+                    )
             }
 
-            // Gradient progress stroke.
-            // startAngle is nudged to -10° so the gradient seam (where dark wraps
-            // back to light) falls at 350° — inside the arc's gap between its end
-            // and its start. At 0° (path start, visual 12-o'clock after rotation)
-            // the gradient is only 10/360 ≈ 3% through, essentially ringGradientStart,
-            // so the rounded start-cap is fully light and never clips the dark end.
+            // Track ring with inset shadow appearance
+            Circle()
+                .stroke(AppColors.ringTrack, lineWidth: lineWidth)
+                .overlay(
+                    Circle()
+                        .stroke(AppColors.background, lineWidth: 0.5)
+                        .shadow(
+                            color: AppColors.neumorphicInnerDark.opacity(0.3),
+                            radius: 2, x: 1, y: 1
+                        )
+                        .shadow(
+                            color: AppColors.neumorphicInnerLight.opacity(0.3),
+                            radius: 2, x: -1, y: -1
+                        )
+                        .clipShape(Circle())
+                )
+
+            // Gradient progress stroke
             Circle()
                 .trim(from: 0, to: animatedProgress)
                 .stroke(
@@ -109,4 +123,5 @@ struct RatingBadge: View {
         }
         RatingBadge(rating: 82, size: 160)
     }
+    .background(AppColors.background)
 }

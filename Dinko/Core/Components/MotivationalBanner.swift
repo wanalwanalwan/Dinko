@@ -5,7 +5,7 @@ struct MotivationalBanner: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.xxs) {
-            Text("🔥")
+            Text("\u{1F525}")
                 .font(.title3)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -21,8 +21,20 @@ struct MotivationalBanner: View {
             Spacer()
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.bannerBackground)
+        .background(AppColors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
+                .fill(AppColors.successGreen.opacity(0.08))
+        )
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(
+            color: AppColors.neumorphicLight.opacity(0.8),
+            radius: 8, x: -5, y: -5
+        )
+        .shadow(
+            color: AppColors.neumorphicDark.opacity(0.5),
+            radius: 8, x: 5, y: 5
+        )
     }
 }
 

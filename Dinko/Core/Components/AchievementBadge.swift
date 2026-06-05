@@ -8,14 +8,53 @@ struct AchievementBadge: View {
 
     var body: some View {
         VStack(spacing: AppSpacing.xxs) {
-            ZStack {
-                RoundedRectangle(cornerRadius: AppSpacing.xs)
-                    .fill(isUnlocked ? badgeColor : AppColors.lockedGray.opacity(0.3))
-                    .frame(width: 64, height: 64)
+            if isUnlocked {
+                // Neumorphic raised with subtle tinted overlay
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppSpacing.xs)
+                        .fill(AppColors.background)
+                        .frame(width: 64, height: 64)
+                        .shadow(
+                            color: AppColors.neumorphicLight.opacity(0.8),
+                            radius: 5, x: -3, y: -3
+                        )
+                        .shadow(
+                            color: AppColors.neumorphicDark.opacity(0.4),
+                            radius: 5, x: 3, y: 3
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppSpacing.xs)
+                                .fill(badgeColor.opacity(0.2))
+                        )
 
-                Image(systemName: iconName)
-                    .font(.title2)
-                    .foregroundStyle(isUnlocked ? AppColors.textPrimary : AppColors.lockedGray)
+                    Image(systemName: iconName)
+                        .font(.title2)
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+            } else {
+                // Neumorphic inset (pushed down, muted)
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppSpacing.xs)
+                        .fill(AppColors.background)
+                        .frame(width: 64, height: 64)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppSpacing.xs)
+                                .stroke(AppColors.background, lineWidth: 0.5)
+                                .shadow(
+                                    color: AppColors.neumorphicInnerDark.opacity(0.5),
+                                    radius: 3, x: 2, y: 2
+                                )
+                                .shadow(
+                                    color: AppColors.neumorphicInnerLight.opacity(0.5),
+                                    radius: 3, x: -2, y: -2
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                        )
+
+                    Image(systemName: iconName)
+                        .font(.title2)
+                        .foregroundStyle(AppColors.lockedGray)
+                }
             }
 
             Text(name)
@@ -34,4 +73,5 @@ struct AchievementBadge: View {
         AchievementBadge(name: "Advanced", iconName: "trophy.fill", isUnlocked: false, badgeColor: AppColors.achievementYellow)
     }
     .padding()
+    .background(AppColors.background)
 }

@@ -30,8 +30,15 @@ struct SkillListView: View {
                     Circle()
                         .fill(AppColors.primary)
                         .frame(width: 58, height: 58)
-                        .shadow(color: AppColors.primary.opacity(0.35), radius: 0, y: 3)
-                        .shadow(color: AppColors.primary.opacity(0.18), radius: 10, y: 6)
+                        .shadow(
+                            color: AppColors.neumorphicLight.opacity(0.5),
+                            radius: 6, x: -4, y: -4
+                        )
+                        .shadow(
+                            color: AppColors.neumorphicDark.opacity(0.5),
+                            radius: 6, x: 4, y: 4
+                        )
+                        .shadow(color: AppColors.primary.opacity(0.3), radius: 8, y: 4)
                     // Gloss highlight
                     Circle()
                         .fill(
@@ -168,16 +175,15 @@ struct SkillListView: View {
         return HStack(spacing: AppSpacing.md) {
             // Progress ring (Bevel-style, matching HomeView)
             ZStack {
-                // Outer bevel
+                // Neumorphic outer bevel
                 Circle()
-                    .fill(AppColors.cardBackground)
-                    .shadow(color: AppColors.elevatedSurface.opacity(0.85), radius: 2, x: -1, y: -1)
-                    .shadow(color: .black.opacity(0.16), radius: 6, x: 0, y: 3)
+                    .fill(AppColors.background)
+                    .shadow(color: AppColors.neumorphicLight.opacity(0.8), radius: 4, x: -3, y: -3)
+                    .shadow(color: AppColors.neumorphicDark.opacity(0.5), radius: 4, x: 3, y: 3)
 
                 Circle()
-                    .stroke(AppColors.cardBackground, lineWidth: 3)
+                    .stroke(AppColors.background, lineWidth: 3)
                     .padding(2)
-                    .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 1)
 
                 // Track
                 Circle()
@@ -196,8 +202,8 @@ struct SkillListView: View {
                         style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                     )
                     .frame(width: ringTrackSize, height: ringTrackSize)
-                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
-                    .shadow(color: AppColors.elevatedSurface.opacity(0.7), radius: 2, x: -1, y: -1)
+                    .shadow(color: AppColors.neumorphicDark.opacity(0.3), radius: 3, x: 2, y: 2)
+                    .shadow(color: AppColors.neumorphicLight.opacity(0.5), radius: 2, x: -1, y: -1)
 
                 // Progress arc
                 if ringProgress > 0 {
@@ -223,14 +229,14 @@ struct SkillListView: View {
 
                 // Inner disc
                 Circle()
-                    .fill(AppColors.cardBackground)
+                    .fill(AppColors.background)
                     .frame(width: innerDiscSize, height: innerDiscSize)
                     .overlay(
                         Circle()
-                            .stroke(AppColors.cardBackground, lineWidth: 0.5)
+                            .stroke(AppColors.background, lineWidth: 0.5)
                     )
-                    .shadow(color: AppColors.elevatedSurface.opacity(0.9), radius: 2, x: -1, y: -1)
-                    .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 2)
+                    .shadow(color: AppColors.neumorphicLight.opacity(0.7), radius: 2, x: -1, y: -1)
+                    .shadow(color: AppColors.neumorphicDark.opacity(0.3), radius: 3, x: 1, y: 2)
 
                 // Center text
                 VStack(spacing: -2) {

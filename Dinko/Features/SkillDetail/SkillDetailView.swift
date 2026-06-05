@@ -258,7 +258,7 @@ struct SkillDetailView: View {
             .padding(.top, AppSpacing.sm)
             .background(
                 ZStack {
-                    AppColors.cardBackground
+                    AppColors.background
                     // Subtle green glow at top
                     LinearGradient(
                         colors: [AppColors.highlight.opacity(0.08), .clear],
@@ -267,7 +267,8 @@ struct SkillDetailView: View {
                 }
             )
             .clipShape(RoundedRectangle(cornerRadius: 28))
-            .shadow(color: .black.opacity(0.12), radius: 24, y: 8)
+            .shadow(color: AppColors.neumorphicDark.opacity(0.6), radius: 24, x: 6, y: 8)
+            .shadow(color: AppColors.neumorphicLight.opacity(0.4), radius: 12, x: -4, y: -4)
             .padding(.horizontal, AppSpacing.lg)
             .scaleEffect(celebrationVisible ? 1.0 : 0.75)
             .opacity(celebrationVisible ? 1 : 0)
@@ -337,9 +338,7 @@ struct SkillDetailView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+        .neumorphicRaised(intensity: .prominent, cornerRadius: AppSpacing.heroCornerRadius)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(skill.name), \(displayRating) percent, \(tier.displayName)")
     }
@@ -504,10 +503,7 @@ struct SkillDetailView: View {
                 .buttonStyle(.pressable)
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
-        .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
+        .neumorphicRaised(cornerRadius: AppSpacing.cardCornerRadius)
     }
 
     // MARK: - Notes Section
@@ -564,10 +560,7 @@ struct SkillDetailView: View {
                         .padding(.vertical, AppSpacing.sm)
                 }
             }
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-            .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
-            .shadow(color: floatShadow2.0, radius: floatShadow2.1, x: 0, y: floatShadow2.2)
+            .neumorphicRaised(cornerRadius: AppSpacing.cardCornerRadius)
         }
         .buttonStyle(.plain)
     }
@@ -664,8 +657,15 @@ struct SkillDetailView: View {
                             }
                         )
                         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-                        .shadow(color: AppColors.primary.opacity(0.30), radius: 0, y: 3)
-                        .shadow(color: AppColors.primary.opacity(0.16), radius: 10, y: 6)
+                        .shadow(
+                            color: AppColors.neumorphicLight.opacity(0.5),
+                            radius: 6, x: -4, y: -4
+                        )
+                        .shadow(
+                            color: AppColors.neumorphicDark.opacity(0.5),
+                            radius: 6, x: 4, y: 4
+                        )
+                        .shadow(color: AppColors.primary.opacity(0.25), radius: 8, y: 4)
                     }
                     .buttonStyle(.pressable)
                 }
@@ -712,10 +712,8 @@ struct SkillDetailView: View {
         }
         .padding(AppSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: AppColors.trophyGold.opacity(0.28), radius: 18, y: 6)
-        .shadow(color: AppColors.coral.opacity(0.10), radius: 28, y: 10)
+        .neumorphicRaised(intensity: .prominent, cornerRadius: AppSpacing.cardCornerRadius)
+        .shadow(color: AppColors.trophyGold.opacity(0.18), radius: 12, y: 4)
     }
 
     // MARK: - Error card
@@ -741,8 +739,7 @@ struct SkillDetailView: View {
             }
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .neumorphicRaised(intensity: .subtle, cornerRadius: AppSpacing.cardCornerRadius)
     }
 
     // MARK: - Results card
@@ -895,9 +892,7 @@ struct SkillDetailView: View {
                 .padding(.bottom, AppSpacing.sm)
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
+        .neumorphicRaised(cornerRadius: AppSpacing.cardCornerRadius)
     }
 
     // MARK: - Drills Section
@@ -1282,9 +1277,10 @@ struct SkillDetailView: View {
                     }
                 }
             }
-            .background(AppColors.cardBackground)
+            .background(AppColors.background)
             .clipShape(RoundedRectangle(cornerRadius: 24))
-            .shadow(color: .black.opacity(0.12), radius: 30, y: 10)
+            .shadow(color: AppColors.neumorphicDark.opacity(0.6), radius: 20, x: 6, y: 10)
+            .shadow(color: AppColors.neumorphicLight.opacity(0.4), radius: 12, x: -4, y: -4)
             .padding(.horizontal, AppSpacing.sm)
             .padding(.vertical, 60)
             .scaleEffect(progressPopupVisible ? 1.0 : 0.92)

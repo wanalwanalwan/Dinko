@@ -1,10 +1,10 @@
 import SwiftUI
 
 enum AppColors {
-    // MARK: - Backgrounds
-    static let background = Color(light: "F2EDE6", dark: "111A14")
-    static let backgroundGray = Color(light: "EBE5DC", dark: "131517")
-    static let cardBackground = Color(light: "FFFFFF", dark: "1A2027")
+    // MARK: - Backgrounds (unified for neumorphic surfaces)
+    static let background = Color(light: "E0D8CC", dark: "1A2220")
+    static let backgroundGray = Color(light: "D8D0C4", dark: "1A2220")
+    static let cardBackground = Color(light: "E0D8CC", dark: "1A2220")
 
     static var backgroundGradient: LinearGradient {
         LinearGradient(colors: [background, background], startPoint: .top, endPoint: .bottom)
@@ -44,11 +44,17 @@ enum AppColors {
     static let achievementCardBorder = Color(light: "F0E4C8", dark: "3D3220")
     static let notesCardBackground = Color(light: "F0F7F2", dark: "162018")
 
+    // MARK: - Neumorphic Shadows
+    static let neumorphicLight = Color(light: "F5EFE7", dark: "243230")
+    static let neumorphicDark = Color(light: "B8B0A4", dark: "0E1614")
+    static let neumorphicInnerLight = Color(light: "F0EAE2", dark: "202E2C")
+    static let neumorphicInnerDark = Color(light: "C4BCA8", dark: "101A18")
+
     // MARK: - Surfaces & Borders
-    static let agentBubble = Color(light: "F0F2F5", dark: "222A33")
-    static let elevatedSurface = Color(light: "FFFFFF", dark: "222A33")
-    static let surfaceDark = Color(light: "16181D", dark: "222A33")
-    static let separator = Color(light: "E2E5EA", dark: "2A3340")
+    static let agentBubble = Color(light: "DDD5C9", dark: "1E2A28")
+    static let elevatedSurface = Color(light: "E0D8CC", dark: "1E2A28")
+    static let surfaceDark = Color(light: "16181D", dark: "1E2A28")
+    static let separator = Color(light: "D0C8BC", dark: "243230")
     static let lockedGray = Color(light: "C7C7CC", dark: "4A4A4A")
 
     // MARK: - Skill Tiers

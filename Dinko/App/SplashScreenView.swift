@@ -19,7 +19,8 @@ struct SplashScreenView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 180, height: 180)
-                .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
+                .shadow(color: AppColors.neumorphicDark.opacity(0.5), radius: 20, x: 6, y: 10)
+                .shadow(color: AppColors.neumorphicLight.opacity(0.4), radius: 12, x: -4, y: -6)
                 .scaleEffect(iconScale)
                 .opacity(iconOpacity)
         }

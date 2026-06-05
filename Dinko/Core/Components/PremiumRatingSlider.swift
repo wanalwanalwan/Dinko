@@ -74,11 +74,26 @@ struct PremiumRatingSlider: View {
             let midY      = geo.size.height / 2
 
             ZStack {
-                // ── Background track ─────────────────────────────────────
-                RoundedRectangle(cornerRadius: trackH / 2)
-                    .fill(AppColors.ringTrack)
-                    .frame(width: usable, height: trackH)
-                    .position(x: w / 2, y: midY)
+                // ── Inset groove track ──────────────────────────────────
+                ZStack {
+                    RoundedRectangle(cornerRadius: trackH / 2)
+                        .fill(AppColors.background)
+                        .frame(width: usable, height: trackH)
+                    RoundedRectangle(cornerRadius: trackH / 2)
+                        .stroke(AppColors.background, lineWidth: 0.5)
+                        .frame(width: usable, height: trackH)
+                        .shadow(
+                            color: AppColors.neumorphicInnerDark.opacity(0.5),
+                            radius: 2, x: 1, y: 1
+                        )
+                        .shadow(
+                            color: AppColors.neumorphicInnerLight.opacity(0.5),
+                            radius: 2, x: -1, y: -1
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: trackH / 2))
+                        .frame(width: usable, height: trackH)
+                }
+                .position(x: w / 2, y: midY)
 
                 // ── Gradient fill ────────────────────────────────────────
                 if fillW > 0 {
@@ -125,17 +140,22 @@ struct PremiumRatingSlider: View {
                 .frame(width: thumbD + 18, height: thumbD + 18)
                 .blur(radius: 8)
 
-            // Drop-shadow ring
+            // Neumorphic raised body
             Circle()
-                .fill(AppColors.primary.opacity(0.10))
-                .frame(width: thumbD + 5, height: thumbD + 5)
-                .offset(y: 2)
-                .blur(radius: 3)
-
-            // White body
-            Circle()
-                .fill(.white)
+                .fill(AppColors.background)
                 .frame(width: thumbD, height: thumbD)
+                .shadow(
+                    color: AppColors.neumorphicLight.opacity(isDragging ? 0.5 : 0.8),
+                    radius: isDragging ? 2 : 4,
+                    x: isDragging ? -1 : -3,
+                    y: isDragging ? -1 : -3
+                )
+                .shadow(
+                    color: AppColors.neumorphicDark.opacity(isDragging ? 0.3 : 0.5),
+                    radius: isDragging ? 2 : 4,
+                    x: isDragging ? 1 : 3,
+                    y: isDragging ? 1 : 3
+                )
                 .overlay(
                     Circle().strokeBorder(
                         LinearGradient(
@@ -147,8 +167,8 @@ struct PremiumRatingSlider: View {
                 )
                 .shadow(
                     color: AppColors.primary.opacity(isDragging ? 0.30 : 0.16),
-                    radius: isDragging ? 12 : 5,
-                    y: isDragging ? 4 : 2
+                    radius: isDragging ? 10 : 4,
+                    y: isDragging ? 3 : 1
                 )
         }
     }

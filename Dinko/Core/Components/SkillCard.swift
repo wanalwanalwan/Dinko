@@ -11,6 +11,8 @@ struct SkillCard: View {
 
     @State private var animatedProgress: Double = 0
 
+    @State private var isPressed = false
+
     var body: some View {
         HStack(spacing: 12) {
             // Left side: name + tier/delta
@@ -59,18 +61,36 @@ struct SkillCard: View {
                 }
                 .frame(width: 24, height: 24)
 
-                // Chevron arrow
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(AppColors.textSecondary.opacity(0.5))
-                    .frame(width: 24, height: 24)
-                    .background(AppColors.textSecondary.opacity(0.08))
-                    .clipShape(Circle())
+                // Chevron — neumorphic inset circle
+                ZStack {
+                    Circle()
+                        .fill(AppColors.background)
+                        .frame(width: 24, height: 24)
+                        .overlay(
+                            Circle()
+                                .stroke(AppColors.background, lineWidth: 0.5)
+                                .shadow(
+                                    color: AppColors.neumorphicInnerDark.opacity(0.4),
+                                    radius: 1.5, x: 1, y: 1
+                                )
+                                .shadow(
+                                    color: AppColors.neumorphicInnerLight.opacity(0.4),
+                                    radius: 1.5, x: -1, y: -1
+                                )
+                                .clipShape(Circle())
+                        )
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.5))
+                }
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .floatingCard()
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .animation(AppAnimations.neumorphicPress, value: isPressed)
         .onAppear {
             withAnimation(AppAnimations.springSmooth) {
                 animatedProgress = overallProgress

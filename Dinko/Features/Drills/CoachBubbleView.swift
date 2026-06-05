@@ -16,8 +16,9 @@ struct CoachBubbleView: View {
                 .padding(.vertical, AppSpacing.xs)
                 .background(
                     BubbleShape()
-                        .fill(AppColors.cardBackground)
-                        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+                        .fill(AppColors.background)
+                        .shadow(color: AppColors.neumorphicLight.opacity(0.7), radius: 5, x: -3, y: -3)
+                        .shadow(color: AppColors.neumorphicDark.opacity(0.35), radius: 5, x: 3, y: 3)
                 )
 
             Spacer(minLength: 0)
