@@ -237,9 +237,19 @@ struct HomeView: View {
                     }
                 }
                 .padding(AppSpacing.sm)
-                .background(AppColors.cardBackground)
+                .background(
+                    ZStack {
+                        AppColors.cardBackground
+                        AppColors.successGreen.opacity(0.08)
+                    }
+                )
                 .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-                .shadow(color: AppColors.successGreen.opacity(0.08), radius: 14, y: 5)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius)
+                        .stroke(AppColors.successGreen.opacity(0.2), lineWidth: 1)
+                )
+                .shadow(color: AppColors.neumorphicDark.opacity(0.35), radius: 6, x: 3, y: 3)
+                .shadow(color: AppColors.neumorphicLight.opacity(0.6), radius: 6, x: -3, y: -3)
             } else {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
@@ -251,9 +261,7 @@ struct HomeView: View {
                     Spacer()
                 }
                 .padding(AppSpacing.sm)
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-                .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+                .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
             }
         }
     }
@@ -351,9 +359,19 @@ struct HomeView: View {
             }
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
+        .background(
+            ZStack {
+                AppColors.cardBackground
+                AppColors.warningOrange.opacity(streak > 0 ? 0.06 : 0)
+            }
+        )
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius)
+                .stroke(streak > 0 ? AppColors.warningOrange.opacity(0.18) : Color.clear, lineWidth: 1)
+        )
+        .shadow(color: AppColors.neumorphicDark.opacity(0.35), radius: 6, x: 3, y: 3)
+        .shadow(color: AppColors.neumorphicLight.opacity(0.6), radius: 6, x: -3, y: -3)
     }
 
     // MARK: - Next Drill Card
@@ -415,9 +433,7 @@ struct HomeView: View {
                 }
                 .padding(AppSpacing.sm)
             }
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-            .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         } else {
             HStack(spacing: AppSpacing.xs) {
                 Image(systemName: "lightbulb.fill")
@@ -441,9 +457,7 @@ struct HomeView: View {
                 .buttonStyle(.plain)
             }
             .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-            .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         }
     }
 
