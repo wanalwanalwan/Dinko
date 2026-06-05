@@ -148,6 +148,8 @@
 		D11000010000000000000006 /* DUPRStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12000010000000000000006 /* DUPRStatsView.swift */; };
 				FS1000010000000000000001 /* FocusSkillManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS2000010000000000000001 /* FocusSkillManager.swift */; };
 				FP1000010000000000000001 /* FocusSkillPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FP2000010000000000000001 /* FocusSkillPickerSheet.swift */; };
+		NM1000010000000000000001 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM2000010000000000000001 /* NotificationManager.swift */; };
+		SB1000010000000000000001 /* SkillBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = SB2000010000000000000001 /* SkillBenchmark.swift */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -315,6 +317,8 @@
 		D12000010000000000000006 /* DUPRStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DUPRStatsView.swift; sourceTree = "<group>"; };
 				FS2000010000000000000001 /* FocusSkillManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSkillManager.swift; sourceTree = "<group>"; };
 				FP2000010000000000000001 /* FocusSkillPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSkillPickerSheet.swift; sourceTree = "<group>"; };
+		NM2000010000000000000001 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		SB2000010000000000000001 /* SkillBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillBenchmark.swift; sourceTree = "<group>"; };
 		/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -556,6 +560,7 @@
 				CC200001000000000000000E /* CoachProfile.swift */,
 				AC2000010000000000000001 /* Achievement.swift */,
 				D12000010000000000000003 /* DUPRModels.swift */,
+				SB2000010000000000000001 /* SkillBenchmark.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -616,6 +621,7 @@
 			children = (
 				AC2000010000000000000002 /* AchievementManager.swift */,
 				FS2000010000000000000001 /* FocusSkillManager.swift */,
+				NM2000010000000000000001 /* NotificationManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -953,6 +959,8 @@
 				D11000010000000000000004 /* DUPRWebView.swift in Sources */,
 				D11000010000000000000005 /* DUPRConnectSheet.swift in Sources */,
 				D11000010000000000000006 /* DUPRStatsView.swift in Sources */,
+				NM1000010000000000000001 /* NotificationManager.swift in Sources */,
+				SB1000010000000000000001 /* SkillBenchmark.swift in Sources */,
 
 				E10000020000000000000003 /* AgentService.swift in Sources */,
 				E10000020000000000000004 /* ChatViewModel.swift in Sources */,
