@@ -14,10 +14,16 @@ struct LogSessionView: View {
 
             ScrollView {
                 VStack(spacing: AppSpacing.sm) {
-                    sessionTypeCard
-                    dateCard
-                    durationCard
-                    skillsCard
+                    if viewModel.isQuickMode {
+                        dateCard
+                        durationCard
+                        quickSkillRatingsCard
+                    } else {
+                        sessionTypeCard
+                        dateCard
+                        durationCard
+                        skillsCard
+                    }
                     notesCard
 
                     if let error = viewModel.errorMessage {
@@ -267,6 +273,86 @@ struct LogSessionView: View {
                     }
                 }
                 .padding(.bottom, AppSpacing.xs)
+            }
+        }
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+    }
+
+    // MARK: - Quick Skill Ratings Card
+
+    private var quickSkillRatingsCard: some View {
+        VStack(spacing: 0) {
+            HStack {
+                HStack(spacing: 7) {
+                    Image(systemName: "figure.pickleball")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AppColors.primary)
+                    Text("How did these feel?")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+                Spacer()
+                Text("\(viewModel.selectedSkillIds.count) skills")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.primary)
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
+
+            Divider().padding(.horizontal, AppSpacing.sm)
+
+            if viewModel.skills.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "target")
+                        .font(.system(size: 24))
+                        .foregroundStyle(AppColors.textSecondary.opacity(0.3))
+                    Text("No skills yet.\nAdd skills in the Progress tab.")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.lg)
+            } else {
+                VStack(spacing: 0) {
+                    let selectedSkills = viewModel.skills.filter { viewModel.selectedSkillIds.contains($0.id) }
+                    ForEach(selectedSkills) { skill in
+                        VStack(spacing: AppSpacing.xxs) {
+                            HStack(spacing: AppSpacing.xs) {
+                                Text(skill.category.iconName)
+                                    .font(.system(size: 16))
+                                Text(skill.name)
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(AppColors.textPrimary)
+                                    .lineLimit(1)
+                                Spacer()
+                                Text("\(Int(viewModel.skillRatings[skill.id] ?? 50))%")
+                                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                                    .foregroundStyle(AppColors.primary)
+                                    .frame(width: 40, alignment: .trailing)
+                            }
+                            Slider(
+                                value: Binding(
+                                    get: { viewModel.skillRatings[skill.id] ?? 50 },
+                                    set: { viewModel.skillRatings[skill.id] = $0 }
+                                ),
+                                in: 0...100,
+                                step: 1
+                            )
+                            .tint(AppColors.primary)
+                        }
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.vertical, AppSpacing.xs)
+
+                        if skill.id != selectedSkills.last?.id {
+                            Divider().padding(.horizontal, AppSpacing.sm)
+                        }
+                    }
+                }
+                .padding(.bottom, AppSpacing.xxs)
             }
         }
         .background(AppColors.cardBackground)

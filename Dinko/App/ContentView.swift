@@ -8,11 +8,17 @@ struct ContentView: View {
     @State private var selectedSessionType: SessionType = .game
     @State private var selectedSessionDate: Date = Date()
     @State private var homeRefreshID = UUID()
+    @State private var isQuickLog = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                HomeView(selectedTab: $selectedTab, showSessionTypeSheet: $showTypeSelection, selectedSessionDate: $selectedSessionDate, refreshID: homeRefreshID)
+                HomeView(selectedTab: $selectedTab, showSessionTypeSheet: $showTypeSelection, selectedSessionDate: $selectedSessionDate, onQuickLog: {
+                            isQuickLog = true
+                            selectedSessionType = .game
+                            selectedSessionDate = Date()
+                            showSessionForm = true
+                        }, refreshID: homeRefreshID)
             }
             .tag(0)
 
@@ -52,6 +58,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showSessionForm, onDismiss: {
             homeRefreshID = UUID()
+            isQuickLog = false
         }) {
             let viewModel = LogSessionViewModel(
                 skillRepository: dependencies.skillRepository,
@@ -64,6 +71,7 @@ struct ContentView: View {
                 viewModel: {
                     viewModel.sessionType = selectedSessionType
                     viewModel.sessionDate = selectedSessionDate
+                    viewModel.isQuickMode = isQuickLog
                     return viewModel
                 }(),
                 selectedTab: $selectedTab

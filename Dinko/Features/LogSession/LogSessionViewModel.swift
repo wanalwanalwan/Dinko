@@ -15,6 +15,7 @@ final class LogSessionViewModel {
     var currentRatings: [UUID: Int] = [:]
     var skillDrills: [UUID: [Drill]] = [:]
     var completedDrillIds: Set<UUID> = []
+    var isQuickMode: Bool = false
 
     private let skillRepository: SkillRepository
     private let sessionRepository: SessionRepository
@@ -58,8 +59,48 @@ final class LogSessionViewModel {
                     currentRatings[skill.id] = latest.rating
                 }
             }
+
+            if isQuickMode {
+                await preselectRecentSkills()
+            }
         } catch {
             errorMessage = "Failed to load skills."
+        }
+    }
+
+    func preselectRecentSkills() async {
+        do {
+            let sessions = try await sessionRepository.fetchAll()
+            let recentSessions = Array(sessions.prefix(3))
+
+            var recentSkillIds: [UUID] = []
+            for session in recentSessions {
+                for id in session.skillIdArray where !recentSkillIds.contains(id) {
+                    recentSkillIds.append(id)
+                }
+            }
+
+            let idsToSelect: Set<UUID>
+            if recentSkillIds.isEmpty {
+                // No recent sessions — preselect all active skills
+                idsToSelect = Set(skills.map(\.id))
+            } else {
+                // Only select skills that still exist in the active list
+                let activeIds = Set(skills.map(\.id))
+                idsToSelect = Set(recentSkillIds.filter { activeIds.contains($0) })
+            }
+
+            selectedSkillIds = idsToSelect
+            for id in idsToSelect {
+                skillRatings[id] = Double(currentRatings[id] ?? 50)
+            }
+
+            // Default duration to the last session's duration
+            if let lastDuration = recentSessions.first?.duration, lastDuration > 0 {
+                duration = lastDuration
+            }
+        } catch {
+            // Non-critical — fall through with no preselection
         }
     }
 

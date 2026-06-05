@@ -39,6 +39,12 @@ struct DinkoApp: App {
                     showPersistenceError = true
                 }
                 await authViewModel.restoreSession()
+                if hasCompletedOnboarding {
+                    NotificationManager.shared.checkAuthorizationStatus()
+                    if !NotificationManager.shared.isAuthorized {
+                        NotificationManager.shared.requestPermission()
+                    }
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .authSessionExpired)) { _ in
                 UserDefaults.standard.removeObject(forKey: "pkkl_user_role")

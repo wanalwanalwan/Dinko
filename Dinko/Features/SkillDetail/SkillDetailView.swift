@@ -52,6 +52,8 @@ struct SkillDetailView: View {
                 VStack(spacing: AppSpacing.md) {
                     ratingHero(viewModel)
 
+                    benchmarkComparison(viewModel)
+
                     coachingCard(viewModel)
 
                     if viewModel.isParentSkill {
@@ -563,6 +565,40 @@ struct SkillDetailView: View {
             .neumorphicRaised(cornerRadius: AppSpacing.cardCornerRadius)
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Benchmark Comparison
+
+    @ViewBuilder
+    private func benchmarkComparison(_ viewModel: SkillDetailViewModel) -> some View {
+        if let result = SkillBenchmark.comparison(userRating: viewModel.latestRating, category: viewModel.skill.category) {
+            HStack(spacing: AppSpacing.xs) {
+                Image(systemName: result.delta >= 0 ? "arrow.up.right" : "arrow.down.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(result.delta >= 0 ? AppColors.successGreen : AppColors.coral)
+
+                Text("Players at your level average \(result.benchmark)% on \(viewModel.skill.category.displayName)")
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer()
+
+                let deltaText = result.delta >= 0 ? "+\(result.delta)" : "\(result.delta)"
+                let deltaColor = result.delta >= 0 ? AppColors.successGreen : AppColors.coral
+                Text(deltaText)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(deltaColor)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(deltaColor.opacity(0.12))
+                    .clipShape(Capsule())
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
+        }
     }
 
     // MARK: - Inline Coaching Card

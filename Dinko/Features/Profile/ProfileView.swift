@@ -7,6 +7,7 @@ struct ProfileView: View {
     @State private var duprService = DUPRService.shared
     @State private var showDUPRConnect = false
     @State private var showDUPRStats = false
+    @State private var notificationManager = NotificationManager.shared
 
     var body: some View {
         NavigationStack {
@@ -15,6 +16,7 @@ struct ProfileView: View {
                     duprSection
                     playerProfileSection
                     trainingSection
+                    notificationsSection
                     accountSection
                 }
                 .padding(.horizontal, AppSpacing.md)
@@ -283,6 +285,73 @@ struct ProfileView: View {
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.bottom, AppSpacing.sm)
+        }
+    }
+
+    // MARK: - Notifications Section
+
+    private var notificationsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("NOTIFICATIONS")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+
+            VStack(spacing: 0) {
+                HStack {
+                    Label("Daily Reminder", systemImage: "bell.badge")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { notificationManager.isEnabled },
+                        set: { newValue in
+                            if newValue && !notificationManager.isAuthorized {
+                                notificationManager.requestPermission()
+                            }
+                            notificationManager.isEnabled = newValue
+                        }
+                    ))
+                    .tint(AppColors.primary)
+                    .labelsHidden()
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.xs)
+
+                if notificationManager.isEnabled {
+                    Divider().padding(.horizontal, AppSpacing.md)
+
+                    HStack {
+                        Label("Reminder Time", systemImage: "clock")
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Spacer()
+                        DatePicker(
+                            "",
+                            selection: Binding(
+                                get: {
+                                    var components = DateComponents()
+                                    components.hour = notificationManager.reminderHour
+                                    components.minute = notificationManager.reminderMinute
+                                    return Calendar.current.date(from: components) ?? Date()
+                                },
+                                set: { newDate in
+                                    let components = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                                    notificationManager.reminderHour = components.hour ?? 18
+                                    notificationManager.reminderMinute = components.minute ?? 0
+                                }
+                            ),
+                            displayedComponents: .hourAndMinute
+                        )
+                        .labelsHidden()
+                        .tint(AppColors.primary)
+                    }
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.xs)
+                }
+            }
+            .background(AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
         }
     }
 
