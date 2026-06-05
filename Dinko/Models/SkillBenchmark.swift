@@ -89,6 +89,7 @@ enum SkillBenchmark {
     ]
 
     /// Resolve the current player's DUPR range: live DUPR first, then onboarding profile
+    @MainActor
     static func forCurrentPlayer() -> DUPRRange? {
         if let singlesRating = DUPRService.shared.profile?.singlesRating {
             return DUPRRange.from(numericRating: singlesRating)
@@ -97,6 +98,7 @@ enum SkillBenchmark {
     }
 
     /// Compare a user's rating against the benchmark for their DUPR range and skill category
+    @MainActor
     static func comparison(userRating: Int, category: SkillCategory) -> (benchmark: Int, delta: Int)? {
         guard let range = forCurrentPlayer(),
               let benchmark = benchmarks[category]?[range] else { return nil }
