@@ -102,9 +102,7 @@ struct LogSessionView: View {
                 .foregroundStyle(AppColors.highlight)
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     // MARK: - Date Card
@@ -130,9 +128,7 @@ struct LogSessionView: View {
             .tint(AppColors.primary)
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     // MARK: - Duration Card
@@ -196,9 +192,7 @@ struct LogSessionView: View {
                 .padding(.vertical, AppSpacing.sm)
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     // MARK: - Skills Card
@@ -275,9 +269,7 @@ struct LogSessionView: View {
                 .padding(.bottom, AppSpacing.xs)
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     // MARK: - Quick Skill Ratings Card
@@ -355,9 +347,7 @@ struct LogSessionView: View {
                 .padding(.bottom, AppSpacing.xxs)
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     // MARK: - Notes Card
@@ -388,9 +378,7 @@ struct LogSessionView: View {
                 .foregroundStyle(AppColors.textPrimary)
                 .padding(AppSpacing.sm)
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: floatShadow1.0, radius: floatShadow1.1, x: 0, y: floatShadow1.2)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     // MARK: - Save Button

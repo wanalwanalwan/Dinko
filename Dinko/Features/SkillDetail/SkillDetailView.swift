@@ -643,12 +643,7 @@ struct SkillDetailView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppSpacing.xs)
-                        .background(AppColors.coachCardBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall)
-                                .stroke(AppColors.coachCardBorder, lineWidth: 1)
-                        )
+                        .neumorphicTinted(color: AppColors.successGreen, cornerRadius: AppSpacing.cornerRadiusMd)
                     }
                     .buttonStyle(.pressable)
                 } else {

@@ -232,24 +232,12 @@ struct HomeView: View {
                         }
                         Spacer()
                         Text("+\(best.delta)%")
-                            .font(Font.custom("Sora-Bold", size: 22))
+                            .font(AppTypography.statMedium)
                             .foregroundStyle(AppColors.successGreen)
                     }
                 }
                 .padding(AppSpacing.sm)
-                .background(
-                    ZStack {
-                        AppColors.cardBackground
-                        AppColors.successGreen.opacity(0.08)
-                    }
-                )
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius)
-                        .stroke(AppColors.successGreen.opacity(0.2), lineWidth: 1)
-                )
-                .shadow(color: AppColors.neumorphicDark.opacity(0.35), radius: 6, x: 3, y: 3)
-                .shadow(color: AppColors.neumorphicLight.opacity(0.6), radius: 6, x: -3, y: -3)
+                .neumorphicTinted(color: AppColors.successGreen, tintOpacity: 0.08, borderOpacity: 0.2)
             } else {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
@@ -312,7 +300,7 @@ struct HomeView: View {
 
                 if streak > 0 {
                     Text("\(streak)")
-                        .font(Font.custom("Sora-Bold", size: 28))
+                        .font(AppTypography.statLarge)
                         .foregroundStyle(AppColors.warningOrange)
                 }
             }
@@ -359,19 +347,11 @@ struct HomeView: View {
             }
         }
         .padding(AppSpacing.sm)
-        .background(
-            ZStack {
-                AppColors.cardBackground
-                AppColors.warningOrange.opacity(streak > 0 ? 0.06 : 0)
-            }
+        .neumorphicTinted(
+            color: AppColors.warningOrange,
+            tintOpacity: streak > 0 ? 0.06 : 0,
+            borderOpacity: streak > 0 ? 0.18 : 0
         )
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius)
-                .stroke(streak > 0 ? AppColors.warningOrange.opacity(0.18) : Color.clear, lineWidth: 1)
-        )
-        .shadow(color: AppColors.neumorphicDark.opacity(0.35), radius: 6, x: 3, y: 3)
-        .shadow(color: AppColors.neumorphicLight.opacity(0.6), radius: 6, x: -3, y: -3)
     }
 
     // MARK: - Next Drill Card
@@ -384,7 +364,7 @@ struct HomeView: View {
             VStack(spacing: 0) {
                 HStack {
                     Text("NEXT DRILL")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .font(AppTypography.sectionLabel)
                         .tracking(0.8)
                         .foregroundStyle(AppColors.textSecondary)
                     Spacer()
@@ -472,7 +452,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text("THIS WEEK'S FOCUS")
-                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .font(AppTypography.sectionLabel)
                             .tracking(0.8)
                             .foregroundStyle(AppColors.textSecondary)
                         Image(systemName: "target")
@@ -555,9 +535,7 @@ struct HomeView: View {
                 }
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     private func skillChartPage(_ entry: FocusSkillEntry, index: Int, viewModel: HomeViewModel) -> some View {
@@ -716,9 +694,7 @@ struct HomeView: View {
                 .padding(.vertical, AppSpacing.xxs)
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     private func scheduleDayRow(_ day: WeekScheduleDay, viewModel: HomeViewModel) -> some View {
@@ -898,14 +874,7 @@ struct HomeView: View {
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.vertical, AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-            .shadow(
-                color: today.isPracticeDay && !today.hasLoggedSession
-                    ? AppColors.primary.opacity(0.08)
-                    : .black.opacity(0.05),
-                radius: 14, y: 5
-            )
+            .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
         }
     }
 
@@ -941,7 +910,7 @@ struct HomeView: View {
                 .disabled(weekStripOffset <= -12)
 
                 Text(header)
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(AppTypography.sectionLabel)
                     .tracking(0.8)
                     .foregroundStyle(AppColors.textSecondary)
                     .frame(maxWidth: .infinity)
@@ -1075,9 +1044,7 @@ struct HomeView: View {
             }
             .padding(.vertical, AppSpacing.xs)
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
         .animation(.spring(response: 0.4, dampingFraction: 0.82), value: expandedWeekDay)
         .animation(.spring(response: 0.35, dampingFraction: 0.82), value: weekStripOffset)
         .gesture(
@@ -1241,7 +1208,7 @@ struct HomeView: View {
             // Header
             HStack {
                 Text("SKILL IDEAS")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(AppTypography.sectionLabel)
                     .tracking(0.8)
                     .foregroundStyle(AppColors.textSecondary)
                 Spacer()
@@ -1285,9 +1252,7 @@ struct HomeView: View {
                 }
             }
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
         .sheet(isPresented: $showAddIdeaSheet) { addIdeaSheet }
     }
 
@@ -1427,7 +1392,7 @@ struct HomeView: View {
                     HStack(alignment: .center) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("DUPR RATING")
-                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .font(AppTypography.sectionLabel)
                                 .tracking(0.8)
                                 .foregroundStyle(AppColors.textSecondary)
                             HStack(spacing: 14) {
@@ -1448,9 +1413,7 @@ struct HomeView: View {
                     }
                     .padding(AppSpacing.sm)
                 }
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-                .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+                .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -1470,7 +1433,7 @@ struct HomeView: View {
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)
                         Text("Sync your official pickleball rating")
-                            .font(.system(size: 12, design: .rounded))
+                            .font(AppTypography.cardCaption)
                             .foregroundStyle(AppColors.textSecondary)
                     }
                     Spacer()
@@ -1479,9 +1442,7 @@ struct HomeView: View {
                         .foregroundStyle(AppColors.textSecondary)
                 }
                 .padding(AppSpacing.sm)
-                .background(AppColors.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-                .shadow(color: .black.opacity(0.04), radius: 10, y: 3)
+                .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -1588,7 +1549,7 @@ struct HomeView: View {
             // ── Top row ────────────────────────────────────────────────────
             HStack {
                 Text("THIS WEEK")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(AppTypography.sectionLabel)
                     .tracking(0.9)
                     .foregroundStyle(AppColors.textSecondary)
                 Spacer()
@@ -1644,7 +1605,7 @@ struct HomeView: View {
 
                     // Score number
                     Text("\(score)")
-                        .font(Font.custom("Sora-Bold", size: 48))
+                        .font(AppTypography.ratingLarge)
                         .foregroundStyle(AppColors.textPrimary)
                         .contentTransition(.numericText())
                 }
@@ -1697,9 +1658,7 @@ struct HomeView: View {
                 .padding(.bottom, AppSpacing.xxs)
         }
         .padding(AppSpacing.sm)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .shadow(color: Color.black.opacity(0.05), radius: 14, y: 5)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     private func brineScoreColor(_ score: Int) -> Color {
@@ -1750,9 +1709,7 @@ struct HomeView: View {
             }
 
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.heroCornerRadius))
-        .shadow(color: Color.black.opacity(0.05), radius: 14, y: 5)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     // MARK: - Brine Score Inline Breakdown
@@ -1873,7 +1830,7 @@ struct HomeView: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("GETTING STARTED")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .font(AppTypography.sectionLabel)
                         .tracking(0.9)
                         .foregroundStyle(AppColors.textSecondary)
                     Text(remaining == 1 ? "1 step remaining" : "\(remaining) steps remaining")
@@ -1934,9 +1891,7 @@ struct HomeView: View {
             }
             .padding(.bottom, AppSpacing.xxs)
         }
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     private func checklistRow(
@@ -2098,9 +2053,7 @@ struct HomeView: View {
         }
         .padding(AppSpacing.sm)
         .frame(maxWidth: .infinity)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-        .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     private func skillPill(_ label: String) -> some View {
@@ -2126,35 +2079,25 @@ struct HomeView: View {
                     Spacer(minLength: 0)
                 }
                 .padding(AppSpacing.sm)
-                .background(AppColors.coachCardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
-                        .stroke(AppColors.coachCardBorder.opacity(0.5), lineWidth: 0.5)
-                )
+                .neumorphicTinted(color: AppColors.successGreen)
             } else if viewModel.totalActiveSkills > 0 {
                 HStack(spacing: AppSpacing.xs) {
                     CoachMascot(state: viewModel.mascotState, size: 36)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(viewModel.coachingMessage)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(AppTypography.cardBody)
                             .foregroundStyle(AppColors.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         Button { selectedTab = 2 } label: {
                             Text(viewModel.coachingActionLabel)
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .font(AppTypography.buttonLabel)
                                 .foregroundStyle(AppColors.primaryLight)
                         }
                     }
                     Spacer(minLength: 0)
                 }
                 .padding(AppSpacing.sm)
-                .background(AppColors.coachCardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius)
-                        .stroke(AppColors.coachCardBorder.opacity(0.5), lineWidth: 0.5)
-                )
+                .neumorphicTinted(color: AppColors.successGreen)
             }
         }
     }
@@ -2252,9 +2195,7 @@ struct HomeView: View {
         }
         .padding(.horizontal, AppSpacing.xs)
         .padding(.vertical, AppSpacing.xs)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadiusSmall))
-        .shadow(color: Color.black.opacity(0.03), radius: 6, y: 2)
+        .neumorphicRaised(intensity: .subtle, cornerRadius: AppSpacing.cornerRadiusMd)
     }
 
     private func allAchievementsSheet(_ viewModel: HomeViewModel) -> some View {

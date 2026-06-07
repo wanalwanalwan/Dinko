@@ -1,20 +1,20 @@
 import SwiftUI
 
 enum AppColors {
-    // MARK: - Backgrounds (unified for neumorphic surfaces)
-    static let background = Color(light: "E0D8CC", dark: "1A2220")
-    static let backgroundGray = Color(light: "D8D0C4", dark: "1A2220")
-    static let cardBackground = Color(light: "E0D8CC", dark: "1A2220")
+    // MARK: - Backgrounds (neumorphic surface hierarchy)
+    static let background = Color(light: "ECE6DC", dark: "1A2220")
+    static let backgroundGray = Color(light: "E4DED4", dark: "1A2220")
+    static let cardBackground = Color(light: "F2EDE5", dark: "1A2220")
 
     static var backgroundGradient: LinearGradient {
-        LinearGradient(colors: [background, background], startPoint: .top, endPoint: .bottom)
+        LinearGradient(colors: [Color(light: "ECE6DC", dark: "1A2220"), Color(light: "E8E2D8", dark: "1A2220")], startPoint: .top, endPoint: .bottom)
     }
 
-    // MARK: - Primary (Deep Forest Green — CTA / Interactive)
-    static let primary = Color(hex: "365B43")
-    static let primaryDark = Color(hex: "2A4935")
-    static let primaryLight = Color(hex: "5E8C61")
-    static let primaryTint = Color(light: "DDEBDD", dark: "1A2A1E")
+    // MARK: - Primary (Forest Green — CTA / Interactive)
+    static let primary = Color(hex: "4F7A5A")
+    static let primaryDark = Color(hex: "3D6248")
+    static let primaryLight = Color(hex: "6B9B74")
+    static let primaryTint = Color(light: "E8F0E8", dark: "1A2A1E")
 
     // MARK: - Highlight (Vibrant Green — rewards, success accents)
     static let highlight = Color(hex: "89C36B")
@@ -32,27 +32,24 @@ enum AppColors {
     static let warningOrange = Color(hex: "F59E0B")
 
     // MARK: - Text
-    static let textPrimary = Color(light: "16181D", dark: "F4F7FA")
-    static let textSecondary = Color(light: "69707D", dark: "A6B0BC")
+    static let textPrimary = Color(light: "1F2937", dark: "F4F7FA")
+    static let textSecondary = Color(light: "6B7280", dark: "A6B0BC")
 
     // MARK: - Card Variants
     static let cardBorder = Color(light: "E8EAED", dark: "2A3340")
     static let heroCardBorder = Color(light: "DEE1E6", dark: "323D4A")
-    static let coachCardBackground = Color(light: "EBF5ED", dark: "141F17")
-    static let coachCardBorder = Color(light: "B8D8C0", dark: "1E3426")
     static let achievementCardBackground = Color(light: "FFFBF0", dark: "1F1B14")
     static let achievementCardBorder = Color(light: "F0E4C8", dark: "3D3220")
-    static let notesCardBackground = Color(light: "F0F7F2", dark: "162018")
 
-    // MARK: - Neumorphic Shadows
-    static let neumorphicLight = Color(light: "F5EFE7", dark: "243230")
-    static let neumorphicDark = Color(light: "B8B0A4", dark: "0E1614")
-    static let neumorphicInnerLight = Color(light: "F0EAE2", dark: "202E2C")
-    static let neumorphicInnerDark = Color(light: "C4BCA8", dark: "101A18")
+    // MARK: - Neumorphic Shadows (calibrated for #ECE6DC base)
+    static let neumorphicLight = Color(light: "FAF5EE", dark: "243230")
+    static let neumorphicDark = Color(light: "C4BCA8", dark: "0E1614")
+    static let neumorphicInnerLight = Color(light: "F5EFE7", dark: "202E2C")
+    static let neumorphicInnerDark = Color(light: "CCC4B0", dark: "101A18")
 
     // MARK: - Surfaces & Borders
     static let agentBubble = Color(light: "DDD5C9", dark: "1E2A28")
-    static let elevatedSurface = Color(light: "E0D8CC", dark: "1E2A28")
+    static let elevatedSurface = Color(light: "F2EDE5", dark: "1E2A28")
     static let surfaceDark = Color(light: "16181D", dark: "1E2A28")
     static let separator = Color(light: "D0C8BC", dark: "243230")
     static let lockedGray = Color(light: "C7C7CC", dark: "4A4A4A")
@@ -77,8 +74,8 @@ enum AppColors {
     static let bannerBackground = Color(light: "E0F0E4", dark: "162E1C")
 
     // MARK: - Splash Gradient
-    static let splashGradientStart = Color(hex: "365B43")
-    static let splashGradientEnd = Color(hex: "2A4935")
+    static let splashGradientStart = Color(hex: "4F7A5A")
+    static let splashGradientEnd = Color(hex: "3D6248")
 
     // MARK: - Calendar Session Indicators
     static let calendarGame = Color(light: "FFE0E0", dark: "3D2020")
@@ -90,6 +87,6 @@ enum AppColors {
 
     // MARK: - Ring Gradients
     static let ringGradientStart = Color(hex: "89C36B")
-    static let ringGradientEnd = Color(hex: "365B43")
+    static let ringGradientEnd = Color(hex: "4F7A5A")
     static let ringTrack = Color(light: "E8EDE8", dark: "1E2820")
 }

@@ -8,7 +8,7 @@ enum NeumorphicIntensity {
     var lightOffset: CGFloat {
         switch self {
         case .subtle:    return 3
-        case .standard:  return 5
+        case .standard:  return 4
         case .prominent: return 7
         }
     }
@@ -16,7 +16,7 @@ enum NeumorphicIntensity {
     var darkOffset: CGFloat {
         switch self {
         case .subtle:    return 3
-        case .standard:  return 5
+        case .standard:  return 4
         case .prominent: return 7
         }
     }
@@ -24,7 +24,7 @@ enum NeumorphicIntensity {
     var lightRadius: CGFloat {
         switch self {
         case .subtle:    return 4
-        case .standard:  return 8
+        case .standard:  return 6
         case .prominent: return 12
         }
     }
@@ -32,7 +32,7 @@ enum NeumorphicIntensity {
     var darkRadius: CGFloat {
         switch self {
         case .subtle:    return 4
-        case .standard:  return 8
+        case .standard:  return 6
         case .prominent: return 12
         }
     }
@@ -40,7 +40,7 @@ enum NeumorphicIntensity {
     var lightOpacity: Double {
         switch self {
         case .subtle:    return 0.6
-        case .standard:  return 0.8
+        case .standard:  return 0.9
         case .prominent: return 1.0
         }
     }
@@ -48,7 +48,7 @@ enum NeumorphicIntensity {
     var darkOpacity: Double {
         switch self {
         case .subtle:    return 0.3
-        case .standard:  return 0.5
+        case .standard:  return 0.4
         case .prominent: return 0.7
         }
     }
@@ -88,12 +88,50 @@ enum NeumorphicInsetDepth {
 
 struct NeumorphicRaisedModifier: ViewModifier {
     var intensity: NeumorphicIntensity = .standard
-    var cornerRadius: CGFloat = AppSpacing.neumorphicCornerRadius
+    var cornerRadius: CGFloat = AppSpacing.cornerRadiusLg
+    var surfaceColor: Color = AppColors.cardBackground
 
     func body(content: Content) -> some View {
         content
-            .background(AppColors.background)
+            .background(surfaceColor)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .shadow(
+                color: AppColors.neumorphicLight.opacity(intensity.lightOpacity),
+                radius: intensity.lightRadius,
+                x: -intensity.lightOffset,
+                y: -intensity.lightOffset
+            )
+            .shadow(
+                color: AppColors.neumorphicDark.opacity(intensity.darkOpacity),
+                radius: intensity.darkRadius,
+                x: intensity.darkOffset,
+                y: intensity.darkOffset
+            )
+    }
+}
+
+// MARK: - Neumorphic Tinted Modifier
+
+struct NeumorphicTintedModifier: ViewModifier {
+    var tintColor: Color
+    var tintOpacity: Double = 0.06
+    var borderOpacity: Double = 0.18
+    var intensity: NeumorphicIntensity = .standard
+    var cornerRadius: CGFloat = AppSpacing.cornerRadiusLg
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                ZStack {
+                    AppColors.cardBackground
+                    tintColor.opacity(tintOpacity)
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(tintColor.opacity(borderOpacity), lineWidth: 1)
+            )
             .shadow(
                 color: AppColors.neumorphicLight.opacity(intensity.lightOpacity),
                 radius: intensity.lightRadius,
@@ -113,7 +151,7 @@ struct NeumorphicRaisedModifier: ViewModifier {
 
 struct NeumorphicInsetModifier: ViewModifier {
     var depth: NeumorphicInsetDepth = .standard
-    var cornerRadius: CGFloat = AppSpacing.neumorphicCornerRadius
+    var cornerRadius: CGFloat = AppSpacing.cornerRadiusMd
 
     func body(content: Content) -> some View {
         content
@@ -142,11 +180,11 @@ struct NeumorphicInsetModifier: ViewModifier {
 // MARK: - Neumorphic Flat Modifier
 
 struct NeumorphicFlatModifier: ViewModifier {
-    var cornerRadius: CGFloat = AppSpacing.neumorphicCornerRadius
+    var cornerRadius: CGFloat = AppSpacing.cornerRadiusMd
 
     func body(content: Content) -> some View {
         content
-            .background(AppColors.background)
+            .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .shadow(
                 color: AppColors.neumorphicLight.opacity(0.4),
@@ -163,30 +201,64 @@ struct NeumorphicFlatModifier: ViewModifier {
     }
 }
 
-// MARK: - Legacy Shadow Values (neumorphic-aligned for direct references)
+// MARK: - Neumorphic Button Style
 
-let floatShadow1: (Color, CGFloat, CGFloat) = (AppColors.neumorphicDark.opacity(0.5), 8, 5)
-let floatShadow2: (Color, CGFloat, CGFloat) = (AppColors.neumorphicLight.opacity(0.8), 8, -5)
+struct NeumorphicButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .shadow(
+                color: AppColors.neumorphicLight.opacity(configuration.isPressed ? 0.3 : 0.9),
+                radius: configuration.isPressed ? 2 : 6,
+                x: configuration.isPressed ? -1 : -4,
+                y: configuration.isPressed ? -1 : -4
+            )
+            .shadow(
+                color: AppColors.neumorphicDark.opacity(configuration.isPressed ? 0.15 : 0.4),
+                radius: configuration.isPressed ? 2 : 6,
+                x: configuration.isPressed ? 1 : 4,
+                y: configuration.isPressed ? 1 : 4
+            )
+            .brightness(configuration.isPressed ? -0.03 : 0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
 
 // MARK: - View Extensions
 
 extension View {
     func neumorphicRaised(
         intensity: NeumorphicIntensity = .standard,
-        cornerRadius: CGFloat = AppSpacing.neumorphicCornerRadius
+        cornerRadius: CGFloat = AppSpacing.cornerRadiusLg,
+        surfaceColor: Color = AppColors.cardBackground
     ) -> some View {
-        modifier(NeumorphicRaisedModifier(intensity: intensity, cornerRadius: cornerRadius))
+        modifier(NeumorphicRaisedModifier(intensity: intensity, cornerRadius: cornerRadius, surfaceColor: surfaceColor))
+    }
+
+    func neumorphicTinted(
+        color tintColor: Color,
+        tintOpacity: Double = 0.06,
+        borderOpacity: Double = 0.18,
+        intensity: NeumorphicIntensity = .standard,
+        cornerRadius: CGFloat = AppSpacing.cornerRadiusLg
+    ) -> some View {
+        modifier(NeumorphicTintedModifier(
+            tintColor: tintColor,
+            tintOpacity: tintOpacity,
+            borderOpacity: borderOpacity,
+            intensity: intensity,
+            cornerRadius: cornerRadius
+        ))
     }
 
     func neumorphicInset(
         depth: NeumorphicInsetDepth = .standard,
-        cornerRadius: CGFloat = AppSpacing.neumorphicCornerRadius
+        cornerRadius: CGFloat = AppSpacing.cornerRadiusMd
     ) -> some View {
         modifier(NeumorphicInsetModifier(depth: depth, cornerRadius: cornerRadius))
     }
 
     func neumorphicFlat(
-        cornerRadius: CGFloat = AppSpacing.neumorphicCornerRadius
+        cornerRadius: CGFloat = AppSpacing.cornerRadiusMd
     ) -> some View {
         modifier(NeumorphicFlatModifier(cornerRadius: cornerRadius))
     }
@@ -196,28 +268,28 @@ extension View {
     func heroCard() -> some View {
         self
             .padding(AppSpacing.md)
-            .neumorphicRaised(intensity: .prominent, cornerRadius: AppSpacing.heroCornerRadius)
+            .neumorphicRaised(intensity: .prominent, cornerRadius: AppSpacing.cornerRadiusLg)
     }
 
     func coachCard() -> some View {
         self
             .padding(AppSpacing.sm)
-            .neumorphicRaised(intensity: .standard, cornerRadius: AppSpacing.cardCornerRadiusSmall)
+            .neumorphicTinted(color: AppColors.successGreen)
     }
 
     func infoCard() -> some View {
         self
             .padding(AppSpacing.xs)
-            .neumorphicRaised(intensity: .subtle, cornerRadius: AppSpacing.cardCornerRadiusSmall)
+            .neumorphicRaised(intensity: .subtle, cornerRadius: AppSpacing.cornerRadiusMd)
     }
 
     func achievementCard() -> some View {
         self
             .padding(AppSpacing.sm)
-            .neumorphicRaised(intensity: .standard, cornerRadius: AppSpacing.cardCornerRadiusSmall)
+            .neumorphicRaised(intensity: .standard, cornerRadius: AppSpacing.cornerRadiusMd)
     }
 
-    func floatingCard(cornerRadius: CGFloat = AppSpacing.cardCornerRadiusSmall) -> some View {
+    func floatingCard(cornerRadius: CGFloat = AppSpacing.cornerRadiusMd) -> some View {
         self
             .neumorphicRaised(intensity: .standard, cornerRadius: cornerRadius)
     }
