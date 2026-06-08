@@ -14,7 +14,7 @@ struct GenerateProgramCard: View {
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("Get a personalized multi-week program tailored to your skills and goals. The AI coach will build a structured plan to level up your game.")
+            Text("Choose a general program or pick specific skills to focus on. The AI coach will build a structured plan to level up your game.")
                 .font(.system(size: 14, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)

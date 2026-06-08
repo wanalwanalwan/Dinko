@@ -6,6 +6,7 @@ struct ProgramView: View {
     @State private var showAllWeeks = false
     @State private var showPaywall = false
     @State private var showReplaceAlert = false
+    @State private var showGenerationFlow = false
     @State private var pendingTemplate: ProgramTemplate?
 
     private var subscriptionService: SubscriptionService {
@@ -38,6 +39,11 @@ struct ProgramView: View {
         }
         .sheet(isPresented: $showPaywall) {
             PaywallView()
+        }
+        .sheet(isPresented: $showGenerationFlow) {
+            if let vm = viewModel {
+                ProgramGenerationFlowView(viewModel: vm)
+            }
         }
         .alert("Replace Current Program?", isPresented: $showReplaceAlert) {
             Button("Replace", role: .destructive) {
@@ -240,7 +246,7 @@ struct ProgramView: View {
                     .padding(.horizontal, AppSpacing.xxs)
 
                 GenerateProgramCard {
-                    Task { await vm.generateProgram() }
+                    showGenerationFlow = true
                 }
             }
         }

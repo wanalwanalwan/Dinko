@@ -166,6 +166,8 @@
 		PG100001000000000000000E /* WeekSessionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG200001000000000000000E /* WeekSessionCard.swift */; };
 		PG100001000000000000000F /* ProgramDrillRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG200001000000000000000F /* ProgramDrillRow.swift */; };
 		PG1000010000000000000010 /* GenerateProgramCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG2000010000000000000010 /* GenerateProgramCard.swift */; };
+		PG1000010000000000000011 /* GenerationModeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG2000010000000000000011 /* GenerationModeCard.swift */; };
+		PG1000010000000000000012 /* ProgramGenerationFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG2000010000000000000012 /* ProgramGenerationFlowView.swift */; };
 		FM1000010000000000000001 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000001 /* SubscriptionService.swift */; };
 		FM1000010000000000000002 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000002 /* PaywallView.swift */; };
 		FM1000010000000000000003 /* ProBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000003 /* ProBadge.swift */; };
@@ -360,6 +362,8 @@
 		PG200001000000000000000E /* WeekSessionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekSessionCard.swift; sourceTree = "<group>"; };
 		PG200001000000000000000F /* ProgramDrillRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDrillRow.swift; sourceTree = "<group>"; };
 		PG2000010000000000000010 /* GenerateProgramCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateProgramCard.swift; sourceTree = "<group>"; };
+		PG2000010000000000000011 /* GenerationModeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerationModeCard.swift; sourceTree = "<group>"; };
+		PG2000010000000000000012 /* ProgramGenerationFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramGenerationFlowView.swift; sourceTree = "<group>"; };
 		FM2000010000000000000001 /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		FM2000010000000000000002 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		FM2000010000000000000003 /* ProBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProBadge.swift; sourceTree = "<group>"; };
@@ -528,6 +532,7 @@
 				PG200001000000000000000E /* WeekSessionCard.swift */,
 				PG200001000000000000000F /* ProgramDrillRow.swift */,
 				PG2000010000000000000010 /* GenerateProgramCard.swift */,
+				PG2000010000000000000011 /* GenerationModeCard.swift */,
 				FM2000010000000000000006 /* ProgramTemplateCard.swift */,
 				FM2000010000000000000007 /* PaywalledWeekOverlay.swift */,
 			);
@@ -841,6 +846,7 @@
 				PG200001000000000000000A /* ProgramSessionDetailViewModel.swift */,
 				PG200001000000000000000B /* ProgramView.swift */,
 				PG200001000000000000000C /* ProgramSessionDetailView.swift */,
+				PG2000010000000000000012 /* ProgramGenerationFlowView.swift */,
 			);
 			path = Program;
 			sourceTree = "<group>";
@@ -1160,6 +1166,8 @@
 				PG100001000000000000000E /* WeekSessionCard.swift in Sources */,
 				PG100001000000000000000F /* ProgramDrillRow.swift in Sources */,
 				PG1000010000000000000010 /* GenerateProgramCard.swift in Sources */,
+				PG1000010000000000000011 /* GenerationModeCard.swift in Sources */,
+				PG1000010000000000000012 /* ProgramGenerationFlowView.swift in Sources */,
 				FM1000010000000000000001 /* SubscriptionService.swift in Sources */,
 				FM1000010000000000000002 /* PaywallView.swift in Sources */,
 				FM1000010000000000000003 /* ProBadge.swift in Sources */,

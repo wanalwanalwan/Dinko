@@ -87,6 +87,8 @@ final class AgentService {
         let parentSkillId: String?
         let subskills: [SubskillPayload]
         let pendingDrillCount: Int
+        var developmentLevel: String?
+        var priority: Int?
 
         enum CodingKeys: String, CodingKey {
             case id, name, category
@@ -94,6 +96,8 @@ final class AgentService {
             case parentSkillId = "parent_skill_id"
             case subskills
             case pendingDrillCount = "pending_drill_count"
+            case developmentLevel = "development_level"
+            case priority
         }
     }
 
@@ -306,10 +310,12 @@ final class AgentService {
         focusSkills: [SkillSnapshotPayload],
         playerProfile: [String: Any]?,
         weeklyGoal: Int,
+        generationMode: String = "general",
         authToken: String
     ) async throws -> ProgramGenerationResponse {
         var body: [String: Any] = [
             "action": "generate_program",
+            "generation_mode": generationMode,
             "weekly_goal": weeklyGoal,
             "skills": focusSkills.map { skill in
                 var dict: [String: Any] = [
@@ -328,6 +334,12 @@ final class AgentService {
                 ]
                 if let parentId = skill.parentSkillId {
                     dict["parent_skill_id"] = parentId
+                }
+                if let devLevel = skill.developmentLevel {
+                    dict["development_level"] = devLevel
+                }
+                if let priority = skill.priority {
+                    dict["priority"] = priority
                 }
                 return dict
             },
