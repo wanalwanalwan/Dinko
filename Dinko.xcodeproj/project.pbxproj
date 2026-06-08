@@ -176,7 +176,6 @@
 		FM1000010000000000000006 /* ProgramTemplateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000006 /* ProgramTemplateCard.swift */; };
 		FM1000010000000000000007 /* PaywalledWeekOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000007 /* PaywalledWeekOverlay.swift */; };
 		FM1000010000000000000008 /* curated_programs.json in Resources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000008 /* curated_programs.json */; };
-		FMRC000000000000000000F1 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = FMRC000000000000000000F2 /* RevenueCat */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -379,7 +378,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FMRC000000000000000000F1 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -893,7 +891,6 @@
 			);
 			name = Dinko;
 			packageProductDependencies = (
-				FMRC000000000000000000F2 /* RevenueCat */,
 			);
 			productName = Dinko;
 			productReference = A20000010000000000000005 /* Dinko.app */;
@@ -968,7 +965,6 @@
 			);
 			mainGroup = A70000010000000000000001;
 			packageReferences = (
-				FMRC000000000000000000F3 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			productRefGroup = A70000010000000000000005 /* Products */;
 			projectDirPath = "";
@@ -1514,22 +1510,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		FMRC000000000000000000F3 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		FMRC000000000000000000F2 /* RevenueCat */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = FMRC000000000000000000F3 /* XCRemoteSwiftPackageReference "purchases-ios" */;
-			productName = RevenueCat;
-		};
 /* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A50000010000000000000001 /* Project object */;
