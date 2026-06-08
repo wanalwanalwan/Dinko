@@ -6,6 +6,7 @@ final class ProgramViewModel {
     private(set) var activeProgram: Program?
     private(set) var allSessions: [ProgramSession] = []
     private(set) var drillCounts: [UUID: Int] = [:]
+    private(set) var templates: [ProgramTemplate] = []
     private(set) var isLoading = false
     private(set) var isGenerating = false
     var errorMessage: String?
@@ -207,6 +208,71 @@ final class ProgramViewModel {
         } catch {
             errorMessage = "Failed to pause program."
         }
+    }
+
+    func loadTemplates() {
+        templates = ProgramTemplateLoader.loadAll()
+    }
+
+    func startCuratedProgram(_ template: ProgramTemplate) async {
+        isGenerating = true
+        errorMessage = nil
+
+        do {
+            // Delete current active program if exists
+            if let existing = activeProgram {
+                try await programRepository.delete(existing.id)
+            }
+
+            // Convert template to domain models
+            let program = Program(
+                name: template.name,
+                programDescription: template.templateDescription,
+                totalWeeks: template.totalWeeks,
+                sessionsPerWeek: template.sessionsPerWeek,
+                skillFocus: template.skillFocus,
+                source: .curated,
+                isPremium: template.isPremium
+            )
+
+            var sessions: [ProgramSession] = []
+            var drillsMap: [UUID: [ProgramDrill]] = [:]
+
+            for (index, templateSession) in template.sessions.enumerated() {
+                let isFirst = index == 0
+                let session = ProgramSession(
+                    programId: program.id,
+                    weekNumber: templateSession.weekNumber,
+                    sessionNumber: templateSession.sessionNumber,
+                    title: templateSession.title,
+                    focus: templateSession.focus,
+                    estimatedMinutes: templateSession.estimatedMinutes,
+                    status: isFirst ? .available : .locked
+                )
+                sessions.append(session)
+
+                let drills = templateSession.drills.enumerated().map { (order, templateDrill) in
+                    ProgramDrill(
+                        programSessionId: session.id,
+                        name: templateDrill.name,
+                        drillDescription: templateDrill.drillDescription,
+                        durationMinutes: templateDrill.durationMinutes,
+                        targetReps: templateDrill.targetReps,
+                        equipment: templateDrill.equipment,
+                        playerCount: templateDrill.playerCount,
+                        displayOrder: order
+                    )
+                }
+                drillsMap[session.id] = drills
+            }
+
+            try await programRepository.saveFullProgram(program, sessions: sessions, drills: drillsMap)
+            await loadProgram()
+        } catch {
+            errorMessage = "Failed to start program."
+        }
+
+        isGenerating = false
     }
 
     // MARK: - Private

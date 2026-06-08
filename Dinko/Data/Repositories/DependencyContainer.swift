@@ -9,6 +9,7 @@ final class DependencyContainer {
     let drillRepository: DrillRepository
     let journalEntryRepository: JournalEntryRepository
     let programRepository: ProgramRepository
+    let subscriptionService: SubscriptionService
 
     let persistenceError: NSError?
 
@@ -21,6 +22,7 @@ final class DependencyContainer {
         self.drillRepository = DrillRepositoryImpl(persistence: persistence)
         self.journalEntryRepository = JournalEntryRepositoryImpl(persistence: persistence)
         self.programRepository = ProgramRepositoryImpl(persistence: persistence)
+        self.subscriptionService = SubscriptionService.shared
     }
 }
 

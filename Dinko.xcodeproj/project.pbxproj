@@ -166,6 +166,15 @@
 		PG100001000000000000000E /* WeekSessionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG200001000000000000000E /* WeekSessionCard.swift */; };
 		PG100001000000000000000F /* ProgramDrillRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG200001000000000000000F /* ProgramDrillRow.swift */; };
 		PG1000010000000000000010 /* GenerateProgramCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG2000010000000000000010 /* GenerateProgramCard.swift */; };
+		FM1000010000000000000001 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000001 /* SubscriptionService.swift */; };
+		FM1000010000000000000002 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000002 /* PaywallView.swift */; };
+		FM1000010000000000000003 /* ProBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000003 /* ProBadge.swift */; };
+		FM1000010000000000000004 /* ProgramTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000004 /* ProgramTemplate.swift */; };
+		FM1000010000000000000005 /* ProgramTemplateLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000005 /* ProgramTemplateLoader.swift */; };
+		FM1000010000000000000006 /* ProgramTemplateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000006 /* ProgramTemplateCard.swift */; };
+		FM1000010000000000000007 /* PaywalledWeekOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000007 /* PaywalledWeekOverlay.swift */; };
+		FM1000010000000000000008 /* curated_programs.json in Resources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000008 /* curated_programs.json */; };
+		FMRC000000000000000000F1 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = FMRC000000000000000000F2 /* RevenueCat */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -351,6 +360,14 @@
 		PG200001000000000000000E /* WeekSessionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekSessionCard.swift; sourceTree = "<group>"; };
 		PG200001000000000000000F /* ProgramDrillRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDrillRow.swift; sourceTree = "<group>"; };
 		PG2000010000000000000010 /* GenerateProgramCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateProgramCard.swift; sourceTree = "<group>"; };
+		FM2000010000000000000001 /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
+		FM2000010000000000000002 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		FM2000010000000000000003 /* ProBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProBadge.swift; sourceTree = "<group>"; };
+		FM2000010000000000000004 /* ProgramTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplate.swift; sourceTree = "<group>"; };
+		FM2000010000000000000005 /* ProgramTemplateLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplateLoader.swift; sourceTree = "<group>"; };
+		FM2000010000000000000006 /* ProgramTemplateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplateCard.swift; sourceTree = "<group>"; };
+		FM2000010000000000000007 /* PaywalledWeekOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywalledWeekOverlay.swift; sourceTree = "<group>"; };
+		FM2000010000000000000008 /* curated_programs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = curated_programs.json; sourceTree = "<group>"; };
 		/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -358,6 +375,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FMRC000000000000000000F1 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -409,6 +427,7 @@
 				A70000010000000000000070 /* Models */,
 				E70000020000000000000002 /* Networking */,
 				A70000010000000000000080 /* Features */,
+				FM7000010000000000000002 /* Resources */,
 				A20000010000000000000003 /* Assets.xcassets */,
 				L20000010000000000000001 /* PrivacyInfo.xcprivacy */,
 				A70000010000000000000006 /* Preview Content */,
@@ -509,6 +528,8 @@
 				PG200001000000000000000E /* WeekSessionCard.swift */,
 				PG200001000000000000000F /* ProgramDrillRow.swift */,
 				PG2000010000000000000010 /* GenerateProgramCard.swift */,
+				FM2000010000000000000006 /* ProgramTemplateCard.swift */,
+				FM2000010000000000000007 /* PaywalledWeekOverlay.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -534,6 +555,7 @@
 			children = (
 				A70000010000000000000060 /* CoreData */,
 				A70000010000000000000061 /* Repositories */,
+				FM2000010000000000000005 /* ProgramTemplateLoader.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -605,6 +627,7 @@
 				PG2000010000000000000001 /* Program.swift */,
 				PG2000010000000000000002 /* ProgramSession.swift */,
 				PG2000010000000000000003 /* ProgramDrill.swift */,
+				FM2000010000000000000004 /* ProgramTemplate.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -626,6 +649,7 @@
 				CC7000010000000000000001 /* CoachChat */,
 				D17000010000000000000001 /* DUPR */,
 				PG7000010000000000000001 /* Program */,
+				FM7000010000000000000001 /* Subscription */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -667,6 +691,7 @@
 				AC2000010000000000000002 /* AchievementManager.swift */,
 				FS2000010000000000000001 /* FocusSkillManager.swift */,
 				NM2000010000000000000001 /* NotificationManager.swift */,
+				FM2000010000000000000001 /* SubscriptionService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -820,6 +845,31 @@
 			path = Program;
 			sourceTree = "<group>";
 		};
+		FM7000010000000000000001 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				FM2000010000000000000002 /* PaywallView.swift */,
+				FM2000010000000000000003 /* ProBadge.swift */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
+		FM7000010000000000000002 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FM7000010000000000000003 /* Programs */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		FM7000010000000000000003 /* Programs */ = {
+			isa = PBXGroup;
+			children = (
+				FM2000010000000000000008 /* curated_programs.json */,
+			);
+			path = Programs;
+			sourceTree = "<group>";
+		};
 		/* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -836,6 +886,9 @@
 			dependencies = (
 			);
 			name = Dinko;
+			packageProductDependencies = (
+				FMRC000000000000000000F2 /* RevenueCat */,
+			);
 			productName = Dinko;
 			productReference = A20000010000000000000005 /* Dinko.app */;
 			productType = "com.apple.product-type.application";
@@ -908,6 +961,9 @@
 				Base,
 			);
 			mainGroup = A70000010000000000000001;
+			packageReferences = (
+				FMRC000000000000000000F3 /* XCRemoteSwiftPackageReference "purchases-ios" */,
+			);
 			productRefGroup = A70000010000000000000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -930,6 +986,7 @@
 				FT1000010000000000000001 /* Sora-Regular.ttf in Resources */,
 				FT1000010000000000000002 /* Sora-SemiBold.ttf in Resources */,
 				FT1000010000000000000003 /* Sora-Bold.ttf in Resources */,
+				FM1000010000000000000008 /* curated_programs.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1103,6 +1160,13 @@
 				PG100001000000000000000E /* WeekSessionCard.swift in Sources */,
 				PG100001000000000000000F /* ProgramDrillRow.swift in Sources */,
 				PG1000010000000000000010 /* GenerateProgramCard.swift in Sources */,
+				FM1000010000000000000001 /* SubscriptionService.swift in Sources */,
+				FM1000010000000000000002 /* PaywallView.swift in Sources */,
+				FM1000010000000000000003 /* ProBadge.swift in Sources */,
+				FM1000010000000000000004 /* ProgramTemplate.swift in Sources */,
+				FM1000010000000000000005 /* ProgramTemplateLoader.swift in Sources */,
+				FM1000010000000000000006 /* ProgramTemplateCard.swift in Sources */,
+				FM1000010000000000000007 /* PaywalledWeekOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1440,6 +1504,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FMRC000000000000000000F3 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FMRC000000000000000000F2 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FMRC000000000000000000F3 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A50000010000000000000001 /* Project object */;
 }

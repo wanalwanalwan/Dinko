@@ -1,0 +1,1524 @@
+[
+  {
+    "id": "beginner-foundations",
+    "name": "Beginner Foundations",
+    "template_description": "Build a solid pickleball foundation with proper technique for serves, returns, dinks, and court positioning. Perfect for players new to the game.",
+    "author": "pkkl AI",
+    "difficulty": "beginner",
+    "total_weeks": 4,
+    "sessions_per_week": 3,
+    "skill_focus": "Fundamentals",
+    "is_premium": false,
+    "tags": ["beginner", "fundamentals", "technique"],
+    "sessions": [
+      {
+        "id": "bf-w1s1",
+        "week_number": 1,
+        "session_number": 1,
+        "title": "Serve Basics",
+        "focus": "Underhand serve technique and consistency",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w1s1-d1",
+            "name": "Target Serve",
+            "drill_description": "Place targets (cones or towels) in the service box. Practice underhand serves aiming for each target. Focus on a smooth pendulum swing and consistent contact point.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls, 3 cones or towels",
+            "player_count": 1
+          },
+          {
+            "id": "bf-w1s1-d2",
+            "name": "Deep Serve Rally",
+            "drill_description": "Serve deep to the baseline area and have your partner return. Focus on getting the serve past the kitchen line with good depth. Alternate sides every 5 serves.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w1s1-d3",
+            "name": "Serve & Move",
+            "drill_description": "Serve and immediately move to the ready position behind the baseline. Practice transitioning from serve motion to split step. Build the habit of staying balanced after the serve.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 1
+          }
+        ]
+      },
+      {
+        "id": "bf-w1s2",
+        "week_number": 1,
+        "session_number": 2,
+        "title": "Return of Serve",
+        "focus": "Consistent deep returns and ready position",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w1s2-d1",
+            "name": "Deep Return Targets",
+            "drill_description": "Have a partner serve to you. Return every ball deep, aiming past the service line. Focus on getting under the ball with a low-to-high swing path.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w1s2-d2",
+            "name": "Return & Approach",
+            "drill_description": "Return the serve deep, then take 2-3 steps forward toward the kitchen line. Practice the split step timing as your opponent hits the third shot.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w1s2-d3",
+            "name": "Wall Return Practice",
+            "drill_description": "Stand 10 feet from a wall. Toss the ball to simulate a serve bounce, then hit a controlled return stroke against the wall. Focus on paddle face angle and follow-through.",
+            "duration_minutes": 10,
+            "target_reps": 25,
+            "equipment": "Balls, wall",
+            "player_count": 1
+          }
+        ]
+      },
+      {
+        "id": "bf-w1s3",
+        "week_number": 1,
+        "session_number": 3,
+        "title": "Dink Introduction",
+        "focus": "Soft game fundamentals at the kitchen line",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w1s3-d1",
+            "name": "Straight Dink Rally",
+            "drill_description": "Both players at the kitchen line. Dink straight ahead (forehand to forehand or backhand to backhand). Keep the ball low over the net with a soft touch. Count consecutive dinks.",
+            "duration_minutes": 10,
+            "target_reps": 30,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w1s3-d2",
+            "name": "Self-Feed Dink",
+            "drill_description": "Stand at the kitchen line. Drop the ball and dink it over the net into the opposite kitchen. Focus on a relaxed grip and gentle lift. Alternate forehand and backhand.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls, bucket",
+            "player_count": 1
+          },
+          {
+            "id": "bf-w1s3-d3",
+            "name": "Dink & Catch",
+            "drill_description": "Dink to your partner, then catch the return with your non-paddle hand. This forces you to track the ball and builds soft hands. Alternate turns.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "bf-w2s1",
+        "week_number": 2,
+        "session_number": 1,
+        "title": "Third Shot Drop",
+        "focus": "Learning the third shot drop from mid-court",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w2s1-d1",
+            "name": "Kitchen Target Drops",
+            "drill_description": "Stand at the baseline. Feed yourself a ball and hit a soft arc shot that lands in the kitchen. Focus on a loose grip and lifting motion rather than driving.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls, bucket",
+            "player_count": 1
+          },
+          {
+            "id": "bf-w2s1-d2",
+            "name": "Drop & Follow",
+            "drill_description": "Hit a third shot drop from the baseline, then move forward toward the kitchen line. Partner feeds the ball back and you transition to a dink rally.",
+            "duration_minutes": 10,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w2s1-d3",
+            "name": "Progressive Drops",
+            "drill_description": "Start dropping from the kitchen line (easy), then take two steps back each round. Practice drops from increasing distances. This builds feel for the arc needed at each depth.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 1
+          }
+        ]
+      },
+      {
+        "id": "bf-w2s2",
+        "week_number": 2,
+        "session_number": 2,
+        "title": "Volleys & Blocks",
+        "focus": "Punch volleys and defensive blocks at the net",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w2s2-d1",
+            "name": "Forehand Volley Feeds",
+            "drill_description": "Stand at the kitchen line. Partner feeds balls to your forehand from mid-court. Punch each volley back with a short, compact stroke. Keep your paddle up and out front.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w2s2-d2",
+            "name": "Backhand Block Drill",
+            "drill_description": "Partner drives balls at your body from mid-court. Practice blocking with your backhand, absorbing the pace and redirecting softly into the kitchen.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w2s2-d3",
+            "name": "Reflex Volley Exchange",
+            "drill_description": "Both players at the kitchen line, about 7 feet apart. Volley back and forth at moderate speed. Focus on quick paddle positioning and soft hands. Count consecutive volleys.",
+            "duration_minutes": 10,
+            "target_reps": 25,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "bf-w2s3",
+        "week_number": 2,
+        "session_number": 3,
+        "title": "Court Positioning",
+        "focus": "Where to stand and when to move",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w2s3-d1",
+            "name": "Transition Zone Shuffle",
+            "drill_description": "Practice moving from baseline to kitchen in 3-4 controlled steps with split steps. Partner hits soft shots to let you practice approaching. Focus on balanced footwork.",
+            "duration_minutes": 10,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w2s3-d2",
+            "name": "Shadow Court Movement",
+            "drill_description": "Without a ball, practice moving to all four corners of your side. Split step after each movement. Focus on staying low and recovering to center between shots.",
+            "duration_minutes": 10,
+            "target_reps": 16,
+            "equipment": "None",
+            "player_count": 1
+          },
+          {
+            "id": "bf-w2s3-d3",
+            "name": "Partner Rally with Zones",
+            "drill_description": "Rally with a partner. After each shot, call out which zone you're in (baseline, transition, kitchen). Build awareness of where you are and where you should move next.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "bf-w3s1",
+        "week_number": 3,
+        "session_number": 1,
+        "title": "Serve Variety",
+        "focus": "Adding placement and spin to serves",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "bf-w3s1-d1",
+            "name": "Corner-to-Corner Serves",
+            "drill_description": "Alternate serving to the wide and center positions in the service box. Track how many you land in each target area out of 10 attempts per side.",
+            "duration_minutes": 12,
+            "target_reps": 20,
+            "equipment": "Balls, cones",
+            "player_count": 1
+          },
+          {
+            "id": "bf-w3s1-d2",
+            "name": "Topspin Serve Introduction",
+            "drill_description": "Practice brushing up on the ball during your serve motion to generate topspin. The ball should arc higher over the net and kick up on the bounce. Start slow and build feel.",
+            "duration_minutes": 12,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 1
+          },
+          {
+            "id": "bf-w3s1-d3",
+            "name": "Serve Pressure Game",
+            "drill_description": "Serve 10 balls. Score 1 point for in, 2 points for deep (past service line midpoint), 3 points for deep and in the target zone. Try to beat your previous best score.",
+            "duration_minutes": 11,
+            "target_reps": 10,
+            "equipment": "Balls, cones",
+            "player_count": 1
+          }
+        ]
+      },
+      {
+        "id": "bf-w3s2",
+        "week_number": 3,
+        "session_number": 2,
+        "title": "Cross-Court Dinks",
+        "focus": "Directional dinking and angle control",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w3s2-d1",
+            "name": "Cross-Court Dink Rally",
+            "drill_description": "Both players at the kitchen. Dink diagonally cross-court only. Focus on aiming for the sideline edge of the kitchen. Count consecutive cross-court dinks.",
+            "duration_minutes": 10,
+            "target_reps": 25,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w3s2-d2",
+            "name": "Figure-8 Dinks",
+            "drill_description": "Alternate between straight and cross-court dinks in a figure-8 pattern. One player goes straight while the other goes cross-court, then switch. Builds directional control.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w3s2-d3",
+            "name": "Dink to Target Zones",
+            "drill_description": "Place small targets in three kitchen zones (left, center, right). Dink from one side and try to hit each zone on command from your partner. Builds precision.",
+            "duration_minutes": 10,
+            "target_reps": 18,
+            "equipment": "Balls, 3 targets",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "bf-w3s3",
+        "week_number": 3,
+        "session_number": 3,
+        "title": "Putting It Together",
+        "focus": "Combining serve, return, and kitchen play",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "bf-w3s3-d1",
+            "name": "Full Point Sequence",
+            "drill_description": "Play out full points starting with a serve. Focus on executing the serve, return, third shot, and transitioning to the kitchen. Play to 5 points then switch server.",
+            "duration_minutes": 12,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w3s3-d2",
+            "name": "Serve-Return-Drop",
+            "drill_description": "Practice the first three shots in sequence. Serve deep, partner returns deep, then hit a third shot drop. Stop after the drop and evaluate. Repeat 10 times per side.",
+            "duration_minutes": 12,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w3s3-d3",
+            "name": "Skinny Singles",
+            "drill_description": "Play singles using only half the court (one side of the centerline). Forces better placement and control with less court to cover. Play to 11 points.",
+            "duration_minutes": 11,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "bf-w4s1",
+        "week_number": 4,
+        "session_number": 1,
+        "title": "Kitchen Mastery",
+        "focus": "Extended dink rallies and patience",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w4s1-d1",
+            "name": "100 Dink Challenge",
+            "drill_description": "With a partner, try to hit 100 consecutive dinks without an error. Mix straight and cross-court. Restart the count on any miss. Track your best streak.",
+            "duration_minutes": 12,
+            "target_reps": 100,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w4s1-d2",
+            "name": "Dink-to-Attack Transition",
+            "drill_description": "Dink rally until one player gets a ball above the net. That player attacks with a speed-up, the other blocks. Practice reading when to stay patient vs when to attack.",
+            "duration_minutes": 10,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w4s1-d3",
+            "name": "Eyes-Up Dinking",
+            "drill_description": "Dink rally while watching your opponent instead of the ball at contact. This builds feel and develops court awareness. Start slow and increase pace gradually.",
+            "duration_minutes": 8,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "bf-w4s2",
+        "week_number": 4,
+        "session_number": 2,
+        "title": "Defense & Resets",
+        "focus": "Handling fast balls and resetting rallies",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "bf-w4s2-d1",
+            "name": "Speed-Up Defense",
+            "drill_description": "Partner attacks with medium-speed drives from mid-court. Practice blocking and resetting the ball softly into the kitchen. Keep your paddle out front and absorb the pace.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w4s2-d2",
+            "name": "Body Shot Blocks",
+            "drill_description": "Partner aims drives at your body (chest/hip area). Practice turning your body and using a compact backhand block to redirect. Stay calm and keep feet planted.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w4s2-d3",
+            "name": "Reset from Transition Zone",
+            "drill_description": "Stand in the transition zone (between baseline and kitchen). Partner drives at you. Practice hitting a soft reset drop into the kitchen, then moving forward.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "bf-w4s3",
+        "week_number": 4,
+        "session_number": 3,
+        "title": "Game Day Practice",
+        "focus": "Simulated match play with focused goals",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "bf-w4s3-d1",
+            "name": "Focused Game Play",
+            "drill_description": "Play a full game to 11 with one specific focus: keep every return deep. Track how many of your returns land past the service line. Don't worry about winning, focus on the skill.",
+            "duration_minutes": 15,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w4s3-d2",
+            "name": "Third Shot Choice Drill",
+            "drill_description": "Play points starting from the serve. On your third shot, consciously choose either a drop or a drive based on the return depth. Call your shot choice before hitting. Builds decision-making.",
+            "duration_minutes": 12,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "bf-w4s3-d3",
+            "name": "King of the Court",
+            "drill_description": "One player stays on one side as 'king'. Challengers rotate in. Play to 3 points. If the challenger wins, they become king. Great for practicing under mild pressure.",
+            "duration_minutes": 8,
+            "target_reps": 5,
+            "equipment": "Balls",
+            "player_count": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dink-master",
+    "name": "Dink Master",
+    "template_description": "Elevate your soft game with a dedicated dink technique progression. Covers cross-court placement, drop resets, spin dinks, and kitchen line dominance.",
+    "author": "pkkl AI",
+    "difficulty": "intermediate",
+    "total_weeks": 4,
+    "sessions_per_week": 3,
+    "skill_focus": "Dinking & Soft Game",
+    "is_premium": true,
+    "tags": ["intermediate", "dinks", "soft game", "kitchen"],
+    "sessions": [
+      {
+        "id": "dm-w1s1",
+        "week_number": 1,
+        "session_number": 1,
+        "title": "Dink Foundations",
+        "focus": "Paddle angle, grip pressure, and touch",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w1s1-d1",
+            "name": "Grip Pressure Scale",
+            "drill_description": "Dink 10 balls at grip pressure 3/10, then 5/10, then 2/10. Notice how ball control changes. Find your ideal dink grip pressure and memorize that feel.",
+            "duration_minutes": 10,
+            "target_reps": 30,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w1s1-d2",
+            "name": "Paddle Angle Awareness",
+            "drill_description": "Dink with an intentionally open face, then flat, then slightly closed. Observe trajectory changes. The goal is to land every dink within 6 inches of the net with controlled arc.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w1s1-d3",
+            "name": "One-Bounce Catch Dinks",
+            "drill_description": "Dink to your partner who lets it bounce once, then catches it. Evaluate: was the bounce in the kitchen? Was it low enough? Switch roles every 10 balls.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w1s2",
+        "week_number": 1,
+        "session_number": 2,
+        "title": "Cross-Court Control",
+        "focus": "Diagonal dink placement and angles",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w1s2-d1",
+            "name": "Cross-Court Cone Targets",
+            "drill_description": "Place 3 cones diagonally in the opposite kitchen (wide, middle, deep). Alternate aiming for each cone. Score yourself: 2 points within 12 inches, 1 point in the kitchen.",
+            "duration_minutes": 10,
+            "target_reps": 18,
+            "equipment": "Balls, 3 cones",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w1s2-d2",
+            "name": "Wide Angle Dinks",
+            "drill_description": "Focus exclusively on dinking to the widest possible angle cross-court. Try to pull your opponent off the court edge. Practice both forehand and backhand cross-court wide dinks.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w1s2-d3",
+            "name": "Straight-to-Cross Switch",
+            "drill_description": "Start with 5 straight dinks, then abruptly switch to cross-court for 5. The sudden direction change mimics real game situations. Focus on disguising the switch.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w1s3",
+        "week_number": 1,
+        "session_number": 3,
+        "title": "Dink Footwork",
+        "focus": "Moving to the ball and balanced positioning",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w1s3-d1",
+            "name": "Lateral Slide Dinks",
+            "drill_description": "Partner alternates dinks to your forehand and backhand side. Slide laterally to each ball rather than reaching. Focus on arriving with balanced feet before you hit.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w1s3-d2",
+            "name": "Split Step Rhythm",
+            "drill_description": "During a dink rally, consciously perform a small split step before every shot. Land in athletic stance with paddle up. This builds the timing habit for match play.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w1s3-d3",
+            "name": "Forward/Backward Dinks",
+            "drill_description": "Partner alternates hitting short dinks (near net) and deeper dinks (back of kitchen). Move forward and backward to play each ball at the ideal contact point.",
+            "duration_minutes": 10,
+            "target_reps": 16,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w2s1",
+        "week_number": 2,
+        "session_number": 1,
+        "title": "Spin Dinks",
+        "focus": "Adding backspin and topspin to dinks",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "dm-w2s1-d1",
+            "name": "Backspin Dink Touch",
+            "drill_description": "Slice under the ball to create backspin on your dinks. The ball should skid low and stay low after the bounce. Practice until 8 out of 10 stay below net height on the bounce.",
+            "duration_minutes": 12,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w2s1-d2",
+            "name": "Topspin Roll Dink",
+            "drill_description": "Brush up on the ball during your dink to create topspin. The ball should dip faster over the net and kick up on the bounce. Use this to create pace changes in rallies.",
+            "duration_minutes": 12,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w2s1-d3",
+            "name": "Spin Variety Rally",
+            "drill_description": "Alternate between flat, backspin, and topspin dinks in a continuous rally. Call out which spin you are hitting before contact. Partner guesses the spin on their side.",
+            "duration_minutes": 11,
+            "target_reps": 24,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w2s2",
+        "week_number": 2,
+        "session_number": 2,
+        "title": "Reset Mastery",
+        "focus": "Turning attacks into soft kitchen balls",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w2s2-d1",
+            "name": "Drive-to-Reset",
+            "drill_description": "Partner drives from mid-court. Reset the ball softly into the kitchen with a continental grip and loose wrist. Absorb the pace rather than swinging. 8 out of 10 should land in the kitchen.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w2s2-d2",
+            "name": "Overhead Reset",
+            "drill_description": "Partner hits medium-speed lobs that land near the kitchen line. Instead of smashing, practice a soft overhead reset that drops into the kitchen. Builds touch on high balls.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w2s2-d3",
+            "name": "Continuous Reset Chain",
+            "drill_description": "One player drives, the other resets. If the reset is good, the driver attacks again. Continue until 5 consecutive resets land in the kitchen. Switch roles.",
+            "duration_minutes": 10,
+            "target_reps": 5,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w2s3",
+        "week_number": 2,
+        "session_number": 3,
+        "title": "Pattern Dinking",
+        "focus": "Intentional shot sequences at the kitchen",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w2s3-d1",
+            "name": "3-Shot Pattern",
+            "drill_description": "Plan a 3-dink sequence before executing: e.g., straight-straight-cross. Complete the pattern, then choose a new one. Builds intentional shot selection instead of reactive play.",
+            "duration_minutes": 10,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w2s3-d2",
+            "name": "Move & Set Up",
+            "drill_description": "Dink to move your opponent wide, then dink to the open space they left. Focus on the two-shot combo: move them out, then exploit the gap. Track successful combos.",
+            "duration_minutes": 10,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w2s3-d3",
+            "name": "Random Pattern Call",
+            "drill_description": "Third party (or timer app) calls 'straight' or 'cross' at random intervals. You must instantly redirect your dink to the called direction. Builds reaction and adaptation.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w3s1",
+        "week_number": 3,
+        "session_number": 1,
+        "title": "Speed-Up Timing",
+        "focus": "When and how to attack from a dink rally",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "dm-w3s1-d1",
+            "name": "High Ball Recognition",
+            "drill_description": "During a dink rally, partner intentionally pops one ball high every 5-8 dinks. Recognize the high ball and speed up to their body or feet. Track how many you capitalize on.",
+            "duration_minutes": 12,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w3s1-d2",
+            "name": "Speed-Up Target Practice",
+            "drill_description": "From a dink rally, speed up targeting specific zones: opponent's backhand hip, right shoulder, or feet. Practice each target for 5 attempts. Which zone earns the most points?",
+            "duration_minutes": 12,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w3s1-d3",
+            "name": "Fake & Fire",
+            "drill_description": "Show a dink preparation but speed up at the last moment. Focus on disguise: same body position as a dink, but accelerate through the ball. Surprise is the key.",
+            "duration_minutes": 11,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w3s2",
+        "week_number": 3,
+        "session_number": 2,
+        "title": "Counter-Attack Defense",
+        "focus": "Handling speed-ups and firing back",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w3s2-d1",
+            "name": "Block & Counter",
+            "drill_description": "Partner speeds up from a dink rally. Block the first attack, then counter-attack their next ball. The sequence is: dink rally → block speed-up → counter. Practice both sides.",
+            "duration_minutes": 10,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w3s2-d2",
+            "name": "Reflex Reset Drill",
+            "drill_description": "Partner speed-ups at increasing pace. Your goal is always to reset back to a dink. If you can reset 7 of 10 speed-ups, your partner increases the pace.",
+            "duration_minutes": 10,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w3s2-d3",
+            "name": "Alternating Roles",
+            "drill_description": "Dink rally where you alternate who speeds up. After one speed-up exchange (attack/defend), reset to dinks and the other player initiates the next speed-up. Builds both skills.",
+            "duration_minutes": 10,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w3s3",
+        "week_number": 3,
+        "session_number": 3,
+        "title": "Erne & Advanced Angles",
+        "focus": "Aggressive positioning around the kitchen",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w3s3-d1",
+            "name": "Erne Setup Sequence",
+            "drill_description": "Dink cross-court to pull opponent wide, then run around the kitchen post (Erne) to volley their return. Practice the footwork: side step, plant, jump past kitchen. 3 attempts per side.",
+            "duration_minutes": 10,
+            "target_reps": 6,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w3s3-d2",
+            "name": "Inside-Out Dink Angles",
+            "drill_description": "Practice hitting inside-out dinks that appear to go straight but curve cross-court. Use a forehand from the backhand side to create deception. Track how many catch your partner off guard.",
+            "duration_minutes": 10,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w3s3-d3",
+            "name": "Around-the-Post Awareness",
+            "drill_description": "Partner dinks with extreme angles. When the ball travels wide enough, hit it around the post rather than over the net. Practice recognizing the opportunity and executing the shot.",
+            "duration_minutes": 10,
+            "target_reps": 8,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w4s1",
+        "week_number": 4,
+        "session_number": 1,
+        "title": "Dink Under Pressure",
+        "focus": "Maintaining soft game in competitive situations",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "dm-w4s1-d1",
+            "name": "Dink Rally Countdown",
+            "drill_description": "Must make 20 dinks in a row. If you miss at any point, add 5 to the total. This simulates pressure and forces concentration. Track how many total dinks needed to reach the target.",
+            "duration_minutes": 12,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w4s1-d2",
+            "name": "Music Tempo Dinks",
+            "drill_description": "Play music and match your dink pace to the beat. Fast song = quick exchanges. Slow song = patient, deliberate dinks. Builds rhythm awareness and pace control.",
+            "duration_minutes": 12,
+            "target_reps": 24,
+            "equipment": "Balls, phone with music",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w4s1-d3",
+            "name": "Fatigue Dinks",
+            "drill_description": "Do 10 jumping jacks, then immediately dink 10 balls. Repeat 3 times. Simulates making precise soft shots when tired, which is when technique often breaks down.",
+            "duration_minutes": 11,
+            "target_reps": 30,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "dm-w4s2",
+        "week_number": 4,
+        "session_number": 2,
+        "title": "Match-Play Dinking",
+        "focus": "Applying dink skills in game context",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "dm-w4s2-d1",
+            "name": "Kitchen-Only Game",
+            "drill_description": "Play a game where every ball must bounce in the kitchen. If it lands outside, you lose the point. First to 11 wins. Forces pure dink technique in competitive context.",
+            "duration_minutes": 12,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w4s2-d2",
+            "name": "5-Dink Minimum Game",
+            "drill_description": "Play regular points but both teams must dink at least 5 times before anyone can speed up. Builds patience and forces dink rallies into every point.",
+            "duration_minutes": 10,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w4s2-d3",
+            "name": "Dink Stat Tracker",
+            "drill_description": "Play a regular game. Have a third person track: dink winners, dink errors, successful resets, speed-up attempts from dinks. Review stats after to identify your dink strengths and weaknesses.",
+            "duration_minutes": 8,
+            "target_reps": 1,
+            "equipment": "Balls, scoresheet",
+            "player_count": 3
+          }
+        ]
+      },
+      {
+        "id": "dm-w4s3",
+        "week_number": 4,
+        "session_number": 3,
+        "title": "Dink Graduation",
+        "focus": "Full assessment and advanced application",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "dm-w4s3-d1",
+            "name": "Dink Skills Test",
+            "drill_description": "Complete a circuit: 10 straight forehand dinks, 10 straight backhand, 10 cross-court each side, 5 backspin, 5 topspin. Score yourself on accuracy and consistency.",
+            "duration_minutes": 12,
+            "target_reps": 50,
+            "equipment": "Balls, scoresheet",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w4s3-d2",
+            "name": "Free-Play Dink Dominance",
+            "drill_description": "Play a full game with the intention of controlling every point from the kitchen. After each game, rate yourself 1-10 on dink quality, pattern execution, and attack timing.",
+            "duration_minutes": 15,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "dm-w4s3-d3",
+            "name": "Teach a Dink",
+            "drill_description": "Explain and demonstrate one dink technique to a less experienced player. Teaching reinforces your understanding. Focus on grip, contact point, and follow-through.",
+            "duration_minutes": 8,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tournament-ready",
+    "name": "Tournament Ready",
+    "template_description": "Prepare for competitive play with match-specific drills, pressure scenarios, strategy development, and mental toughness training.",
+    "author": "pkkl AI",
+    "difficulty": "advanced",
+    "total_weeks": 4,
+    "sessions_per_week": 4,
+    "skill_focus": "Competition & Strategy",
+    "is_premium": true,
+    "tags": ["advanced", "tournament", "strategy", "competition"],
+    "sessions": [
+      {
+        "id": "tr-w1s1",
+        "week_number": 1,
+        "session_number": 1,
+        "title": "Serve Strategy",
+        "focus": "Tactical serving for competitive play",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w1s1-d1",
+            "name": "Power Serve Placement",
+            "drill_description": "Serve with maximum controlled power to specific targets: deep center, deep wide, and at the receiver's body. 10 serves per target. Track in-rate and depth quality.",
+            "duration_minutes": 12,
+            "target_reps": 30,
+            "equipment": "Balls, cones",
+            "player_count": 1
+          },
+          {
+            "id": "tr-w1s1-d2",
+            "name": "Spin Serve Combos",
+            "drill_description": "Alternate between topspin and slice serves to the same target zone. The goal is to make returns uncomfortable by varying spin. Track how often the returner mis-hits.",
+            "duration_minutes": 12,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w1s1-d3",
+            "name": "Pressure Serving",
+            "drill_description": "Simulate game-point serves: announce 'match point' before each serve. Must make 5 in a row to complete the drill. Start over on any miss. Builds clutch serving.",
+            "duration_minutes": 11,
+            "target_reps": 5,
+            "equipment": "Balls",
+            "player_count": 1
+          }
+        ]
+      },
+      {
+        "id": "tr-w1s2",
+        "week_number": 1,
+        "session_number": 2,
+        "title": "Return Aggression",
+        "focus": "Taking control from the return of serve",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w1s2-d1",
+            "name": "Deep Crosscourt Return",
+            "drill_description": "Return every serve deep and cross-court to the weaker side. This forces a difficult third shot. Track how many returns land past the service line in the target quadrant.",
+            "duration_minutes": 12,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w1s2-d2",
+            "name": "Return & Rush",
+            "drill_description": "Return deep, then sprint to the kitchen line before the third shot. Practice arriving balanced with a split step. The goal is reaching the line before you need to play the next ball.",
+            "duration_minutes": 12,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w1s2-d3",
+            "name": "Lob Return Surprise",
+            "drill_description": "Mix in a lob return every 4th serve. Push the server back and take the net. Practice the transition from lob return to aggressive net position. Track winning percentage on lob returns.",
+            "duration_minutes": 11,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w1s3",
+        "week_number": 1,
+        "session_number": 3,
+        "title": "Third Shot Arsenal",
+        "focus": "Multiple third shot options for different situations",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w1s3-d1",
+            "name": "Drop vs Drive Decision",
+            "drill_description": "Partner returns to varying depths. If the return is short, drive it. If deep, drop it. Practice reading the return depth and choosing the correct third shot automatically.",
+            "duration_minutes": 12,
+            "target_reps": 20,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w1s3-d2",
+            "name": "Third Shot Lob",
+            "drill_description": "When both opponents rush the net, hit a third shot lob over the backhand side. Practice the disguise — set up like a drop, then loft it deep. Track how many land in the back third.",
+            "duration_minutes": 12,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w1s3-d3",
+            "name": "Third Shot Sequence",
+            "drill_description": "Play out points focusing on third shot quality. Rate each third shot 1-3 (1=error, 2=neutral, 3=advantage). Aim for an average above 2.0 over 15 points.",
+            "duration_minutes": 11,
+            "target_reps": 15,
+            "equipment": "Balls, scoresheet",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w1s4",
+        "week_number": 1,
+        "session_number": 4,
+        "title": "Simulated Match Play",
+        "focus": "Full games with tactical focus",
+        "estimated_minutes": 40,
+        "drills": [
+          {
+            "id": "tr-w1s4-d1",
+            "name": "Scouting Game",
+            "drill_description": "Play a game to 11 where your only goal is to identify your opponent's weakest shot. After the game, write down their top 3 weaknesses. Don't focus on winning — focus on observing.",
+            "duration_minutes": 15,
+            "target_reps": 1,
+            "equipment": "Balls, notepad",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w1s4-d2",
+            "name": "Exploit the Weakness",
+            "drill_description": "Play another game to 11. This time, target the weaknesses you identified. Track how many points you win by attacking those specific weaknesses.",
+            "duration_minutes": 15,
+            "target_reps": 1,
+            "equipment": "Balls, notepad",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w1s4-d3",
+            "name": "Timeout Simulation",
+            "drill_description": "Play a game. When trailing by 3+ points, take a 60-second timeout. Use it to plan tactical adjustments. Practice resetting mentally and adjusting your strategy mid-game.",
+            "duration_minutes": 10,
+            "target_reps": 1,
+            "equipment": "Balls, timer",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w2s1",
+        "week_number": 2,
+        "session_number": 1,
+        "title": "Stacking & Positioning",
+        "focus": "Doubles positioning systems",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w2s1-d1",
+            "name": "Stack Formation Practice",
+            "drill_description": "Practice stacking on both sides — both players start on the same side, then slide to preferred positions after the serve or return. Focus on smooth transitions and communication.",
+            "duration_minutes": 12,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 4
+          },
+          {
+            "id": "tr-w2s1-d2",
+            "name": "Switch Drill",
+            "drill_description": "During a rally, practice calling and executing partner switches when a lob goes over. Communication is key: call 'switch' or 'stay' early and move decisively.",
+            "duration_minutes": 12,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 4
+          },
+          {
+            "id": "tr-w2s1-d3",
+            "name": "Poach Practice",
+            "drill_description": "One player at the net watches for a cross-court shot and poaches (cuts in front of partner). Practice the timing, footwork, and shot selection on the poach. Switch roles every 5 attempts.",
+            "duration_minutes": 11,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 4
+          }
+        ]
+      },
+      {
+        "id": "tr-w2s2",
+        "week_number": 2,
+        "session_number": 2,
+        "title": "Net Dominance",
+        "focus": "Winning exchanges at the kitchen line",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w2s2-d1",
+            "name": "Fire Fight Endurance",
+            "drill_description": "Both players at the kitchen exchange fast volleys for 30-second bursts. Rest 15 seconds between rounds. Complete 6 rounds. Builds reflex speed and stamina in hand battles.",
+            "duration_minutes": 12,
+            "target_reps": 6,
+            "equipment": "Balls, timer",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w2s2-d2",
+            "name": "Target Volley Placement",
+            "drill_description": "During a fast volley exchange, aim for specific zones: feet, backhand hip, right shoulder. Call your target before the exchange starts. Score how many hit the intended zone.",
+            "duration_minutes": 12,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w2s2-d3",
+            "name": "Two-on-One Pressure",
+            "drill_description": "Two players at the net attack one defender. The lone player must block, reset, and survive for 30 seconds. Rotate through all positions. Builds defensive composure under pressure.",
+            "duration_minutes": 11,
+            "target_reps": 6,
+            "equipment": "Balls, timer",
+            "player_count": 3
+          }
+        ]
+      },
+      {
+        "id": "tr-w2s3",
+        "week_number": 2,
+        "session_number": 3,
+        "title": "Transition Game",
+        "focus": "Moving from baseline to kitchen effectively",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w2s3-d1",
+            "name": "Two-Shot Transition",
+            "drill_description": "Hit a third shot drop from the baseline, move to the transition zone. Hit a transition volley or drop, move to the kitchen. Practice the two-shot approach consistently.",
+            "duration_minutes": 12,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w2s3-d2",
+            "name": "Drive & Close",
+            "drill_description": "Instead of dropping, drive the third shot hard and rush the net behind it. If the opponent pops it up, put it away. If they block well, reset. Practice the aggressive approach option.",
+            "duration_minutes": 12,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w2s3-d3",
+            "name": "Transition Zone Defense",
+            "drill_description": "Intentionally stay in the transition zone while your opponent hits at you from the kitchen. Practice handling balls at your feet, blocking, and finding opportunities to advance.",
+            "duration_minutes": 11,
+            "target_reps": 15,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w2s4",
+        "week_number": 2,
+        "session_number": 4,
+        "title": "Pressure Points",
+        "focus": "Performing in high-leverage situations",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w2s4-d1",
+            "name": "Start Behind Drill",
+            "drill_description": "Start every game at 0-4. Must fight back to win to 11. This trains comeback mentality and performing under pressure when behind. Play best of 3 games.",
+            "duration_minutes": 15,
+            "target_reps": 3,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w2s4-d2",
+            "name": "Golden Point",
+            "drill_description": "Play single-point matches. Each point is the entire game — simulate match point every single rally. Best of 11 golden points. Builds composure and focus on individual plays.",
+            "duration_minutes": 12,
+            "target_reps": 11,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w2s4-d3",
+            "name": "Breathing Reset",
+            "drill_description": "Between every point in a practice game, take 3 deep breaths and visualize your next play before stepping to the line. Build the routine that keeps you calm in tournaments.",
+            "duration_minutes": 8,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w3s1",
+        "week_number": 3,
+        "session_number": 1,
+        "title": "Pattern Offense",
+        "focus": "Repeatable offensive shot sequences",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w3s1-d1",
+            "name": "Shake & Bake",
+            "drill_description": "One partner drives the third shot hard, the other crashes the net looking for the pop-up volley put-away. Practice the coordination and timing of this classic doubles play.",
+            "duration_minutes": 12,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 4
+          },
+          {
+            "id": "tr-w3s1-d2",
+            "name": "Cross-Court Attack Pattern",
+            "drill_description": "From a dink rally, set up with 3 cross-court dinks, then attack straight at the opponent's backhand hip. Practice disguising the attack within the pattern. Track winners.",
+            "duration_minutes": 12,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w3s1-d3",
+            "name": "Lob & Smash Combo",
+            "drill_description": "Lob over one opponent, then smash the reply. The sequence: dink-dink-lob-smash. Practice reading when the lob opens up the smash opportunity. Track successful combos.",
+            "duration_minutes": 11,
+            "target_reps": 8,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w3s2",
+        "week_number": 3,
+        "session_number": 2,
+        "title": "Defensive Systems",
+        "focus": "Surviving and resetting under attack",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w3s2-d1",
+            "name": "3-Ball Survival",
+            "drill_description": "Two players attack one defender with 3 consecutive drives. Defender must return all 3. If all 3 come back, defender wins the point. Rotate positions. Builds pure defensive skill.",
+            "duration_minutes": 12,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 3
+          },
+          {
+            "id": "tr-w3s2-d2",
+            "name": "Reset from Every Zone",
+            "drill_description": "Start at the baseline, receive a drive, reset. Move forward 3 feet, receive another drive, reset. Continue until you're at the kitchen. Builds reset skill from every court position.",
+            "duration_minutes": 12,
+            "target_reps": 12,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w3s2-d3",
+            "name": "Lob Defense Recovery",
+            "drill_description": "Opponent lobs over you. Practice the recovery: turn, run back, hit a high defensive shot (lob or deep ball), then recover to position. Complete 10 successful recoveries.",
+            "duration_minutes": 11,
+            "target_reps": 10,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w3s3",
+        "week_number": 3,
+        "session_number": 3,
+        "title": "Mental Toughness",
+        "focus": "Focus, composure, and competitive mindset",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "tr-w3s3-d1",
+            "name": "Distraction Game",
+            "drill_description": "Play a game while a third person provides distractions: clapping, calling out scores wrong, standing close. Practice maintaining focus and not reacting to external noise.",
+            "duration_minutes": 12,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 3
+          },
+          {
+            "id": "tr-w3s3-d2",
+            "name": "Self-Talk Reset",
+            "drill_description": "Play a game. After every error, say one positive thing to yourself aloud (e.g., 'Next ball' or 'I got this'). Track how many points you lose in a row (streaks). Goal: no more than 2.",
+            "duration_minutes": 12,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w3s3-d3",
+            "name": "Visualization Warm-Up",
+            "drill_description": "Before playing, close your eyes for 3 minutes. Visualize serving aces, hitting perfect drops, winning crucial points. Then play 5 points and compare your feel to the visualization.",
+            "duration_minutes": 6,
+            "target_reps": 1,
+            "equipment": "None",
+            "player_count": 1
+          }
+        ]
+      },
+      {
+        "id": "tr-w3s4",
+        "week_number": 3,
+        "session_number": 4,
+        "title": "Tournament Simulation",
+        "focus": "Full tournament-format practice",
+        "estimated_minutes": 40,
+        "drills": [
+          {
+            "id": "tr-w3s4-d1",
+            "name": "Bracket Play",
+            "drill_description": "Organize a mini round-robin with available players. Play short games to 7 with proper tournament rules (switch sides at 4, time between games). Treat each game like a real bracket match.",
+            "duration_minutes": 20,
+            "target_reps": 3,
+            "equipment": "Balls, scoresheet",
+            "player_count": 4
+          },
+          {
+            "id": "tr-w3s4-d2",
+            "name": "Post-Game Analysis",
+            "drill_description": "After each practice game, write down: what worked, what didn't, and one adjustment for next game. Review your notes before starting the next one. Builds analytical habits.",
+            "duration_minutes": 10,
+            "target_reps": 3,
+            "equipment": "Notepad, pen",
+            "player_count": 1
+          },
+          {
+            "id": "tr-w3s4-d3",
+            "name": "Warm-Up Routine",
+            "drill_description": "Practice a structured 10-minute warm-up: 2 min dinks, 2 min volleys, 2 min drops, 2 min serves, 2 min returns. This is your tournament-day warm-up. Time each segment precisely.",
+            "duration_minutes": 10,
+            "target_reps": 1,
+            "equipment": "Balls, timer",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w4s1",
+        "week_number": 4,
+        "session_number": 1,
+        "title": "Endgame Strategy",
+        "focus": "Closing out games and managing leads",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w4s1-d1",
+            "name": "Closing It Out",
+            "drill_description": "Start games at 9-7 (your lead). Practice closing the game out. Opponent starts at 9-7 next game. Alternate. Focus on what changes in your play when you're close to winning.",
+            "duration_minutes": 15,
+            "target_reps": 4,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w4s1-d2",
+            "name": "Side-Out Efficiency",
+            "drill_description": "Track your side-out percentage over a full game. Every time the opponent serves, can you win the rally? Target: 60%+ side-out rate. This is the key stat in tournament play.",
+            "duration_minutes": 12,
+            "target_reps": 1,
+            "equipment": "Balls, scoresheet",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w4s1-d3",
+            "name": "Freeze Drill",
+            "drill_description": "When leading 10-anything, call 'freeze.' You must win the next point with a specific play (e.g., serve deep, drop, get to net). Practice executing a planned point at match point.",
+            "duration_minutes": 8,
+            "target_reps": 5,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w4s2",
+        "week_number": 4,
+        "session_number": 2,
+        "title": "Opponent Adaptation",
+        "focus": "Reading and adjusting to different play styles",
+        "estimated_minutes": 35,
+        "drills": [
+          {
+            "id": "tr-w4s2-d1",
+            "name": "Play the Banger",
+            "drill_description": "One player plays as an aggressive 'banger' (drives everything). The other practices patience, resets, and finding the right moment to transition to dinks. Switch roles after each game.",
+            "duration_minutes": 12,
+            "target_reps": 2,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w4s2-d2",
+            "name": "Play the Dinker",
+            "drill_description": "One player refuses to speed up (pure dinker). The other must find ways to create offense through angles, spin changes, and strategic speed-ups. Switch roles after each game.",
+            "duration_minutes": 12,
+            "target_reps": 2,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w4s2-d3",
+            "name": "Style Switch Game",
+            "drill_description": "Every 3 points, switch your playing style: aggressive, patient, counter-puncher. Practice being versatile and adapting your game. Note which style feels most natural and effective.",
+            "duration_minutes": 11,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w4s3",
+        "week_number": 4,
+        "session_number": 3,
+        "title": "Match Day Prep",
+        "focus": "Pre-tournament routine and final tuning",
+        "estimated_minutes": 30,
+        "drills": [
+          {
+            "id": "tr-w4s3-d1",
+            "name": "Confidence Builder",
+            "drill_description": "Hit 50 of your best shots: 10 serves, 10 returns, 10 drops, 10 dinks, 10 volleys. Focus on executing each one well. End the session feeling good about your game.",
+            "duration_minutes": 12,
+            "target_reps": 50,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w4s3-d2",
+            "name": "Game Plan Creation",
+            "drill_description": "Write a one-page game plan: your serving strategy, return strategy, what to do when leading, what to do when trailing, and your reset cue word. Memorize the key points.",
+            "duration_minutes": 10,
+            "target_reps": 1,
+            "equipment": "Notepad, pen",
+            "player_count": 1
+          },
+          {
+            "id": "tr-w4s3-d3",
+            "name": "Light Rally Cool-Down",
+            "drill_description": "Easy rally with a partner at 50% effort. Focus on smooth technique and relaxed movement. No competition, just feel. End the session calm and confident.",
+            "duration_minutes": 8,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          }
+        ]
+      },
+      {
+        "id": "tr-w4s4",
+        "week_number": 4,
+        "session_number": 4,
+        "title": "Championship Matches",
+        "focus": "Full competitive match simulation",
+        "estimated_minutes": 45,
+        "drills": [
+          {
+            "id": "tr-w4s4-d1",
+            "name": "Best of 3 Match",
+            "drill_description": "Play a full best-of-3 games to 11 (win by 2). Use your game plan. Switch sides at 6 in each game. Treat this as a real tournament match with proper between-game breaks.",
+            "duration_minutes": 25,
+            "target_reps": 1,
+            "equipment": "Balls",
+            "player_count": 2
+          },
+          {
+            "id": "tr-w4s4-d2",
+            "name": "Match Debrief",
+            "drill_description": "After the match, review: Did you execute your game plan? What worked? What fell apart under pressure? Rate your performance 1-10 in serving, returning, net play, and mental game.",
+            "duration_minutes": 10,
+            "target_reps": 1,
+            "equipment": "Notepad, pen",
+            "player_count": 1
+          },
+          {
+            "id": "tr-w4s4-d3",
+            "name": "Celebration & Goals",
+            "drill_description": "Write down 3 things you improved during this program and 3 things to work on next. Set a target rating or tournament result. Having clear goals drives continued improvement.",
+            "duration_minutes": 10,
+            "target_reps": 1,
+            "equipment": "Notepad, pen",
+            "player_count": 1
+          }
+        ]
+      }
+    ]
+  }
+]

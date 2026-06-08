@@ -8,6 +8,10 @@ struct DinkoApp: App {
     @State private var showSplash = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
+    init() {
+        SubscriptionService.shared.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {
@@ -39,6 +43,7 @@ struct DinkoApp: App {
                     showPersistenceError = true
                 }
                 await authViewModel.restoreSession()
+                await SubscriptionService.shared.refreshStatus()
                 if hasCompletedOnboarding {
                     NotificationManager.shared.checkAuthorizationStatus()
                     if !NotificationManager.shared.isAuthorized {

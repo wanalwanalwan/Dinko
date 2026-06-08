@@ -3,6 +3,7 @@ import SwiftUI
 struct WeekSessionCard: View {
     let session: ProgramSession
     let drillCount: Int
+    var isPaywalled: Bool = false
 
     var body: some View {
         HStack(spacing: AppSpacing.xs) {
@@ -31,15 +32,25 @@ struct WeekSessionCard: View {
 
             Spacer()
 
-            if session.status == .available {
+            if isPaywalled {
+                ProBadge(fontSize: 9)
+            } else if session.status == .available {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(AppColors.primary)
             }
         }
         .padding(AppSpacing.sm)
-        .sessionCardStyle(for: session.status)
-        .opacity(session.status == .locked ? 0.6 : 1.0)
+        .sessionCardStyle(for: isPaywalled ? .locked : session.status)
+        .opacity(isPaywalled || session.status == .locked ? 0.6 : 1.0)
+        .blur(radius: isPaywalled ? 2 : 0)
+        .overlay {
+            if isPaywalled {
+                RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMd)
+                    .fill(.clear)
+                    .contentShape(Rectangle())
+            }
+        }
     }
 
     @ViewBuilder
