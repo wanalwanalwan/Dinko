@@ -8,6 +8,7 @@ final class DependencyContainer {
     let sessionRepository: SessionRepository
     let drillRepository: DrillRepository
     let journalEntryRepository: JournalEntryRepository
+    let programRepository: ProgramRepository
 
     let persistenceError: NSError?
 
@@ -19,6 +20,7 @@ final class DependencyContainer {
         self.sessionRepository = SessionRepositoryImpl(persistence: persistence)
         self.drillRepository = DrillRepositoryImpl(persistence: persistence)
         self.journalEntryRepository = JournalEntryRepositoryImpl(persistence: persistence)
+        self.programRepository = ProgramRepositoryImpl(persistence: persistence)
     }
 }
 

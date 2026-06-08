@@ -52,7 +52,8 @@ struct HomeView: View {
                     skillRatingRepository: dependencies.skillRatingRepository,
                     drillRepository: dependencies.drillRepository,
                     sessionRepository: dependencies.sessionRepository,
-                    journalEntryRepository: dependencies.journalEntryRepository
+                    journalEntryRepository: dependencies.journalEntryRepository,
+                    programRepository: dependencies.programRepository
                 )
                 viewModel = vm
                 withAnimation { contentReady = true }
@@ -358,7 +359,64 @@ struct HomeView: View {
 
     @ViewBuilder
     private func nextDrillCard(_ viewModel: HomeViewModel) -> some View {
-        if viewModel.skillsWithRatings.isEmpty {
+        if let program = viewModel.activeProgram, program.status == .active {
+            // Active training program card
+            VStack(spacing: 0) {
+                HStack {
+                    Text("CURRENT TRAINING")
+                        .font(AppTypography.sectionLabel)
+                        .tracking(0.8)
+                        .foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                    Text("Week \(program.currentWeek)/\(program.totalWeeks)")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(AppColors.primary.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                HStack(spacing: AppSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(viewModel.currentProgramSession?.title ?? program.name)
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .lineLimit(2)
+                        if let session = viewModel.currentProgramSession {
+                            HStack(spacing: 8) {
+                                Label("Session \(session.sessionNumber)", systemImage: "figure.run")
+                                    .font(.system(size: 12, design: .rounded))
+                                    .foregroundStyle(AppColors.textSecondary)
+                                Label("\(session.estimatedMinutes) min", systemImage: "clock")
+                                    .font(.system(size: 12, design: .rounded))
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                        }
+                    }
+                    Spacer()
+                    Button {
+                        selectedTab = 3
+                    } label: {
+                        Text("Continue")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(AppColors.primary)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.pressable)
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if viewModel.skillsWithRatings.isEmpty {
             // No skills → hidden
         } else if let drill = viewModel.topDrill {
             VStack(spacing: 0) {

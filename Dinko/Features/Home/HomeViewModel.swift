@@ -279,6 +279,11 @@ final class HomeViewModel {
     private let drillRepository: DrillRepository
     private let sessionRepository: SessionRepository
     private let journalEntryRepository: JournalEntryRepository
+    private let programRepository: ProgramRepository
+
+    // Program state for home card
+    private(set) var activeProgram: Program?
+    private(set) var currentProgramSession: ProgramSession?
 
     // Cached data for time range switching
     private var cachedSkills: [Skill] = []
@@ -290,13 +295,15 @@ final class HomeViewModel {
         skillRatingRepository: SkillRatingRepository,
         drillRepository: DrillRepository,
         sessionRepository: SessionRepository,
-        journalEntryRepository: JournalEntryRepository
+        journalEntryRepository: JournalEntryRepository,
+        programRepository: ProgramRepository
     ) {
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
         self.drillRepository = drillRepository
         self.sessionRepository = sessionRepository
         self.journalEntryRepository = journalEntryRepository
+        self.programRepository = programRepository
     }
 
     func loadDashboard() async {
@@ -336,6 +343,9 @@ final class HomeViewModel {
 
             // Evaluate achievements
             await evaluateAchievements()
+
+            // Load active program for home card
+            await loadActiveProgram()
 
             isLoaded = true
             errorMessage = nil
@@ -1350,6 +1360,21 @@ final class HomeViewModel {
             await loadDashboard()
         } catch {
             errorMessage = "Failed to add skill."
+        }
+    }
+
+    private func loadActiveProgram() async {
+        do {
+            activeProgram = try await programRepository.fetchActive()
+            if let program = activeProgram {
+                let sessions = try await programRepository.fetchSessions(for: program.id)
+                currentProgramSession = sessions.first { $0.status == .available }
+            } else {
+                currentProgramSession = nil
+            }
+        } catch {
+            activeProgram = nil
+            currentProgramSession = nil
         }
     }
 

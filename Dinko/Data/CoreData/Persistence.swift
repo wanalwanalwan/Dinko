@@ -96,7 +96,10 @@ final class PersistenceController {
             "SkillRatingEntity",
             "DrillEntity",
             "JournalEntryEntity",
-            "SessionEntity"
+            "SessionEntity",
+            "ProgramEntity",
+            "ProgramSessionEntity",
+            "ProgramDrillEntity"
         ]
         await context.perform {
             for name in entityNames {

@@ -33,7 +33,7 @@ struct ContentView: View {
             .tag(2)
 
             NavigationStack {
-                DrillQueueView()
+                ProgramView()
             }
             .tag(3)
 
@@ -92,7 +92,7 @@ struct ContentView: View {
                 tabButton(icon: "house", filledIcon: "house.fill", label: "Home", tag: 0)
                 tabButton(icon: "bubble.left", filledIcon: "bubble.left.fill", label: "Coach", tag: 1)
                 tabButton(icon: "doc.text", filledIcon: "doc.text.fill", label: "Progress", tag: 2)
-                tabButton(icon: "list.bullet.clipboard", filledIcon: "list.bullet.clipboard.fill", label: "Drills", tag: 3)
+                tabButton(icon: "calendar", filledIcon: "calendar", label: "Train", tag: 3)
                 tabButton(icon: "book", filledIcon: "book.fill", label: "Sessions", tag: 4)
             }
             .padding(.top, 6)

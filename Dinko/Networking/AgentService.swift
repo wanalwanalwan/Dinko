@@ -251,6 +251,95 @@ final class AgentService {
         return try await post(body: body, authToken: authToken)
     }
 
+    // MARK: - Program Generation
+
+    struct ProgramGenerationResponse: Codable {
+        let name: String
+        let description: String
+        let totalWeeks: Int
+        let sessionsPerWeek: Int
+        let skillFocus: String
+        let sessions: [ProgramSessionResponse]
+
+        enum CodingKeys: String, CodingKey {
+            case name, description, sessions
+            case totalWeeks = "total_weeks"
+            case sessionsPerWeek = "sessions_per_week"
+            case skillFocus = "skill_focus"
+        }
+    }
+
+    struct ProgramSessionResponse: Codable {
+        let weekNumber: Int
+        let sessionNumber: Int
+        let title: String
+        let focus: String
+        let estimatedMinutes: Int
+        let drills: [ProgramDrillResponse]
+
+        enum CodingKeys: String, CodingKey {
+            case title, focus, drills
+            case weekNumber = "week_number"
+            case sessionNumber = "session_number"
+            case estimatedMinutes = "estimated_minutes"
+        }
+    }
+
+    struct ProgramDrillResponse: Codable {
+        let name: String
+        let description: String
+        let durationMinutes: Int
+        let targetReps: Int
+        let equipment: String
+        let playerCount: Int
+
+        enum CodingKeys: String, CodingKey {
+            case name, description, equipment
+            case durationMinutes = "duration_minutes"
+            case targetReps = "target_reps"
+            case playerCount = "player_count"
+        }
+    }
+
+    /// Generate a personalized training program via the AI agent
+    func generateProgram(
+        focusSkills: [SkillSnapshotPayload],
+        playerProfile: [String: Any]?,
+        weeklyGoal: Int,
+        authToken: String
+    ) async throws -> ProgramGenerationResponse {
+        var body: [String: Any] = [
+            "action": "generate_program",
+            "weekly_goal": weeklyGoal,
+            "skills": focusSkills.map { skill in
+                var dict: [String: Any] = [
+                    "id": skill.id,
+                    "name": skill.name,
+                    "category": skill.category,
+                    "current_rating": skill.currentRating,
+                    "pending_drill_count": skill.pendingDrillCount,
+                    "subskills": skill.subskills.map { sub in
+                        [
+                            "id": sub.id,
+                            "name": sub.name,
+                            "current_rating": sub.currentRating,
+                        ] as [String: Any]
+                    },
+                ]
+                if let parentId = skill.parentSkillId {
+                    dict["parent_skill_id"] = parentId
+                }
+                return dict
+            },
+        ]
+
+        if let playerProfile, !playerProfile.isEmpty {
+            body["player_profile"] = playerProfile
+        }
+
+        return try await post(body: body, authToken: authToken)
+    }
+
     /// Delete the user's account and all associated data
     func deleteAccount(authToken: String) async throws {
         let body: [String: Any] = [
