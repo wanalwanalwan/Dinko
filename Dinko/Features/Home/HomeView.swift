@@ -138,7 +138,7 @@ struct HomeView: View {
                         .staggeredAppearance(index: 1)
                 }
 
-                compactWeekStripCard(viewModel)
+                runnaWeekStrip(viewModel)
                     .staggeredAppearance(index: 2)
 
                 todayCard(viewModel)
@@ -941,7 +941,202 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Compact Week Strip Card
+    // MARK: - Runna-Style Horizontal Week Strip
+
+    private func runnaWeekStrip(_ viewModel: HomeViewModel) -> some View {
+        let calendar = Calendar.current
+        let days    = weekStripOffset == 0 ? viewModel.scheduledDays : viewModel.scheduledDays(forWeekOffset: weekStripOffset)
+        let details = weekStripOffset == 0 ? viewModel.weekDayDetails : viewModel.dayDetails(for: days)
+        let count   = days.filter(\.hasLoggedSession).count
+        let hasProgram = viewModel.activeProgram?.status == .active
+
+        return VStack(spacing: 0) {
+            // Header with week navigation
+            weekStripHeader(viewModel, hasProgram: hasProgram, days: days)
+
+            // Horizontal MON–SUN row
+            horizontalDayRow(days: days, hasProgram: hasProgram, calendar: calendar)
+
+            // Caption: "X of Y sessions · 🔥 Z-day streak"
+            weekStripCaption(count: count, viewModel: viewModel)
+
+            // Expanded day detail
+            if let expanded = expandedWeekDay {
+                let detail = details[expanded]
+                VStack(spacing: 0) {
+                    Divider().padding(.horizontal, AppSpacing.sm)
+                    if let detail {
+                        dayDetailExpansion(detail: detail, date: expanded, viewModel: viewModel)
+                    } else {
+                        emptyDayExpansion(date: expanded)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal:   .opacity
+                ))
+            }
+        }
+        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
+        .animation(.spring(response: 0.4, dampingFraction: 0.82), value: expandedWeekDay)
+        .animation(.spring(response: 0.35, dampingFraction: 0.82), value: weekStripOffset)
+        .gesture(
+            DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                .onEnded { value in
+                    guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                    if value.translation.width < -30 { navigateWeek(-1) }
+                    else if value.translation.width > 30 { navigateWeek(1) }
+                }
+        )
+    }
+
+    private func weekStripHeader(_ viewModel: HomeViewModel, hasProgram: Bool, days: [WeekScheduleDay]) -> some View {
+        HStack(spacing: 6) {
+            Button { navigateWeek(-1) } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(weekStripOffset > -12 ? AppColors.primary : AppColors.textSecondary.opacity(0.25))
+            }
+            .buttonStyle(.plain)
+            .disabled(weekStripOffset <= -12)
+
+            Spacer()
+
+            if hasProgram, let program = viewModel.activeProgram {
+                HStack(spacing: 6) {
+                    // Mini progress ring
+                    ZStack {
+                        Circle()
+                            .stroke(AppColors.ringTrack, lineWidth: 2.5)
+                        Circle()
+                            .trim(from: 0, to: min(CGFloat(program.currentWeek) / CGFloat(max(program.totalWeeks, 1)), 1))
+                            .stroke(AppColors.primary, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                    }
+                    .frame(width: 16, height: 16)
+
+                    Text("WEEK \(program.currentWeek)/\(program.totalWeeks)")
+                        .font(AppTypography.sectionLabel)
+                        .tracking(0.8)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .contentTransition(.numericText())
+                }
+            } else {
+                Text(viewModel.weekHeaderLabel(forOffset: weekStripOffset, days: days))
+                    .font(AppTypography.sectionLabel)
+                    .tracking(0.8)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .contentTransition(.numericText())
+            }
+
+            Spacer()
+
+            Button { navigateWeek(1) } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(weekStripOffset < 0 ? AppColors.primary : AppColors.textSecondary.opacity(0.25))
+            }
+            .buttonStyle(.plain)
+            .disabled(weekStripOffset >= 0)
+        }
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.top, AppSpacing.sm)
+        .padding(.bottom, AppSpacing.xs)
+    }
+
+    private func horizontalDayRow(days: [WeekScheduleDay], hasProgram: Bool, calendar: Calendar) -> some View {
+        HStack(spacing: 0) {
+            ForEach(days) { day in
+                let dayDate = calendar.startOfDay(for: day.date)
+                let isExpanded = expandedWeekDay == dayDate
+
+                Button {
+                    guard !day.isFuture else { return }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                        expandedWeekDay = isExpanded ? nil : dayDate
+                    }
+                } label: {
+                    VStack(spacing: 4) {
+                        // Day abbreviation
+                        Text(day.dayName.uppercased())
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .foregroundStyle(day.isFuture ? AppColors.textSecondary.opacity(0.35) : AppColors.textSecondary)
+
+                        // Date number with circle backgrounds
+                        ZStack {
+                            if day.isToday {
+                                Circle()
+                                    .fill(AppColors.textPrimary)
+                                    .frame(width: 32, height: 32)
+                            } else if isExpanded {
+                                Circle()
+                                    .fill(AppColors.separator)
+                                    .frame(width: 32, height: 32)
+                            }
+
+                            Text("\(day.dayNumber)")
+                                .font(.system(size: 14, weight: day.isToday ? .bold : .medium, design: .rounded))
+                                .foregroundStyle(
+                                    day.isToday ? Color.white :
+                                    day.isFuture ? AppColors.textSecondary.opacity(0.35) :
+                                    AppColors.textPrimary
+                                )
+                        }
+                        .frame(width: 32, height: 32)
+
+                        // Indicator dot
+                        Circle()
+                            .fill(dayIndicatorColor(day: day, hasProgram: hasProgram))
+                            .frame(width: 6, height: 6)
+                    }
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal, AppSpacing.xs)
+        .padding(.vertical, AppSpacing.xxs)
+    }
+
+    private func dayIndicatorColor(day: WeekScheduleDay, hasProgram: Bool) -> Color {
+        if day.hasLoggedSession {
+            return AppColors.successGreen
+        }
+        if hasProgram && day.isPracticeDay {
+            if day.isFuture {
+                return AppColors.textSecondary.opacity(0.2)
+            } else {
+                return AppColors.primary.opacity(0.4)
+            }
+        }
+        return Color.clear
+    }
+
+    private func weekStripCaption(count: Int, viewModel: HomeViewModel) -> some View {
+        HStack(spacing: 4) {
+            Text("\(count) of \(viewModel.weeklySessionGoal) sessions")
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(AppColors.textSecondary)
+                .contentTransition(.numericText())
+            if weekStripOffset == 0 && viewModel.streakDays > 0 {
+                Text("·")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(AppColors.warningOrange)
+                Text("\(viewModel.streakDays)-day streak")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(AppColors.warningOrange)
+            }
+        }
+        .padding(.vertical, AppSpacing.xs)
+    }
+
+    // MARK: - Compact Week Strip Card (legacy)
 
     private func navigateWeek(_ delta: Int) {
         let next = weekStripOffset + delta
