@@ -1375,7 +1375,7 @@ Deno.serve(async (req: Request) => {
     const { action, note, skills, session_id, clarification_action,
       skill_name, category, current_rating, skill_description,
       subskills: coachingSubskills, pending_drills, rating_trend,
-      player_profile } = body;
+      player_profile, weekly_goal, generation_mode } = body;
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -2165,6 +2165,120 @@ Respond ONLY with a valid JSON object:
         skill_suggestions: [],
         saturated_skills: relevantSaturated.length > 0 ? relevantSaturated : undefined,
       });
+    }
+
+    // ---- action: generate_program ----
+    if (action === "generate_program") {
+      const userSkills: SkillSnapshot[] = Array.isArray(skills) ? skills : [];
+      const goal = typeof weekly_goal === "number" ? weekly_goal : 3;
+      const mode = typeof generation_mode === "string" ? generation_mode : "general";
+
+      // Build player profile section
+      const profile = player_profile && typeof player_profile === "object" ? player_profile : {};
+      const profileLines: string[] = [];
+      if (profile.dupr_range) profileLines.push(`- DUPR Level: ${profile.dupr_range}`);
+      if (profile.play_style) profileLines.push(`- Play Style: ${profile.play_style}`);
+      if (profile.game_format) profileLines.push(`- Game Format: ${profile.game_format}`);
+      if (profile.primary_goal) profileLines.push(`- Primary Goal: ${profile.primary_goal}`);
+      if (profile.age_range) profileLines.push(`- Age Range: ${profile.age_range}`);
+      if (profile.drill_preferences && Array.isArray(profile.drill_preferences)) {
+        profileLines.push(`- Drill Preferences: ${profile.drill_preferences.join(", ")}`);
+      }
+      const playerProfileSection = profileLines.length > 0
+        ? `\nPLAYER PROFILE:\n${profileLines.join("\n")}\n`
+        : "";
+
+      // Build skill summary with development levels
+      const skillLines = userSkills.map((s: Record<string, unknown>) => {
+        const devLevel = (s as Record<string, unknown>).development_level ?? "";
+        const priority = (s as Record<string, unknown>).priority;
+        const subs = Array.isArray(s.subskills) && s.subskills.length > 0
+          ? ` (subskills: ${(s.subskills as { name: string; current_rating: number }[]).map((sub) => `${sub.name} ${sub.current_rating}%`).join(", ")})`
+          : "";
+        let line = `- ${s.name} [${s.category}]: ${s.current_rating}%`;
+        if (devLevel) line += ` (${devLevel})`;
+        if (priority) line += ` — Priority #${priority}`;
+        line += subs;
+        return line;
+      }).join("\n");
+
+      const modeInstruction = mode === "custom_focus"
+        ? `MODE: CUSTOM FOCUS
+The player has selected specific skills to focus on with priority ordering.
+Build the program around these priority skills. Higher priority skills should get more sessions and drills.
+Development levels tell you the drill-to-game ratio:
+- "beginner" (<40% rating): Drill-heavy sessions — technique drills, wall drills, feeding drills (80% drills, 20% game scenarios)
+- "intermediate" (40-70%): Mixed sessions — structured drills + point-play scenarios (50% drills, 50% game)
+- "advanced" (>70%): Game-focused — match scenarios, pressure points, live play (20% drills, 80% game scenarios)`
+        : `MODE: GENERAL TRAINING
+Build a balanced program covering all the player's skills.
+Schedule more drill-heavy sessions for weaker skills and more game scenarios for stronger skills.
+Development levels tell you the drill-to-game ratio:
+- "beginner" (<40% rating): Drill-heavy sessions (80% drills, 20% game scenarios)
+- "intermediate" (40-70%): Mixed sessions (50% drills, 50% game)
+- "advanced" (>70%): Game-focused sessions (20% drills, 80% game scenarios)`;
+
+      const totalWeeks = Math.max(2, Math.min(4, Math.ceil(userSkills.length / 2)));
+      const sessionsPerWeek = Math.min(goal, 5);
+      const totalSessions = totalWeeks * sessionsPerWeek;
+
+      const systemPrompt = `You are an expert pickleball coach designing a personalized multi-week training program.
+${playerProfileSection}
+${modeInstruction}
+
+PLAYER'S SKILLS:
+${skillLines || "(no skills tracked yet — build a general fundamentals program)"}
+
+Weekly training goal: ${goal} sessions/week
+
+PROGRAM REQUIREMENTS:
+- Total weeks: ${totalWeeks}
+- Sessions per week: ${sessionsPerWeek}
+- Total sessions: ${totalSessions}
+- Each session: 30-60 minutes
+- Each session has 3-5 drills
+- Drills should progress in difficulty across weeks
+- Each drill needs: name, clear description, duration (5-15 min), target reps (0 if not applicable), equipment needed, player count (1-4)
+- Sessions should have a clear focus theme and build on each other
+- Week 1 should focus on fundamentals/assessment, later weeks on refinement
+
+Respond ONLY with a valid JSON object:
+{
+  "name": "program name (creative, motivating, 2-4 words)",
+  "description": "1-2 sentence program overview",
+  "total_weeks": ${totalWeeks},
+  "sessions_per_week": ${sessionsPerWeek},
+  "skill_focus": "comma-separated list of focus skills",
+  "sessions": [
+    {
+      "week_number": 1,
+      "session_number": 1,
+      "title": "session title",
+      "focus": "what this session targets",
+      "estimated_minutes": 45,
+      "drills": [
+        {
+          "name": "drill name",
+          "description": "clear step-by-step instructions",
+          "duration_minutes": 10,
+          "target_reps": 0,
+          "equipment": "paddle, balls",
+          "player_count": 1
+        }
+      ]
+    }
+  ]
+}`;
+
+      const cleaned = await callClaude(
+        anthropicKey,
+        systemPrompt,
+        `Create a ${totalWeeks}-week pickleball training program with ${sessionsPerWeek} sessions per week.`,
+        4096
+      );
+
+      const parsed = JSON.parse(cleaned);
+      return jsonResponse(parsed);
     }
 
     // ---- action: confirm_session ----
