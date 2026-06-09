@@ -2245,8 +2245,8 @@ ${drillBalanceInstruction}`
 Build a balanced program covering all the player's skills.
 ${drillBalanceInstruction}`;
 
-      const totalWeeks = Math.max(2, Math.min(4, Math.ceil(userSkills.length / 2)));
-      const sessionsPerWeek = Math.min(goal, 5);
+      const totalWeeks = 2;
+      const sessionsPerWeek = Math.min(goal, 4);
       const totalSessions = totalWeeks * sessionsPerWeek;
 
       const systemPrompt = `You are an expert pickleball coach designing a personalized multi-week training program.
@@ -2262,12 +2262,12 @@ PROGRAM REQUIREMENTS:
 - Total weeks: ${totalWeeks}
 - Sessions per week: ${sessionsPerWeek}
 - Total sessions: ${totalSessions}
-- Each session: 30-60 minutes
-- Each session has 3-5 drills
+- Each session: 30-45 minutes
+- Each session has exactly 3 drills
 - Drills should progress in difficulty across weeks
-- Each drill needs: name, clear description, duration (5-15 min), target reps (0 if not applicable), equipment needed, player count (1-4)
-- Sessions should have a clear focus theme and build on each other
-- Week 1 should focus on fundamentals/assessment, later weeks on refinement
+- Each drill needs: name, 1-2 sentence description, duration (5-15 min), target reps (0 if not applicable), equipment needed, player count (1-4)
+- Sessions should have a clear focus theme
+- Week 1 focuses on fundamentals, week 2 on refinement
 - If practice setting is "At home or driveway", use wall drills, shadow practice, and solo footwork. If "Public courts" or "Club or rec center", include net drills and partner work.
 - If partner availability is "Mostly solo", set player_count to 1 for all drills. If "Yes, always", prefer 2-player drills. If "Sometimes", mix solo and partner drills.
 - If experience level is "3+ years" and ratings are low, include plateau-breaking technique refinement and mental game sessions. If "Just started", focus on fundamentals and basic mechanics.
@@ -2305,7 +2305,8 @@ Respond ONLY with a valid JSON object:
         anthropicKey,
         systemPrompt,
         `Create a ${totalWeeks}-week pickleball training program with ${sessionsPerWeek} sessions per week.`,
-        4096
+        8192,
+        true  // use Haiku — fast structured generation
       );
 
       const parsed = JSON.parse(cleaned);
