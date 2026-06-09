@@ -128,37 +128,37 @@ struct HomeView: View {
     // MARK: - Main Content
 
     private func mainContent(_ viewModel: HomeViewModel) -> some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                headerSection(viewModel)
-                    .staggeredAppearance(index: 0)
+        VStack(spacing: 0) {
+            // Pinned top nav bar + week strip (flat, no card)
+            runnaTopNav(viewModel)
+                .background(AppColors.cardBackground)
 
-                if !viewModel.allOnboardingComplete {
-                    gettingStartedSection(viewModel)
-                        .staggeredAppearance(index: 1)
+            ScrollView {
+                VStack(spacing: 14) {
+                    if !viewModel.allOnboardingComplete {
+                        gettingStartedSection(viewModel)
+                            .staggeredAppearance(index: 1)
+                    }
+
+                    todayCard(viewModel)
+                        .staggeredAppearance(index: 3)
+
+                    coachingInsight(viewModel)
+                        .staggeredAppearance(index: 4)
+
+                    weeklySkillSwipeCard(viewModel)
+                        .staggeredAppearance(index: 5)
+
+                    if !focusManager.skillIdeas.isEmpty {
+                        skillIdeasCard(viewModel)
+                            .staggeredAppearance(index: 6)
+                    }
                 }
-
-                runnaWeekStrip(viewModel)
-                    .staggeredAppearance(index: 2)
-
-                todayCard(viewModel)
-                    .staggeredAppearance(index: 3)
-
-                coachingInsight(viewModel)
-                    .staggeredAppearance(index: 4)
-
-                weeklySkillSwipeCard(viewModel)
-                    .staggeredAppearance(index: 5)
-
-                if !focusManager.skillIdeas.isEmpty {
-                    skillIdeasCard(viewModel)
-                        .staggeredAppearance(index: 6)
-                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xl + 60)
+                .contentLoadTransition(isLoaded: contentReady)
             }
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.top, AppSpacing.xxs)
-            .padding(.bottom, AppSpacing.xl + 60)
-            .contentLoadTransition(isLoaded: contentReady)
         }
         .background(homeBackground)
         .refreshable { await viewModel.loadDashboard() }
@@ -941,24 +941,21 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Runna-Style Horizontal Week Strip
+    // MARK: - Runna-Style Top Nav + Week Strip
 
-    private func runnaWeekStrip(_ viewModel: HomeViewModel) -> some View {
+    private func runnaTopNav(_ viewModel: HomeViewModel) -> some View {
         let calendar = Calendar.current
-        let days    = weekStripOffset == 0 ? viewModel.scheduledDays : viewModel.scheduledDays(forWeekOffset: weekStripOffset)
+        let days = weekStripOffset == 0 ? viewModel.scheduledDays : viewModel.scheduledDays(forWeekOffset: weekStripOffset)
         let details = weekStripOffset == 0 ? viewModel.weekDayDetails : viewModel.dayDetails(for: days)
-        let count   = days.filter(\.hasLoggedSession).count
         let hasProgram = viewModel.activeProgram?.status == .active
 
         return VStack(spacing: 0) {
-            // Header with week navigation
-            weekStripHeader(viewModel, hasProgram: hasProgram, days: days)
+            // Top bar: avatar, bell, Week X/Y, calendar, grid
+            headerSection(viewModel)
 
             // Horizontal MON–SUN row
             horizontalDayRow(days: days, hasProgram: hasProgram, calendar: calendar)
-
-            // Caption: "X of Y sessions · 🔥 Z-day streak"
-            weekStripCaption(count: count, viewModel: viewModel)
+                .padding(.top, AppSpacing.xxs)
 
             // Expanded day detail
             if let expanded = expandedWeekDay {
@@ -975,11 +972,14 @@ struct HomeView: View {
                 .padding(.bottom, AppSpacing.xs)
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .top)),
-                    removal:   .opacity
+                    removal: .opacity
                 ))
             }
+
+            // Bottom separator
+            Divider()
         }
-        .neumorphicRaised(cornerRadius: AppSpacing.cornerRadiusLg)
+        .padding(.horizontal, AppSpacing.sm)
         .animation(.spring(response: 0.4, dampingFraction: 0.82), value: expandedWeekDay)
         .animation(.spring(response: 0.35, dampingFraction: 0.82), value: weekStripOffset)
         .gesture(
@@ -990,11 +990,6 @@ struct HomeView: View {
                     else if value.translation.width > 30 { navigateWeek(1) }
                 }
         )
-    }
-
-    private func weekStripHeader(_ viewModel: HomeViewModel, hasProgram: Bool, days: [WeekScheduleDay]) -> some View {
-        // Header is now minimal — week info lives in the top nav bar
-        EmptyView()
     }
 
     private func horizontalDayRow(days: [WeekScheduleDay], hasProgram: Bool, calendar: Calendar) -> some View {
@@ -1752,10 +1747,8 @@ struct HomeView: View {
                     }
                 }
             } else {
-                Text(viewModel.weekHeaderLabel(forOffset: weekStripOffset, days: viewModel.scheduledDays))
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
-                    .contentTransition(.numericText())
+                // No active program — center is empty
+                Spacer().frame(width: 0)
             }
 
             Spacer()
