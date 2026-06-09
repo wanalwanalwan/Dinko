@@ -258,6 +258,42 @@ final class HomeViewModel {
     private(set) var scheduledDays: [WeekScheduleDay] = []
     private(set) var weekDayDetails: [Date: DaySessionInfo] = [:]
 
+    // MARK: - Today Card Computed Properties
+
+    /// Whether a session has been logged today
+    var todayHasSession: Bool {
+        weekDays.first(where: { $0.isToday })?.hasSession ?? false
+    }
+
+    /// Total minutes logged today
+    var todaySessionMinutes: Int {
+        let calendar = Calendar.current
+        return cachedSessions
+            .filter { calendar.isDateInToday($0.date) }
+            .map(\.duration)
+            .reduce(0, +)
+    }
+
+    /// Count of skills rated today
+    var todaySkillsRated: Int {
+        let calendar = Calendar.current
+        return cachedRatings.values.reduce(0) { count, ratings in
+            count + (ratings.contains(where: { calendar.isDateInToday($0.date) }) ? 1 : 0)
+        }
+    }
+
+    /// Whether today is a practice day per the weekly schedule
+    var isTodayPracticeDay: Bool {
+        scheduledDays.first(where: { $0.isToday })?.isPracticeDay ?? false
+    }
+
+    /// Next scheduled practice day name (e.g. "Tuesday")
+    var nextPracticeDay: String? {
+        scheduledDays
+            .first(where: { $0.isPracticeDay && $0.isFuture && !$0.isToday })?
+            .dayName
+    }
+
     private(set) var isLoaded = false
     var errorMessage: String?
 

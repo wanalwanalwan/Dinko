@@ -133,32 +133,27 @@ struct HomeView: View {
                 headerSection(viewModel)
                     .staggeredAppearance(index: 0)
 
-                progressInsightCard(viewModel)
-                    .staggeredAppearance(index: 1)
-
-                streakCard(viewModel)
-                    .staggeredAppearance(index: 2)
-
-                weeklySkillSwipeCard(viewModel)
-                    .staggeredAppearance(index: 3)
+                if !viewModel.allOnboardingComplete {
+                    gettingStartedSection(viewModel)
+                        .staggeredAppearance(index: 1)
+                }
 
                 compactWeekStripCard(viewModel)
+                    .staggeredAppearance(index: 2)
+
+                todayCard(viewModel)
+                    .staggeredAppearance(index: 3)
+
+                coachingInsight(viewModel)
                     .staggeredAppearance(index: 4)
 
-                nextDrillCard(viewModel)
+                weeklySkillSwipeCard(viewModel)
                     .staggeredAppearance(index: 5)
 
-                duprRatingCard
-                    .staggeredAppearance(index: 6)
-
-                weeklyStatsCard(viewModel)
-                    .staggeredAppearance(index: 7)
-
-                brineScoreCard(viewModel)
-                    .staggeredAppearance(index: 8)
-
-                achievementsSection(viewModel)
-                    .staggeredAppearance(index: 9)
+                if !focusManager.skillIdeas.isEmpty {
+                    skillIdeasCard(viewModel)
+                        .staggeredAppearance(index: 6)
+                }
             }
             .padding(.horizontal, AppSpacing.sm)
             .padding(.top, AppSpacing.xxs)
@@ -2009,6 +2004,347 @@ struct HomeView: View {
         .padding(.horizontal, AppSpacing.sm)
         .padding(.vertical, 11)
         .opacity(isComplete ? 0.65 : 1.0)
+    }
+
+    // MARK: - Today Card (Dynamic Hero)
+
+    @ViewBuilder
+    private func todayCard(_ viewModel: HomeViewModel) -> some View {
+        if let program = viewModel.activeProgram, program.status == .active {
+            // State 1: Active Program Session Available
+            VStack(spacing: 0) {
+                HStack {
+                    Text("CURRENT TRAINING")
+                        .font(AppTypography.sectionLabel)
+                        .tracking(0.8)
+                        .foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                    if !SubscriptionService.shared.isPro && program.totalWeeks > 1 {
+                        Text("Week 1 of \(program.totalWeeks)")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.warningOrange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(AppColors.warningOrange.opacity(0.12))
+                            .clipShape(Capsule())
+                    } else {
+                        Text("Week \(program.currentWeek)/\(program.totalWeeks)")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(AppColors.primary.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(viewModel.currentProgramSession?.title ?? program.name)
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .lineLimit(2)
+
+                    if let session = viewModel.currentProgramSession {
+                        HStack(spacing: 12) {
+                            Label("Session \(session.sessionNumber)", systemImage: "figure.run")
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                            Label("\(session.estimatedMinutes) min", systemImage: "clock")
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+
+                    Button {
+                        selectedTab = 3
+                    } label: {
+                        Text("Continue")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                LinearGradient(
+                                    colors: [AppColors.successGreen, AppColors.successGreen.opacity(0.85)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(color: AppColors.successGreen.opacity(0.3), radius: 6, y: 3)
+                    }
+                    .buttonStyle(.pressable)
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if let drill = viewModel.topDrill, !viewModel.skillsWithRatings.isEmpty {
+            // State 2: No Program, Has Top Drill
+            VStack(spacing: 0) {
+                HStack {
+                    Text("NEXT DRILL")
+                        .font(AppTypography.sectionLabel)
+                        .tracking(0.8)
+                        .foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                    Text(drill.priority.capitalized)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(drill.priority.lowercased() == "high" ? AppColors.coral : AppColors.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background((drill.priority.lowercased() == "high" ? AppColors.coral : AppColors.primary).opacity(0.12))
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                HStack(spacing: AppSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(drill.drillName)
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .lineLimit(2)
+                        HStack(spacing: 8) {
+                            Label(drill.skillName, systemImage: "target")
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                            Label("\(drill.durationMinutes) min", systemImage: "clock")
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(AppSpacing.sm)
+
+                Button {
+                    selectedTab = 3
+                } label: {
+                    Text("Start Drill")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(AppColors.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: AppColors.primary.opacity(0.25), radius: 6, y: 3)
+                }
+                .buttonStyle(.pressable)
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if viewModel.todayHasSession {
+            // State 4: Session Already Logged Today
+            VStack(spacing: 0) {
+                HStack {
+                    HStack(spacing: 6) {
+                        Text("TODAY")
+                            .font(AppTypography.sectionLabel)
+                            .tracking(0.8)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Text("Session Logged")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.successGreen)
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(AppColors.successGreen)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(AppColors.successGreen)
+                        Text("Nice work! You logged \(viewModel.todaySessionMinutes) minutes today.")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                    }
+
+                    if viewModel.todaySkillsRated > 0 {
+                        Text("\(viewModel.todaySkillsRated) skill\(viewModel.todaySkillsRated == 1 ? "" : "s") updated")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    HStack(spacing: AppSpacing.sm) {
+                        Button {
+                            selectedSessionDate = Date()
+                            showSessionTypeSheet = true
+                        } label: {
+                            Text("Log Another")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .foregroundStyle(AppColors.primary)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(AppColors.primary.opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            selectedTab = 2
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text("Rate Skills")
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 10, weight: .semibold))
+                            }
+                            .foregroundStyle(AppColors.primary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if !viewModel.isTodayPracticeDay {
+            // State 5: Rest Day
+            VStack(spacing: 0) {
+                HStack {
+                    HStack(spacing: 6) {
+                        Text("TODAY")
+                            .font(AppTypography.sectionLabel)
+                            .tracking(0.8)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Text("Recovery Day")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                        Image(systemName: "moon.zzz")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppColors.textSecondary.opacity(0.6))
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Rest is part of the process.")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    if let nextDay = viewModel.nextPracticeDay {
+                        Text("Next session: \(nextDay)")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    Button {
+                        selectedTab = 4
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Review Progress")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundStyle(AppColors.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else {
+            // State 3: Practice Day, No Session Logged Today
+            VStack(spacing: 0) {
+                HStack {
+                    Text("TODAY")
+                        .font(AppTypography.sectionLabel)
+                        .tracking(0.8)
+                        .foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Ready to practice?")
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Button {
+                        selectedSessionDate = Date()
+                        showSessionTypeSheet = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("Log Session")
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            LinearGradient(
+                                colors: [AppColors.primaryLight, AppColors.primaryDark],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: AppColors.primary.opacity(0.3), radius: 6, y: 3)
+                    }
+                    .buttonStyle(.pressable)
+
+                    Button {
+                        selectedTab = 1
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Ask Coach for a drill")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundStyle(AppColors.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        }
+    }
+
+    // MARK: - Coaching Insight (compact 1-line)
+
+    @ViewBuilder
+    private func coachingInsight(_ viewModel: HomeViewModel) -> some View {
+        if viewModel.totalActiveSkills > 0 || viewModel.hasLoggedAnySession {
+            HStack(spacing: AppSpacing.xs) {
+                CoachMascot(state: viewModel.mascotState, size: 28)
+                Text(viewModel.coachingMessage)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            .padding(AppSpacing.sm)
+            .neumorphicTinted(color: AppColors.successGreen, tintOpacity: 0.08, borderOpacity: 0.2)
+        }
     }
 
     // MARK: - Inline stat helpers (used inside heroGoalCard)
