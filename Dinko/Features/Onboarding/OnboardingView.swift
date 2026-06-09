@@ -10,7 +10,7 @@ struct OnboardingView: View {
 
     var onComplete: () -> Void
 
-    private let totalSteps = 8
+    private let totalSteps = 12
     @State private var selectedSkills: [PendingFocusSkill] = []
     @State private var customSkillInput = ""
     @State private var showCustomInput = false
@@ -25,8 +25,12 @@ struct OnboardingView: View {
                 primaryGoalStep.tag(3)
                 frequencyStep.tag(4)
                 ageRangeStep.tag(5)
-                drillPreferencesStep.tag(6)
-                focusSkillsStep.tag(7)
+                practiceSettingStep.tag(6)
+                partnerAvailabilityStep.tag(7)
+                experienceLevelStep.tag(8)
+                injuriesStep.tag(9)
+                drillPreferencesStep.tag(10)
+                focusSkillsStep.tag(11)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: currentStep)
@@ -343,7 +347,153 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 7: Drill Preferences (Multi-select)
+    // MARK: - Step 7: Practice Setting
+
+    private var practiceSettingStep: some View {
+        stepContainer(
+            title: "Where do you usually practice?",
+            subtitle: "We'll suggest drills that fit your environment."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Public courts", icon: "tennisball.fill", isSelected: viewModel.practiceSetting == "Public courts") {
+                    viewModel.practiceSetting = "Public courts"
+                    advanceAfterDelay()
+                }
+                selectionCard("Club or rec center", icon: "building.2", isSelected: viewModel.practiceSetting == "Club or rec center") {
+                    viewModel.practiceSetting = "Club or rec center"
+                    advanceAfterDelay()
+                }
+                selectionCard("At home or driveway", icon: "house", isSelected: viewModel.practiceSetting == "At home or driveway") {
+                    viewModel.practiceSetting = "At home or driveway"
+                    advanceAfterDelay()
+                }
+                selectionCard("Varies", icon: "arrow.triangle.swap", isSelected: viewModel.practiceSetting == "Varies") {
+                    viewModel.practiceSetting = "Varies"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 8: Partner Availability
+
+    private var partnerAvailabilityStep: some View {
+        stepContainer(
+            title: "Do you have a practice partner?",
+            subtitle: "We'll match drills to solo or partner practice."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Yes, always", icon: "person.2.fill", isSelected: viewModel.partnerAvailability == "Yes, always") {
+                    viewModel.partnerAvailability = "Yes, always"
+                    advanceAfterDelay()
+                }
+                selectionCard("Sometimes", icon: "person.2.wave.2", isSelected: viewModel.partnerAvailability == "Sometimes") {
+                    viewModel.partnerAvailability = "Sometimes"
+                    advanceAfterDelay()
+                }
+                selectionCard("Mostly solo", icon: "person.fill", isSelected: viewModel.partnerAvailability == "Mostly solo") {
+                    viewModel.partnerAvailability = "Mostly solo"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 9: Experience Level
+
+    private var experienceLevelStep: some View {
+        stepContainer(
+            title: "How long have you been playing?",
+            subtitle: "This helps us calibrate drill complexity."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Just started", icon: "leaf", isSelected: viewModel.experienceLevel == "Just started") {
+                    viewModel.experienceLevel = "Just started"
+                    advanceAfterDelay()
+                }
+                selectionCard("Under 1 year", icon: "clock", isSelected: viewModel.experienceLevel == "Under 1 year") {
+                    viewModel.experienceLevel = "Under 1 year"
+                    advanceAfterDelay()
+                }
+                selectionCard("1-3 years", icon: "calendar", isSelected: viewModel.experienceLevel == "1-3 years") {
+                    viewModel.experienceLevel = "1-3 years"
+                    advanceAfterDelay()
+                }
+                selectionCard("3+ years", icon: "star", isSelected: viewModel.experienceLevel == "3+ years") {
+                    viewModel.experienceLevel = "3+ years"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 10: Injuries
+
+    private var injuriesStep: some View {
+        stepContainer(
+            title: "Any injuries or limitations?",
+            subtitle: "We'll avoid drills that could aggravate them."
+        ) {
+            VStack(spacing: AppSpacing.sm) {
+                let options = ["None", "Shoulder", "Knee", "Back", "Wrist", "Other"]
+
+                FlowLayout(spacing: AppSpacing.xxs) {
+                    ForEach(options, id: \.self) { option in
+                        pillButton(option, isSelected: viewModel.injuries.contains(option)) {
+                            if option == "None" {
+                                if viewModel.injuries.contains("None") {
+                                    viewModel.injuries.remove("None")
+                                } else {
+                                    viewModel.injuries = ["None"]
+                                }
+                            } else {
+                                viewModel.injuries.remove("None")
+                                if viewModel.injuries.contains(option) {
+                                    viewModel.injuries.remove(option)
+                                } else {
+                                    viewModel.injuries.insert(option)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                HStack(spacing: AppSpacing.xs) {
+                    if !viewModel.injuries.isEmpty {
+                        Button {
+                            advanceAfterDelay()
+                        } label: {
+                            Text("Continue")
+                                .font(AppTypography.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppSpacing.sm)
+                                .background(AppColors.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Button {
+                        advanceAfterDelay()
+                    } label: {
+                        Text("Skip")
+                            .font(AppTypography.headline)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .frame(maxWidth: viewModel.injuries.isEmpty ? .infinity : nil)
+                            .padding(.vertical, AppSpacing.sm)
+                            .padding(.horizontal, viewModel.injuries.isEmpty ? 0 : AppSpacing.lg)
+                            .background(AppColors.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, AppSpacing.xs)
+            }
+        }
+    }
+
+    // MARK: - Step 11: Drill Preferences (Multi-select)
 
     private var drillPreferencesStep: some View {
         stepContainer(
@@ -486,7 +636,7 @@ struct OnboardingView: View {
 
     // MARK: - Actions
 
-    // MARK: - Step 8: Focus Skills
+    // MARK: - Step 12: Focus Skills
 
     private var focusSkillsStep: some View {
         stepContainer(

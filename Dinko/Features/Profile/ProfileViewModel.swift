@@ -9,6 +9,10 @@ final class ProfileViewModel {
     var primaryGoal: String?
     var ageRange: String?
     var weeklyGoal: Int?
+    var practiceSetting: String?
+    var partnerAvailability: String?
+    var experienceLevel: String?
+    var injuries: Set<String> = []
     var drillPreferences: Set<String> = []
 
     private let defaults = UserDefaults.standard
@@ -25,6 +29,12 @@ final class ProfileViewModel {
         ageRange = defaults.string(forKey: "pkkl_age_range")
         let weekly = defaults.integer(forKey: "pkkl_weekly_goal")
         weeklyGoal = weekly > 0 ? weekly : nil
+        practiceSetting = defaults.string(forKey: "pkkl_practice_setting")
+        partnerAvailability = defaults.string(forKey: "pkkl_partner_availability")
+        experienceLevel = defaults.string(forKey: "pkkl_experience_level")
+        if let inj = defaults.stringArray(forKey: "pkkl_injuries") {
+            injuries = Set(inj)
+        }
         if let prefs = defaults.stringArray(forKey: "pkkl_drill_preferences") {
             drillPreferences = Set(prefs)
         }
@@ -48,6 +58,20 @@ final class ProfileViewModel {
         }
         if let weeklyGoal {
             defaults.set(weeklyGoal, forKey: "pkkl_weekly_goal")
+        }
+        if let practiceSetting {
+            defaults.set(practiceSetting, forKey: "pkkl_practice_setting")
+        }
+        if let partnerAvailability {
+            defaults.set(partnerAvailability, forKey: "pkkl_partner_availability")
+        }
+        if let experienceLevel {
+            defaults.set(experienceLevel, forKey: "pkkl_experience_level")
+        }
+        if !injuries.isEmpty {
+            defaults.set(Array(injuries), forKey: "pkkl_injuries")
+        } else {
+            defaults.removeObject(forKey: "pkkl_injuries")
         }
         if !drillPreferences.isEmpty {
             defaults.set(Array(drillPreferences), forKey: "pkkl_drill_preferences")

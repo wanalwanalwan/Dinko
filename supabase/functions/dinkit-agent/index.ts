@@ -1304,6 +1304,12 @@ function buildProfileContext(profile: Record<string, unknown>): string {
   if (profile.primary_goal) lines.push(`- Primary Goal: ${profile.primary_goal}`);
   if (profile.age_range) lines.push(`- Age Range: ${profile.age_range}`);
   if (profile.weekly_goal) lines.push(`- Weekly Training Goal: ${profile.weekly_goal}x/week`);
+  if (profile.practice_setting) lines.push(`- Practice Setting: ${profile.practice_setting}`);
+  if (profile.partner_availability) lines.push(`- Partner Availability: ${profile.partner_availability}`);
+  if (profile.experience_level) lines.push(`- Experience Level: ${profile.experience_level}`);
+  if (profile.injuries && Array.isArray(profile.injuries)) {
+    lines.push(`- Injuries/Limitations: ${(profile.injuries as string[]).join(", ")}`);
+  }
   if (profile.drill_preferences && Array.isArray(profile.drill_preferences)) {
     lines.push(`- Drill Preferences: ${(profile.drill_preferences as string[]).join(", ")}`);
   }
@@ -1496,6 +1502,12 @@ Deno.serve(async (req: Request) => {
       if (profile.primary_goal) profileLines.push(`- Primary Goal: ${profile.primary_goal}`);
       if (profile.age_range) profileLines.push(`- Age Range: ${profile.age_range}`);
       if (profile.weekly_goal) profileLines.push(`- Weekly Training Goal: ${profile.weekly_goal}x/week`);
+      if (profile.practice_setting) profileLines.push(`- Practice Setting: ${profile.practice_setting}`);
+      if (profile.partner_availability) profileLines.push(`- Partner Availability: ${profile.partner_availability}`);
+      if (profile.experience_level) profileLines.push(`- Experience Level: ${profile.experience_level}`);
+      if (profile.injuries && Array.isArray(profile.injuries)) {
+        profileLines.push(`- Injuries/Limitations: ${profile.injuries.join(", ")}`);
+      }
       if (profile.drill_preferences && Array.isArray(profile.drill_preferences)) {
         profileLines.push(`- Drill Preferences: ${profile.drill_preferences.join(", ")}`);
       }
@@ -1546,6 +1558,10 @@ RULES:
 - If play style is known, address gaps (Banger → work soft game/resets, Dinker → when to speed up/attack).
 - Match the tone to the player's goal (tournament = competitive match scenarios, casual/stay active = fun variety).
 - If game format is Singles, emphasize court coverage, conditioning, and serve/return patterns. If Doubles, emphasize communication, stacking, and partner coordination.
+- If practice setting is "At home or driveway", focus on wall drills, shadow practice, and solo footwork. If "Public courts" or "Club or rec center", include net drills and partner work.
+- If partner availability is "Mostly solo", set player_count to 1 for all drills. If "Yes, always", prefer 2-player drills. If "Sometimes", mix solo and partner drills.
+- If experience level is "3+ years" and the player's rating is low, address potential plateaus with technique refinement and mental game coaching. If "Just started", focus on fundamentals and basic mechanics.
+- If injuries include "Shoulder", avoid overhead smash drills and high-power serve drills. If "Knee", avoid lateral shuffle drills and deep lunge movements. If "Back", avoid heavy rotation and twisting drills. If "Wrist", avoid high-impact volleys and power shots.
 
 Respond ONLY with a valid JSON object:
 {
@@ -2181,6 +2197,12 @@ Respond ONLY with a valid JSON object:
       if (profile.game_format) profileLines.push(`- Game Format: ${profile.game_format}`);
       if (profile.primary_goal) profileLines.push(`- Primary Goal: ${profile.primary_goal}`);
       if (profile.age_range) profileLines.push(`- Age Range: ${profile.age_range}`);
+      if (profile.practice_setting) profileLines.push(`- Practice Setting: ${profile.practice_setting}`);
+      if (profile.partner_availability) profileLines.push(`- Partner Availability: ${profile.partner_availability}`);
+      if (profile.experience_level) profileLines.push(`- Experience Level: ${profile.experience_level}`);
+      if (profile.injuries && Array.isArray(profile.injuries)) {
+        profileLines.push(`- Injuries/Limitations: ${profile.injuries.join(", ")}`);
+      }
       if (profile.drill_preferences && Array.isArray(profile.drill_preferences)) {
         profileLines.push(`- Drill Preferences: ${profile.drill_preferences.join(", ")}`);
       }
@@ -2241,6 +2263,10 @@ PROGRAM REQUIREMENTS:
 - Each drill needs: name, clear description, duration (5-15 min), target reps (0 if not applicable), equipment needed, player count (1-4)
 - Sessions should have a clear focus theme and build on each other
 - Week 1 should focus on fundamentals/assessment, later weeks on refinement
+- If practice setting is "At home or driveway", use wall drills, shadow practice, and solo footwork. If "Public courts" or "Club or rec center", include net drills and partner work.
+- If partner availability is "Mostly solo", set player_count to 1 for all drills. If "Yes, always", prefer 2-player drills. If "Sometimes", mix solo and partner drills.
+- If experience level is "3+ years" and ratings are low, include plateau-breaking technique refinement and mental game sessions. If "Just started", focus on fundamentals and basic mechanics.
+- If injuries include "Shoulder", avoid overhead smash and high-power serve drills. If "Knee", avoid lateral shuffle and deep lunge movements. If "Back", avoid heavy rotation and twisting drills. If "Wrist", avoid high-impact volleys and power shots.
 
 Respond ONLY with a valid JSON object:
 {

@@ -203,6 +203,28 @@ struct ProfileView: View {
                 profileRow(title: "Age Range", value: viewModel.ageRange, options: [
                     "Under 30", "30-50", "50+"
                 ]) { viewModel.ageRange = $0; viewModel.save() }
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                profileRow(title: "Practice Setting", value: viewModel.practiceSetting, options: [
+                    "Public courts", "Club or rec center", "At home or driveway", "Varies"
+                ]) { viewModel.practiceSetting = $0; viewModel.save() }
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                profileRow(title: "Partner", value: viewModel.partnerAvailability, options: [
+                    "Yes, always", "Sometimes", "Mostly solo"
+                ]) { viewModel.partnerAvailability = $0; viewModel.save() }
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                profileRow(title: "Experience", value: viewModel.experienceLevel, options: [
+                    "Just started", "Under 1 year", "1-3 years", "3+ years"
+                ]) { viewModel.experienceLevel = $0; viewModel.save() }
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                injuriesRow
             }
             .floatingCard()
         }
@@ -278,6 +300,57 @@ struct ProfileView: View {
                             .overlay(
                                 Capsule()
                                     .strokeBorder(viewModel.drillPreferences.contains(type) ? AppColors.primary : AppColors.separator, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.bottom, AppSpacing.sm)
+        }
+    }
+
+    private var injuriesRow: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            HStack {
+                Text("Injuries")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                Spacer()
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.top, AppSpacing.sm)
+
+            let options = ["None", "Shoulder", "Knee", "Back", "Wrist", "Other"]
+            FlowLayout(spacing: AppSpacing.xxs) {
+                ForEach(options, id: \.self) { option in
+                    Button {
+                        if option == "None" {
+                            if viewModel.injuries.contains("None") {
+                                viewModel.injuries.remove("None")
+                            } else {
+                                viewModel.injuries = ["None"]
+                            }
+                        } else {
+                            viewModel.injuries.remove("None")
+                            if viewModel.injuries.contains(option) {
+                                viewModel.injuries.remove(option)
+                            } else {
+                                viewModel.injuries.insert(option)
+                            }
+                        }
+                        viewModel.save()
+                    } label: {
+                        Text(option)
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(viewModel.injuries.contains(option) ? .white : AppColors.textPrimary)
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.vertical, AppSpacing.xxxs)
+                            .background(viewModel.injuries.contains(option) ? AppColors.primary : AppColors.background)
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(viewModel.injuries.contains(option) ? AppColors.primary : AppColors.separator, lineWidth: 1)
                             )
                     }
                     .buttonStyle(.plain)

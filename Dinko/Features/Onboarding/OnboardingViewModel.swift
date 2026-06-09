@@ -10,6 +10,10 @@ final class OnboardingViewModel {
     var primaryGoal: String?
     var ageRange: String?
     var trainingDaysPerWeek: Int?
+    var practiceSetting: String?
+    var partnerAvailability: String?
+    var experienceLevel: String?
+    var injuries: Set<String> = []
     var drillPreferences: Set<String> = []
     var pendingFocusSkills: [PendingFocusSkill] = []
 
@@ -45,6 +49,18 @@ final class OnboardingViewModel {
         }
         if let days = trainingDaysPerWeek {
             UserDefaults.standard.set(days, forKey: "pkkl_weekly_goal")
+        }
+        if let setting = practiceSetting {
+            UserDefaults.standard.set(setting, forKey: "pkkl_practice_setting")
+        }
+        if let partner = partnerAvailability {
+            UserDefaults.standard.set(partner, forKey: "pkkl_partner_availability")
+        }
+        if let experience = experienceLevel {
+            UserDefaults.standard.set(experience, forKey: "pkkl_experience_level")
+        }
+        if !injuries.isEmpty {
+            UserDefaults.standard.set(Array(injuries), forKey: "pkkl_injuries")
         }
         if !drillPreferences.isEmpty {
             UserDefaults.standard.set(Array(drillPreferences), forKey: "pkkl_drill_preferences")
