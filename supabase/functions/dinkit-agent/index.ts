@@ -2206,39 +2206,44 @@ Respond ONLY with a valid JSON object:
       if (profile.drill_preferences && Array.isArray(profile.drill_preferences)) {
         profileLines.push(`- Drill Preferences: ${profile.drill_preferences.join(", ")}`);
       }
+      if (profile.drill_balance) {
+        profileLines.push(`- Drill Balance: ${profile.drill_balance}`);
+      }
       const playerProfileSection = profileLines.length > 0
         ? `\nPLAYER PROFILE:\n${profileLines.join("\n")}\n`
         : "";
 
-      // Build skill summary with development levels
+      // Build skill summary
       const skillLines = userSkills.map((s: Record<string, unknown>) => {
-        const devLevel = (s as Record<string, unknown>).development_level ?? "";
         const priority = (s as Record<string, unknown>).priority;
         const subs = Array.isArray(s.subskills) && s.subskills.length > 0
           ? ` (subskills: ${(s.subskills as { name: string; current_rating: number }[]).map((sub) => `${sub.name} ${sub.current_rating}%`).join(", ")})`
           : "";
         let line = `- ${s.name} [${s.category}]: ${s.current_rating}%`;
-        if (devLevel) line += ` (${devLevel})`;
         if (priority) line += ` — Priority #${priority}`;
         line += subs;
         return line;
       }).join("\n");
 
+      // Determine drill-to-game balance from user preference
+      const drillBalance = profile?.drill_balance ?? "Mix of drills & games";
+      let drillBalanceInstruction: string;
+      if (drillBalance === "Mostly drills") {
+        drillBalanceInstruction = "The player prefers drill-heavy training: ~80% focused drills (technique, wall drills, feeding drills) and ~20% game scenarios.";
+      } else if (drillBalance === "Mostly game play") {
+        drillBalanceInstruction = "The player prefers game-heavy training: ~20% drills and ~80% point-play scenarios, match simulations, and live play.";
+      } else {
+        drillBalanceInstruction = "The player prefers a balanced mix: ~50% structured drills and ~50% game scenarios / point-play.";
+      }
+
       const modeInstruction = mode === "custom_focus"
         ? `MODE: CUSTOM FOCUS
 The player has selected specific skills to focus on with priority ordering.
 Build the program around these priority skills. Higher priority skills should get more sessions and drills.
-Development levels tell you the drill-to-game ratio:
-- "beginner" (<40% rating): Drill-heavy sessions — technique drills, wall drills, feeding drills (80% drills, 20% game scenarios)
-- "intermediate" (40-70%): Mixed sessions — structured drills + point-play scenarios (50% drills, 50% game)
-- "advanced" (>70%): Game-focused — match scenarios, pressure points, live play (20% drills, 80% game scenarios)`
+${drillBalanceInstruction}`
         : `MODE: GENERAL TRAINING
 Build a balanced program covering all the player's skills.
-Schedule more drill-heavy sessions for weaker skills and more game scenarios for stronger skills.
-Development levels tell you the drill-to-game ratio:
-- "beginner" (<40% rating): Drill-heavy sessions (80% drills, 20% game scenarios)
-- "intermediate" (40-70%): Mixed sessions (50% drills, 50% game)
-- "advanced" (>70%): Game-focused sessions (20% drills, 80% game scenarios)`;
+${drillBalanceInstruction}`;
 
       const totalWeeks = Math.max(2, Math.min(4, Math.ceil(userSkills.length / 2)));
       const sessionsPerWeek = Math.min(goal, 5);

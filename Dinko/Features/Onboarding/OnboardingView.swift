@@ -29,7 +29,7 @@ struct OnboardingView: View {
                 partnerAvailabilityStep.tag(7)
                 experienceLevelStep.tag(8)
                 injuriesStep.tag(9)
-                drillPreferencesStep.tag(10)
+                drillBalanceStep.tag(10)
                 focusSkillsStep.tag(11)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -493,63 +493,25 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 11: Drill Preferences (Multi-select)
+    // MARK: - Step 11: Drill Balance
 
-    private var drillPreferencesStep: some View {
+    private var drillBalanceStep: some View {
         stepContainer(
-            title: "What types of drills interest you?",
-            subtitle: "Select all that apply, or skip."
+            title: "How do you want to train?",
+            subtitle: "We'll balance your program around your preference."
         ) {
-            VStack(spacing: AppSpacing.sm) {
-                let types = ["Fitness", "Court IQ", "Technique", "Mental Game"]
-
-                FlowLayout(spacing: AppSpacing.xxs) {
-                    ForEach(types, id: \.self) { type in
-                        pillButton(type, isSelected: viewModel.drillPreferences.contains(type)) {
-                            if viewModel.drillPreferences.contains(type) {
-                                viewModel.drillPreferences.remove(type)
-                            } else {
-                                viewModel.drillPreferences.insert(type)
-                            }
-                        }
-                    }
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Mostly drills", icon: "figure.strengthtraining.traditional", isSelected: viewModel.drillBalance == "Mostly drills") {
+                    viewModel.drillBalance = "Mostly drills"
+                    advanceAfterDelay()
                 }
-
-                HStack(spacing: AppSpacing.xs) {
-                    if !viewModel.drillPreferences.isEmpty {
-                        Button {
-                            completeOnboarding()
-                        } label: {
-                            Text("Continue")
-                                .font(AppTypography.headline)
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppSpacing.sm)
-                                .background(AppColors.primary)
-                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                        }
-                        .disabled(isCompleting)
-                    }
-
-                    Button {
-                        completeOnboarding()
-                    } label: {
-                        Text("Skip")
-                            .font(AppTypography.headline)
-                            .foregroundStyle(AppColors.textSecondary)
-                            .frame(maxWidth: viewModel.drillPreferences.isEmpty ? .infinity : nil)
-                            .padding(.vertical, AppSpacing.sm)
-                            .padding(.horizontal, viewModel.drillPreferences.isEmpty ? 0 : AppSpacing.lg)
-                            .background(AppColors.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                    }
-                    .disabled(isCompleting)
+                selectionCard("Mix of drills & games", icon: "arrow.left.arrow.right", isSelected: viewModel.drillBalance == "Mix of drills & games") {
+                    viewModel.drillBalance = "Mix of drills & games"
+                    advanceAfterDelay()
                 }
-                .padding(.top, AppSpacing.xs)
-
-                if isCompleting {
-                    ProgressView()
-                        .padding(.top, AppSpacing.xxs)
+                selectionCard("Mostly game play", icon: "figure.pickleball", isSelected: viewModel.drillBalance == "Mostly game play") {
+                    viewModel.drillBalance = "Mostly game play"
+                    advanceAfterDelay()
                 }
             }
         }

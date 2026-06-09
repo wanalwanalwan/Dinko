@@ -14,6 +14,7 @@ final class OnboardingViewModel {
     var partnerAvailability: String?
     var experienceLevel: String?
     var injuries: Set<String> = []
+    var drillBalance: String?
     var drillPreferences: Set<String> = []
     var pendingFocusSkills: [PendingFocusSkill] = []
 
@@ -61,6 +62,9 @@ final class OnboardingViewModel {
         }
         if !injuries.isEmpty {
             UserDefaults.standard.set(Array(injuries), forKey: "pkkl_injuries")
+        }
+        if let balance = drillBalance {
+            UserDefaults.standard.set(balance, forKey: "pkkl_drill_balance")
         }
         if !drillPreferences.isEmpty {
             UserDefaults.standard.set(Array(drillPreferences), forKey: "pkkl_drill_preferences")

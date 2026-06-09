@@ -223,16 +223,9 @@ struct ProgramGenerationFlowView: View {
                         .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
 
-                    HStack(spacing: 4) {
-                        Text("\(rating)%")
-                            .font(.system(size: 11, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                        Text("·")
-                            .foregroundStyle(AppColors.textSecondary)
-                        Text(developmentLabel(for: rating))
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundStyle(developmentColor(for: rating))
-                    }
+                    Text("\(rating)%")
+                        .font(.system(size: 11, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
                 }
 
                 Spacer()
@@ -255,17 +248,4 @@ struct ProgramGenerationFlowView: View {
         }
     }
 
-    // MARK: - Helpers
-
-    private func developmentLabel(for rating: Int) -> String {
-        if rating < 40 { return "Drill-heavy" }
-        if rating <= 70 { return "Mixed" }
-        return "Game-focused"
-    }
-
-    private func developmentColor(for rating: Int) -> Color {
-        if rating < 40 { return AppColors.coral }
-        if rating <= 70 { return .orange }
-        return AppColors.primary
-    }
 }

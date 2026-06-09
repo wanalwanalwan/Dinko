@@ -12,6 +12,7 @@ struct PlayerProfile {
     let experienceLevel: String?
     let injuries: [String]?
     let drillPreferences: [String]?
+    let drillBalance: String?
 
     static func current() -> PlayerProfile {
         let defaults = UserDefaults.standard
@@ -27,7 +28,8 @@ struct PlayerProfile {
             partnerAvailability: defaults.string(forKey: "pkkl_partner_availability"),
             experienceLevel: defaults.string(forKey: "pkkl_experience_level"),
             injuries: defaults.stringArray(forKey: "pkkl_injuries"),
-            drillPreferences: defaults.stringArray(forKey: "pkkl_drill_preferences")
+            drillPreferences: defaults.stringArray(forKey: "pkkl_drill_preferences"),
+            drillBalance: defaults.string(forKey: "pkkl_drill_balance")
         )
     }
 
@@ -47,6 +49,9 @@ struct PlayerProfile {
         }
         if let drillPreferences, !drillPreferences.isEmpty {
             dict["drill_preferences"] = drillPreferences
+        }
+        if let drillBalance {
+            dict["drill_balance"] = drillBalance
         }
         return dict
     }

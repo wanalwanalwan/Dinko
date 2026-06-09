@@ -7,12 +7,6 @@ struct ProgramFocusSkill: Identifiable {
     let category: String
     let currentRating: Int
     let priority: Int
-
-    var developmentLevel: String {
-        if currentRating < 40 { return "beginner" }
-        if currentRating <= 70 { return "intermediate" }
-        return "advanced"
-    }
 }
 
 @MainActor
@@ -143,7 +137,6 @@ final class ProgramViewModel {
                     subskills: subskills,
                     pendingDrillCount: pendingCount
                 )
-                snapshot.developmentLevel = Self.developmentLevel(for: rating)
                 snapshots.append(snapshot)
             }
 
@@ -229,7 +222,6 @@ final class ProgramViewModel {
                     subskills: [],
                     pendingDrillCount: 0
                 )
-                snapshot.developmentLevel = focus.developmentLevel
                 snapshot.priority = focus.priority
                 return snapshot
             }
@@ -291,12 +283,6 @@ final class ProgramViewModel {
         }
 
         isGenerating = false
-    }
-
-    static func developmentLevel(for rating: Int) -> String {
-        if rating < 40 { return "beginner" }
-        if rating <= 70 { return "intermediate" }
-        return "advanced"
     }
 
     func deleteProgram() async {
