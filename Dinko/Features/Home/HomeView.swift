@@ -999,7 +999,6 @@ struct HomeView: View {
                 let isExpanded = expandedWeekDay == dayDate
 
                 Button {
-                    guard !day.isFuture else { return }
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
                         expandedWeekDay = isExpanded ? nil : dayDate
@@ -1009,7 +1008,7 @@ struct HomeView: View {
                         // Day abbreviation
                         Text(day.dayName.uppercased())
                             .font(.system(size: 10, weight: .semibold, design: .rounded))
-                            .foregroundStyle(day.isFuture ? AppColors.textSecondary.opacity(0.35) : AppColors.textSecondary)
+                            .foregroundStyle(AppColors.textSecondary)
 
                         // Date number with circle backgrounds
                         ZStack {
@@ -1027,7 +1026,6 @@ struct HomeView: View {
                                 .font(.system(size: 14, weight: day.isToday ? .bold : .medium, design: .rounded))
                                 .foregroundStyle(
                                     day.isToday ? Color.white :
-                                    day.isFuture ? AppColors.textSecondary.opacity(0.35) :
                                     AppColors.textPrimary
                                 )
                         }
