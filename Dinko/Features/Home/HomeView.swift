@@ -993,57 +993,8 @@ struct HomeView: View {
     }
 
     private func weekStripHeader(_ viewModel: HomeViewModel, hasProgram: Bool, days: [WeekScheduleDay]) -> some View {
-        HStack(spacing: 6) {
-            Button { navigateWeek(-1) } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(weekStripOffset > -12 ? AppColors.primary : AppColors.textSecondary.opacity(0.25))
-            }
-            .buttonStyle(.plain)
-            .disabled(weekStripOffset <= -12)
-
-            Spacer()
-
-            if hasProgram, let program = viewModel.activeProgram {
-                HStack(spacing: 6) {
-                    // Mini progress ring
-                    ZStack {
-                        Circle()
-                            .stroke(AppColors.ringTrack, lineWidth: 2.5)
-                        Circle()
-                            .trim(from: 0, to: min(CGFloat(program.currentWeek) / CGFloat(max(program.totalWeeks, 1)), 1))
-                            .stroke(AppColors.primary, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                    }
-                    .frame(width: 16, height: 16)
-
-                    Text("WEEK \(program.currentWeek)/\(program.totalWeeks)")
-                        .font(AppTypography.sectionLabel)
-                        .tracking(0.8)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .contentTransition(.numericText())
-                }
-            } else {
-                Text(viewModel.weekHeaderLabel(forOffset: weekStripOffset, days: days))
-                    .font(AppTypography.sectionLabel)
-                    .tracking(0.8)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .contentTransition(.numericText())
-            }
-
-            Spacer()
-
-            Button { navigateWeek(1) } label: {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(weekStripOffset < 0 ? AppColors.primary : AppColors.textSecondary.opacity(0.25))
-            }
-            .buttonStyle(.plain)
-            .disabled(weekStripOffset >= 0)
-        }
-        .padding(.horizontal, AppSpacing.sm)
-        .padding(.top, AppSpacing.sm)
-        .padding(.bottom, AppSpacing.xs)
+        // Header is now minimal — week info lives in the top nav bar
+        EmptyView()
     }
 
     private func horizontalDayRow(days: [WeekScheduleDay], hasProgram: Bool, calendar: Calendar) -> some View {
@@ -1752,47 +1703,87 @@ struct HomeView: View {
     // MARK: - Header
 
     private func headerSection(_ viewModel: HomeViewModel) -> some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(viewModel.greetingText + ",")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                Text(viewModel.playerName)
-                    .font(Font.custom("Sora-Bold", size: 26))
-                    .foregroundStyle(AppColors.textPrimary)
-                if viewModel.thisWeekSessionCount > 0 || viewModel.streakDays > 0 {
-                    HStack(spacing: 6) {
-                        if viewModel.thisWeekSessionCount > 0 {
-                            Text("\(viewModel.thisWeekSessionCount) session\(viewModel.thisWeekSessionCount == 1 ? "" : "s") this week")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundStyle(AppColors.primary)
-                        }
-                        if viewModel.thisWeekSessionCount > 0 && viewModel.streakDays > 0 {
-                            Text("·")
-                                .font(.system(size: 12, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                        if viewModel.streakDays > 0 {
-                            HStack(spacing: 3) {
-                                Image(systemName: "flame.fill")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(AppColors.warningOrange)
-                                Text("\(viewModel.streakDays)-day streak")
-                                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                                    .foregroundStyle(AppColors.warningOrange)
-                            }
-                        }
+        let hasProgram = viewModel.activeProgram?.status == .active
+
+        return HStack(spacing: 12) {
+            // Left: Profile avatar + notification bell
+            HStack(spacing: 10) {
+                Button { showProfile = true } label: {
+                    ZStack {
+                        Circle()
+                            .fill(AppColors.primary)
+                            .frame(width: 36, height: 36)
+                        Text(String(viewModel.playerName.prefix(1)).uppercased())
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
                     }
                 }
+
+                Button { /* notifications placeholder */ } label: {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
             }
+
             Spacer()
-            Button { showProfile = true } label: {
-                Image(systemName: "person.crop.circle.fill")
-                    .font(.system(size: 30))
-                    .foregroundStyle(AppColors.primary.opacity(0.55))
+
+            // Center: Week progress ring + "Week X/Y" label
+            if hasProgram, let program = viewModel.activeProgram {
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .stroke(AppColors.ringTrack, lineWidth: 3)
+                        Circle()
+                            .trim(from: 0, to: min(CGFloat(program.currentWeek) / CGFloat(max(program.totalWeeks, 1)), 1))
+                            .stroke(AppColors.primary, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                    }
+                    .frame(width: 24, height: 24)
+
+                    HStack(spacing: 4) {
+                        Text("Week \(program.currentWeek)/\(program.totalWeeks)")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .contentTransition(.numericText())
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+            } else {
+                Text(viewModel.weekHeaderLabel(forOffset: weekStripOffset, days: viewModel.scheduledDays))
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .contentTransition(.numericText())
+            }
+
+            Spacer()
+
+            // Right: Calendar + grid icons
+            HStack(spacing: 10) {
+                Button { /* calendar placeholder */ } label: {
+                    ZStack {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 18))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Text("\(Calendar.current.component(.day, from: Date()))")
+                            .font(.system(size: 8, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .offset(y: 2)
+                    }
+                }
+
+                Button { /* grid view placeholder */ } label: {
+                    Image(systemName: "square.grid.2x2")
+                        .font(.system(size: 18))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
             }
         }
+        .padding(.horizontal, AppSpacing.xxxs)
         .padding(.top, AppSpacing.xxs)
+        .padding(.bottom, AppSpacing.xxxs)
     }
 
     // MARK: - Brine Score Card
