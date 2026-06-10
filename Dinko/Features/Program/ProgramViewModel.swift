@@ -96,6 +96,12 @@ final class ProgramViewModel {
     }
 
     func generateProgram() async {
+        let profile = PlayerProfile.current()
+        guard profile.isComplete else {
+            errorMessage = "Complete your player profile in Settings before generating a program."
+            return
+        }
+
         isGenerating = true
         errorMessage = nil
 
@@ -107,40 +113,23 @@ final class ProgramViewModel {
                 return
             }
 
-            // Gather skill data
-            let allSkills = try await skillRepository.fetchActive()
-            let topLevel = allSkills.filter { $0.parentSkillId == nil }
-
-            var snapshots: [AgentService.SkillSnapshotPayload] = []
-            for skill in topLevel {
-                let children = allSkills.filter { $0.parentSkillId == skill.id }
-                let latestRating = try await skillRatingRepository.fetchLatest(skill.id)
-                let pendingDrills = try await drillRepository.fetchForSkill(skill.id)
-                let pendingCount = pendingDrills.filter { $0.status == .pending }.count
-
-                let subskills = await children.asyncMap { child -> AgentService.SubskillPayload in
-                    let childRating = try? await self.skillRatingRepository.fetchLatest(child.id)
-                    return AgentService.SubskillPayload(
-                        id: child.id.uuidString,
-                        name: child.name,
-                        currentRating: childRating?.rating ?? 0
-                    )
-                }
-
-                let rating = latestRating?.rating ?? 0
+            // Use in-memory focus skills instead of crawling CoreData
+            let focusEntries = FocusSkillManager.shared.focusSkills
+            let snapshots = focusEntries.map { entry -> AgentService.SkillSnapshotPayload in
                 var snapshot = AgentService.SkillSnapshotPayload(
-                    id: skill.id.uuidString,
-                    name: skill.name,
-                    category: skill.category.rawValue,
-                    currentRating: rating,
+                    id: entry.id.uuidString,
+                    name: entry.name,
+                    category: entry.categoryRaw,
+                    currentRating: entry.startingRating ?? 0,
                     parentSkillId: nil,
-                    subskills: subskills,
-                    pendingDrillCount: pendingCount
+                    subskills: [],
+                    pendingDrillCount: 0
                 )
-                snapshots.append(snapshot)
+                snapshot.priority = entry.priorityIndex
+                return snapshot
             }
 
-            let profilePayload = PlayerProfile.current().toPayload()
+            let profilePayload = profile.toPayload()
             let weeklyGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
 
             let response = try await agentService.generateProgram(
@@ -201,6 +190,12 @@ final class ProgramViewModel {
     }
 
     func generateCustomProgram(focusSkills: [ProgramFocusSkill]) async {
+        let profile = PlayerProfile.current()
+        guard profile.isComplete else {
+            errorMessage = "Complete your player profile in Settings before generating a program."
+            return
+        }
+
         isGenerating = true
         errorMessage = nil
 

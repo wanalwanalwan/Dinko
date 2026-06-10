@@ -76,11 +76,11 @@ struct ProgramView: View {
                 .scaleEffect(1.2)
                 .tint(AppColors.primary)
 
-            Text("Building your program...")
+            Text("Generating your plan...")
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("The AI coach is creating a personalized training plan based on your skills and goals.")
+            Text("Your AI coach is crafting a training program tailored to your profile.")
                 .font(.system(size: 14, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)
