@@ -212,12 +212,6 @@ struct ProfileView: View {
 
                 Divider().padding(.leading, AppSpacing.md)
 
-                profileRow(title: "Partner", value: viewModel.partnerAvailability, options: [
-                    "Yes, always", "Sometimes", "Mostly solo"
-                ]) { viewModel.partnerAvailability = $0; viewModel.save() }
-
-                Divider().padding(.leading, AppSpacing.md)
-
                 profileRow(title: "Experience", value: viewModel.experienceLevel, options: [
                     "Just started", "Under 1 year", "1-3 years", "3+ years"
                 ]) { viewModel.experienceLevel = $0; viewModel.save() }

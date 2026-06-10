@@ -11,7 +11,6 @@ final class OnboardingViewModel {
     var ageRange: String?
     var trainingDaysPerWeek: Int?
     var practiceSetting: String?
-    var partnerAvailability: String?
     var experienceLevel: String?
     var injuries: Set<String> = []
     var drillBalance: String?
@@ -53,9 +52,6 @@ final class OnboardingViewModel {
         }
         if let setting = practiceSetting {
             UserDefaults.standard.set(setting, forKey: "pkkl_practice_setting")
-        }
-        if let partner = partnerAvailability {
-            UserDefaults.standard.set(partner, forKey: "pkkl_partner_availability")
         }
         if let experience = experienceLevel {
             UserDefaults.standard.set(experience, forKey: "pkkl_experience_level")

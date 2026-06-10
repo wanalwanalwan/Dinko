@@ -1305,7 +1305,7 @@ function buildProfileContext(profile: Record<string, unknown>): string {
   if (profile.age_range) lines.push(`- Age Range: ${profile.age_range}`);
   if (profile.weekly_goal) lines.push(`- Weekly Training Goal: ${profile.weekly_goal}x/week`);
   if (profile.practice_setting) lines.push(`- Practice Setting: ${profile.practice_setting}`);
-  if (profile.partner_availability) lines.push(`- Partner Availability: ${profile.partner_availability}`);
+
   if (profile.experience_level) lines.push(`- Experience Level: ${profile.experience_level}`);
   if (profile.injuries && Array.isArray(profile.injuries)) {
     lines.push(`- Injuries/Limitations: ${(profile.injuries as string[]).join(", ")}`);
@@ -1503,7 +1503,7 @@ Deno.serve(async (req: Request) => {
       if (profile.age_range) profileLines.push(`- Age Range: ${profile.age_range}`);
       if (profile.weekly_goal) profileLines.push(`- Weekly Training Goal: ${profile.weekly_goal}x/week`);
       if (profile.practice_setting) profileLines.push(`- Practice Setting: ${profile.practice_setting}`);
-      if (profile.partner_availability) profileLines.push(`- Partner Availability: ${profile.partner_availability}`);
+
       if (profile.experience_level) profileLines.push(`- Experience Level: ${profile.experience_level}`);
       if (profile.injuries && Array.isArray(profile.injuries)) {
         profileLines.push(`- Injuries/Limitations: ${profile.injuries.join(", ")}`);
@@ -2198,7 +2198,7 @@ Respond ONLY with a valid JSON object:
       if (profile.primary_goal) profileLines.push(`- Primary Goal: ${profile.primary_goal}`);
       if (profile.age_range) profileLines.push(`- Age Range: ${profile.age_range}`);
       if (profile.practice_setting) profileLines.push(`- Practice Setting: ${profile.practice_setting}`);
-      if (profile.partner_availability) profileLines.push(`- Partner Availability: ${profile.partner_availability}`);
+
       if (profile.experience_level) profileLines.push(`- Experience Level: ${profile.experience_level}`);
       if (profile.injuries && Array.isArray(profile.injuries)) {
         profileLines.push(`- Injuries/Limitations: ${profile.injuries.join(", ")}`);

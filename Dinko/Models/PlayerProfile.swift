@@ -8,7 +8,6 @@ struct PlayerProfile {
     let ageRange: String?
     let weeklyGoal: Int?
     let practiceSetting: String?
-    let partnerAvailability: String?
     let experienceLevel: String?
     let injuries: [String]?
     let drillPreferences: [String]?
@@ -25,7 +24,6 @@ struct PlayerProfile {
             ageRange: defaults.string(forKey: "pkkl_age_range"),
             weeklyGoal: weeklyGoalRaw > 0 ? weeklyGoalRaw : nil,
             practiceSetting: defaults.string(forKey: "pkkl_practice_setting"),
-            partnerAvailability: defaults.string(forKey: "pkkl_partner_availability"),
             experienceLevel: defaults.string(forKey: "pkkl_experience_level"),
             injuries: defaults.stringArray(forKey: "pkkl_injuries"),
             drillPreferences: defaults.stringArray(forKey: "pkkl_drill_preferences"),
@@ -42,7 +40,6 @@ struct PlayerProfile {
         if let ageRange { dict["age_range"] = ageRange }
         if let weeklyGoal { dict["weekly_goal"] = weeklyGoal }
         if let practiceSetting { dict["practice_setting"] = practiceSetting }
-        if let partnerAvailability { dict["partner_availability"] = partnerAvailability }
         if let experienceLevel { dict["experience_level"] = experienceLevel }
         if let injuries, !injuries.isEmpty {
             dict["injuries"] = injuries

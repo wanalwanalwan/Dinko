@@ -311,7 +311,7 @@ final class AuthViewModel {
         UserDefaults.standard.removeObject(forKey: "pkkl_primary_goal")
         UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
         UserDefaults.standard.removeObject(forKey: "pkkl_practice_setting")
-        UserDefaults.standard.removeObject(forKey: "pkkl_partner_availability")
+
         UserDefaults.standard.removeObject(forKey: "pkkl_experience_level")
         UserDefaults.standard.removeObject(forKey: "pkkl_injuries")
         UserDefaults.standard.removeObject(forKey: "pkkl_has_seen_profile_prompt")
@@ -340,7 +340,7 @@ final class AuthViewModel {
         UserDefaults.standard.removeObject(forKey: "pkkl_primary_goal")
         UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
         UserDefaults.standard.removeObject(forKey: "pkkl_practice_setting")
-        UserDefaults.standard.removeObject(forKey: "pkkl_partner_availability")
+
         UserDefaults.standard.removeObject(forKey: "pkkl_experience_level")
         UserDefaults.standard.removeObject(forKey: "pkkl_injuries")
         UserDefaults.standard.removeObject(forKey: "pkkl_has_seen_profile_prompt")

@@ -10,7 +10,6 @@ final class ProfileViewModel {
     var ageRange: String?
     var weeklyGoal: Int?
     var practiceSetting: String?
-    var partnerAvailability: String?
     var experienceLevel: String?
     var injuries: Set<String> = []
     var drillPreferences: Set<String> = []
@@ -30,7 +29,6 @@ final class ProfileViewModel {
         let weekly = defaults.integer(forKey: "pkkl_weekly_goal")
         weeklyGoal = weekly > 0 ? weekly : nil
         practiceSetting = defaults.string(forKey: "pkkl_practice_setting")
-        partnerAvailability = defaults.string(forKey: "pkkl_partner_availability")
         experienceLevel = defaults.string(forKey: "pkkl_experience_level")
         if let inj = defaults.stringArray(forKey: "pkkl_injuries") {
             injuries = Set(inj)
@@ -61,9 +59,6 @@ final class ProfileViewModel {
         }
         if let practiceSetting {
             defaults.set(practiceSetting, forKey: "pkkl_practice_setting")
-        }
-        if let partnerAvailability {
-            defaults.set(partnerAvailability, forKey: "pkkl_partner_availability")
         }
         if let experienceLevel {
             defaults.set(experienceLevel, forKey: "pkkl_experience_level")

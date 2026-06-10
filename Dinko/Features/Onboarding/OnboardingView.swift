@@ -10,7 +10,7 @@ struct OnboardingView: View {
 
     var onComplete: () -> Void
 
-    private let totalSteps = 12
+    private let totalSteps = 11
     @State private var selectedSkills: [PendingFocusSkill] = []
     @State private var customSkillInput = ""
     @State private var showCustomInput = false
@@ -26,11 +26,10 @@ struct OnboardingView: View {
                 frequencyStep.tag(4)
                 ageRangeStep.tag(5)
                 practiceSettingStep.tag(6)
-                partnerAvailabilityStep.tag(7)
-                experienceLevelStep.tag(8)
-                injuriesStep.tag(9)
-                drillBalanceStep.tag(10)
-                focusSkillsStep.tag(11)
+                experienceLevelStep.tag(7)
+                injuriesStep.tag(8)
+                drillBalanceStep.tag(9)
+                focusSkillsStep.tag(10)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: currentStep)
@@ -375,31 +374,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 8: Partner Availability
-
-    private var partnerAvailabilityStep: some View {
-        stepContainer(
-            title: "Do you have a practice partner?",
-            subtitle: "We'll match drills to solo or partner practice."
-        ) {
-            VStack(spacing: AppSpacing.xs) {
-                selectionCard("Yes, always", icon: "person.2.fill", isSelected: viewModel.partnerAvailability == "Yes, always") {
-                    viewModel.partnerAvailability = "Yes, always"
-                    advanceAfterDelay()
-                }
-                selectionCard("Sometimes", icon: "person.2.wave.2", isSelected: viewModel.partnerAvailability == "Sometimes") {
-                    viewModel.partnerAvailability = "Sometimes"
-                    advanceAfterDelay()
-                }
-                selectionCard("Mostly solo", icon: "person.fill", isSelected: viewModel.partnerAvailability == "Mostly solo") {
-                    viewModel.partnerAvailability = "Mostly solo"
-                    advanceAfterDelay()
-                }
-            }
-        }
-    }
-
-    // MARK: - Step 9: Experience Level
+    // MARK: - Step 8: Experience Level
 
     private var experienceLevelStep: some View {
         stepContainer(
@@ -427,7 +402,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 10: Injuries
+    // MARK: - Step 9: Injuries
 
     private var injuriesStep: some View {
         stepContainer(
@@ -493,7 +468,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 11: Drill Balance
+    // MARK: - Step 10: Drill Balance
 
     private var drillBalanceStep: some View {
         stepContainer(
@@ -598,7 +573,7 @@ struct OnboardingView: View {
 
     // MARK: - Actions
 
-    // MARK: - Step 12: Focus Skills
+    // MARK: - Step 11: Focus Skills
 
     private var focusSkillsStep: some View {
         stepContainer(
