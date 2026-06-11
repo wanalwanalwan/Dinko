@@ -12,10 +12,20 @@ struct PlayerProfile {
     let injuries: [String]?
     let drillPreferences: [String]?
     let drillBalance: String?
+    let goalDUPR: String?
+    let pillarConfidences: [String: Int]?
 
     static func current() -> PlayerProfile {
         let defaults = UserDefaults.standard
         let weeklyGoalRaw = defaults.integer(forKey: "pkkl_weekly_goal")
+
+        // Decode pillar confidences from JSON
+        var pillarConfs: [String: Int]?
+        if let data = defaults.data(forKey: "pkkl_pillar_confidences"),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: data) {
+            pillarConfs = decoded
+        }
+
         return PlayerProfile(
             duprRange: defaults.string(forKey: "pkkl_dupr_range"),
             playStyle: defaults.string(forKey: "pkkl_play_style"),
@@ -27,7 +37,9 @@ struct PlayerProfile {
             experienceLevel: defaults.string(forKey: "pkkl_experience_level"),
             injuries: defaults.stringArray(forKey: "pkkl_injuries"),
             drillPreferences: defaults.stringArray(forKey: "pkkl_drill_preferences"),
-            drillBalance: defaults.string(forKey: "pkkl_drill_balance")
+            drillBalance: defaults.string(forKey: "pkkl_drill_balance"),
+            goalDUPR: defaults.string(forKey: "pkkl_goal_dupr"),
+            pillarConfidences: pillarConfs
         )
     }
 
@@ -50,6 +62,12 @@ struct PlayerProfile {
         if let drillBalance {
             dict["drill_balance"] = drillBalance
         }
+        if let goalDUPR {
+            dict["goal_dupr"] = goalDUPR
+        }
+        if let pillarConfidences, !pillarConfidences.isEmpty {
+            dict["pillar_confidences"] = pillarConfidences
+        }
         return dict
     }
 
@@ -59,5 +77,23 @@ struct PlayerProfile {
         gameFormat != nil &&
         primaryGoal != nil &&
         ageRange != nil
+    }
+
+    /// Whether the redesigned mastery engine has all required data.
+    /// Requires goalDUPR on top of the base profile.
+    var isMasteryReady: Bool {
+        isComplete && goalDUPR != nil
+    }
+
+    /// Save goal DUPR to UserDefaults.
+    static func saveGoalDUPR(_ value: String) {
+        UserDefaults.standard.set(value, forKey: "pkkl_goal_dupr")
+    }
+
+    /// Save pillar confidences to UserDefaults as JSON.
+    static func savePillarConfidences(_ confidences: [String: Int]) {
+        if let data = try? JSONEncoder().encode(confidences) {
+            UserDefaults.standard.set(data, forKey: "pkkl_pillar_confidences")
+        }
     }
 }

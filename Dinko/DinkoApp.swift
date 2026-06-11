@@ -7,6 +7,7 @@ struct DinkoApp: App {
     @State private var showPersistenceError = false
     @State private var showSplash = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var showGoalDUPRPrompt = false
 
     init() {
         SubscriptionService.shared.configure()
@@ -21,7 +22,13 @@ struct DinkoApp: App {
                     })
                 } else if authViewModel.isAuthenticated {
                     if hasCompletedOnboarding {
-                        ContentView()
+                        if showGoalDUPRPrompt {
+                            GoalDUPRPromptView {
+                                showGoalDUPRPrompt = false
+                            }
+                        } else {
+                            ContentView()
+                        }
                     } else {
                         OnboardingView {
                             hasCompletedOnboarding = true
@@ -44,6 +51,20 @@ struct DinkoApp: App {
                 }
                 await authViewModel.restoreSession()
                 await SubscriptionService.shared.refreshStatus()
+
+                // Run data migration for existing users
+                await DataMigrationService.runIfNeeded(
+                    persistence: PersistenceController.shared
+                )
+
+                // Show goal DUPR prompt for existing users who haven't set one
+                if hasCompletedOnboarding {
+                    let profile = PlayerProfile.current()
+                    if profile.goalDUPR == nil {
+                        showGoalDUPRPrompt = true
+                    }
+                }
+
                 if hasCompletedOnboarding {
                     NotificationManager.shared.checkAuthorizationStatus()
                     if !NotificationManager.shared.isAuthorized {

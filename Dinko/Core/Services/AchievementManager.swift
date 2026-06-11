@@ -11,17 +11,20 @@ enum AchievementManager {
         return Set(raw.compactMap { AchievementType(rawValue: $0) })
     }
 
-    /// Context needed to evaluate achievements — gathered from HomeViewModel / repositories
+    /// Context needed to evaluate achievements — gathered from TodayViewModel / repositories
     struct Context {
         let streakDays: Int
         let weeklyGoalMet: Bool
-        let totalActiveSkills: Int
-        let averageRating: Int
-        let completedSkillCount: Int
         let totalSessionsAllTime: Int
-        let weeklySkillMovers: [(delta: Int, currentRating: Int)]
-        let skillRatings: [Int] // all active skill ratings
-        let totalDrillsCompleted: Int
+        let skillsAtTarget: Int
+        let totalTrackableSkills: Int
+        let pillarsFullyAtTarget: Int      // number of pillars where all skills are at target
+        let pillarsWithAnyAtTarget: Int    // number of pillars with at least one skill at target
+        let goalDUPR: String?
+        let allSkillsAtTarget: Bool
+        let hasUnlockedSkill: Bool         // any previously locked skill now meets prereqs
+        let hasCompletedCycle: Bool        // completed Learn+Practice+Apply+Play for one skill
+        let bottleneckImprovedBy2: Bool    // improved a skill by 2+ in a week
     }
 
     /// Evaluate all achievement criteria. Returns newly unlocked achievements (empty if none).
@@ -37,33 +40,30 @@ enum AchievementManager {
         }
 
         // Consistency
-        check(.streak3,    condition: context.streakDays >= 3)
-        check(.streak7,    condition: context.streakDays >= 7)
-        check(.streak14,   condition: context.streakDays >= 14)
-        check(.streak30,   condition: context.streakDays >= 30)
-        check(.weeklyGoal, condition: context.weeklyGoalMet)
+        check(.firstSession,  condition: context.totalSessionsAllTime >= 1)
+        check(.threePeat,     condition: context.streakDays >= 3)
+        check(.perfectWeek,   condition: context.weeklyGoalMet)
+        check(.ironStreak,    condition: context.streakDays >= 14)
+        check(.unbreakable,   condition: context.streakDays >= 30)
 
-        // Progress
-        check(.firstSkill,      condition: context.totalActiveSkills >= 1)
-        check(.reachDeveloping,  condition: context.averageRating >= 21)
-        check(.reachSolid,       condition: context.averageRating >= 41)
-        check(.reachAdvanced,    condition: context.averageRating >= 61)
-        check(.reachWeapon,      condition: context.averageRating >= 81)
-        check(.skillMastered,    condition: context.completedSkillCount >= 1)
+        // Mastery
+        check(.firstCheckmark,     condition: context.skillsAtTarget >= 1)
+        check(.pillarComplete,     condition: context.pillarsFullyAtTarget >= 1)
+        check(.allAround,          condition: context.pillarsWithAnyAtTarget >= 3)
+        check(.bottleneckBreaker,  condition: context.bottleneckImprovedBy2)
+        check(.firstUnlock,        condition: context.hasUnlockedSkill)
+        check(.fullCycle,          condition: context.hasCompletedCycle)
 
-        // Volume
-        check(.session1,  condition: context.totalSessionsAllTime >= 1)
-        check(.session5,  condition: context.totalSessionsAllTime >= 5)
-        check(.session10, condition: context.totalSessionsAllTime >= 10)
-        check(.session25, condition: context.totalSessionsAllTime >= 25)
-        check(.session50, condition: context.totalSessionsAllTime >= 50)
-
-        // Improvement
-        check(.bigWeek, condition: context.weeklySkillMovers.contains { $0.delta >= 10 })
-        check(.firstDrill, condition: context.totalDrillsCompleted >= 1)
-
-        if !context.skillRatings.isEmpty && context.skillRatings.allSatisfy({ $0 > 50 }) {
-            check(.allAbove50, condition: true)
+        // Journey
+        if context.allSkillsAtTarget, let goal = context.goalDUPR {
+            check(.chapterComplete, condition: true)
+            switch goal {
+            case "3.5": check(.roadTo35, condition: true)
+            case "4.0": check(.roadTo40, condition: true)
+            case "4.5": check(.roadTo45, condition: true)
+            case "5.0": check(.roadTo50, condition: true)
+            default: break
+            }
         }
 
         // Persist

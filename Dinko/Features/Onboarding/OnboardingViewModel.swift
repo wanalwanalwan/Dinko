@@ -4,22 +4,46 @@ import Observation
 @MainActor
 @Observable
 final class OnboardingViewModel {
+    var goalDUPR: String?
     var duprRange: String?
     var playStyle: String?
     var gameFormat: String?
     var primaryGoal: String?
-    var ageRange: String?
     var trainingDaysPerWeek: Int?
     var practiceSetting: String?
     var experienceLevel: String?
     var injuries: Set<String> = []
     var drillBalance: String?
     var drillPreferences: Set<String> = []
+    var pillarConfidences: [SkillPillar: Double] = [
+        .consistency: 5, .transition: 4, .attack: 3, .movement: 4, .strategy: 3
+    ]
     var pendingFocusSkills: [PendingFocusSkill] = []
+    var isSeeding = false
 
-    func completeOnboarding() {
+    func completeOnboarding() async {
         persistPreferences()
         savePendingFocusSkills()
+
+        // Save goal DUPR
+        if let goal = goalDUPR {
+            PlayerProfile.saveGoalDUPR(goal)
+        }
+
+        // Save pillar confidences
+        var confidences: [String: Int] = [:]
+        for (pillar, value) in pillarConfidences {
+            confidences[pillar.rawValue] = Int(value)
+        }
+        PlayerProfile.savePillarConfidences(confidences)
+
+        // Seed canonical skills from pillar confidences
+        isSeeding = true
+        await DataMigrationService.seedCanonicalSkills(
+            pillarConfidences: confidences,
+            persistence: PersistenceController.shared
+        )
+        isSeeding = false
     }
 
     // MARK: - Private Helpers
@@ -43,9 +67,6 @@ final class OnboardingViewModel {
         }
         if let goal = primaryGoal {
             UserDefaults.standard.set(goal, forKey: "pkkl_primary_goal")
-        }
-        if let age = ageRange {
-            UserDefaults.standard.set(age, forKey: "pkkl_age_range")
         }
         if let days = trainingDaysPerWeek {
             UserDefaults.standard.set(days, forKey: "pkkl_weekly_goal")

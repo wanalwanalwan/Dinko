@@ -14,6 +14,8 @@ struct Skill: Identifiable, Hashable {
     var displayOrder: Int
     var autoCalculateRating: Bool
     var iconName: String
+    var pillar: SkillPillar
+    var canonicalId: String?
 
     init(
         id: UUID = UUID(),
@@ -28,7 +30,9 @@ struct Skill: Identifiable, Hashable {
         archivedDate: Date? = nil,
         displayOrder: Int = 0,
         autoCalculateRating: Bool = false,
-        iconName: String = "🥒"
+        iconName: String = "🥒",
+        pillar: SkillPillar? = nil,
+        canonicalId: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -43,5 +47,7 @@ struct Skill: Identifiable, Hashable {
         self.displayOrder = displayOrder
         self.autoCalculateRating = autoCalculateRating
         self.iconName = iconName
+        self.pillar = pillar ?? SkillPillar.from(category: category)
+        self.canonicalId = canonicalId
     }
 }

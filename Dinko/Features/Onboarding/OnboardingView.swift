@@ -11,25 +11,21 @@ struct OnboardingView: View {
     var onComplete: () -> Void
 
     private let totalSteps = 11
-    @State private var selectedSkills: [PendingFocusSkill] = []
-    @State private var customSkillInput = ""
-    @State private var showCustomInput = false
-    @State private var customSkillList: [SuggestedSkill] = []
 
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentStep) {
-                duprStep.tag(0)
-                playStyleStep.tag(1)
-                gameFormatStep.tag(2)
-                primaryGoalStep.tag(3)
-                frequencyStep.tag(4)
-                ageRangeStep.tag(5)
+                goalDUPRStep.tag(0)
+                duprStep.tag(1)
+                playStyleStep.tag(2)
+                gameFormatStep.tag(3)
+                primaryGoalStep.tag(4)
+                frequencyStep.tag(5)
                 practiceSettingStep.tag(6)
                 experienceLevelStep.tag(7)
                 injuriesStep.tag(8)
                 drillBalanceStep.tag(9)
-                focusSkillsStep.tag(10)
+                confidenceAssessmentStep.tag(10)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: currentStep)
@@ -51,6 +47,62 @@ struct OnboardingView: View {
                     .animation(.easeInOut(duration: 0.2), value: currentStep)
             }
         }
+    }
+
+    // MARK: - Step 0: Goal DUPR
+
+    private var goalDUPRStep: some View {
+        stepContainer(
+            title: "Set your goal",
+            subtitle: "What DUPR level are you working toward? We'll set benchmark targets for each skill."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                goalDUPRCard("3.0", subtitle: "Getting started", isSelected: viewModel.goalDUPR == "3.0") {
+                    viewModel.goalDUPR = "3.0"
+                    advanceAfterDelay()
+                }
+                goalDUPRCard("3.5", subtitle: "Solid recreational", isSelected: viewModel.goalDUPR == "3.5") {
+                    viewModel.goalDUPR = "3.5"
+                    advanceAfterDelay()
+                }
+                goalDUPRCard("4.0", subtitle: "Competitive club player", isSelected: viewModel.goalDUPR == "4.0") {
+                    viewModel.goalDUPR = "4.0"
+                    advanceAfterDelay()
+                }
+                goalDUPRCard("4.5", subtitle: "Advanced competitor", isSelected: viewModel.goalDUPR == "4.5") {
+                    viewModel.goalDUPR = "4.5"
+                    advanceAfterDelay()
+                }
+                goalDUPRCard("5.0", subtitle: "Elite level", isSelected: viewModel.goalDUPR == "5.0") {
+                    viewModel.goalDUPR = "5.0"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    private func goalDUPRCard(_ dupr: String, subtitle: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: AppSpacing.xs) {
+                Text(dupr)
+                    .font(AppTypography.statMedium)
+                    .foregroundStyle(isSelected ? .white : AppColors.primary)
+                VStack(alignment: .leading) {
+                    Text(subtitle)
+                        .font(AppTypography.cardBody)
+                        .foregroundStyle(isSelected ? .white.opacity(0.9) : AppColors.textSecondary)
+                }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.white)
+                }
+            }
+            .padding(AppSpacing.sm)
+            .background(isSelected ? AppColors.primary : AppColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMd))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Step 1: DUPR Connect + Range
@@ -322,31 +374,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 6: Age Range
-
-    private var ageRangeStep: some View {
-        stepContainer(
-            title: "What's your age range?",
-            subtitle: "We'll adjust drill intensity and recovery recommendations."
-        ) {
-            VStack(spacing: AppSpacing.xs) {
-                selectionCard("Under 30", icon: "hare.fill", isSelected: viewModel.ageRange == "Under 30") {
-                    viewModel.ageRange = "Under 30"
-                    advanceAfterDelay()
-                }
-                selectionCard("30-50", icon: "figure.walk", isSelected: viewModel.ageRange == "30-50") {
-                    viewModel.ageRange = "30-50"
-                    advanceAfterDelay()
-                }
-                selectionCard("50+", icon: "figure.and.child.holdinghands", isSelected: viewModel.ageRange == "50+") {
-                    viewModel.ageRange = "50+"
-                    advanceAfterDelay()
-                }
-            }
-        }
-    }
-
-    // MARK: - Step 7: Practice Setting
+    // MARK: - Step 6: Practice Setting
 
     private var practiceSettingStep: some View {
         stepContainer(
@@ -571,214 +599,68 @@ struct OnboardingView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Actions
+    // MARK: - Step 10: Confidence Assessment
 
-    // MARK: - Step 11: Focus Skills
-
-    private var focusSkillsStep: some View {
+    private var confidenceAssessmentStep: some View {
         stepContainer(
-            title: "What skills do you want to work on?",
-            subtitle: "Pick up to 3 in the order you want to tackle them. You can always change this later."
+            title: "Rate your confidence",
+            subtitle: "How confident are you in each area? (1 = beginner, 10 = advanced)"
         ) {
             VStack(spacing: AppSpacing.sm) {
-                // Selected preview
-                if !selectedSkills.isEmpty {
-                    HStack(spacing: AppSpacing.xs) {
-                        ForEach(selectedSkills) { skill in
-                            HStack(spacing: 5) {
-                                Text("\(skill.priorityIndex + 1)")
-                                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 18, height: 18)
-                                    .background(AppColors.primary)
-                                    .clipShape(Circle())
-                                Text(skill.icon)
-                                    .font(.system(size: 14))
-                                Text(skill.name)
-                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                VStack(spacing: AppSpacing.sm) {
+                    ForEach(SkillPillar.allCases) { pillar in
+                        VStack(spacing: AppSpacing.xxxs) {
+                            HStack {
+                                Text(pillar.iconName)
+                                    .font(.title3)
+                                Text(pillar.displayName)
+                                    .font(AppTypography.cardTitle)
                                     .foregroundStyle(AppColors.textPrimary)
-                                    .lineLimit(1)
+                                Spacer()
+                                Text("\(Int(viewModel.pillarConfidences[pillar] ?? 5))")
+                                    .font(AppTypography.statMedium)
+                                    .foregroundStyle(AppColors.primary)
+                                    .frame(width: 30)
                             }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 5)
-                            .background(AppColors.primary.opacity(0.1))
-                            .clipShape(Capsule())
-                        }
-                        Spacer()
-                    }
-                    .padding(.horizontal, AppSpacing.xxs)
-                }
 
-                // Skill grid
-                let allSuggested = Self.suggestedSkills + customSkillList
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: AppSpacing.xxs) {
-                    ForEach(allSuggested) { skill in
-                        skillChip(skill)
+                            Slider(
+                                value: Binding(
+                                    get: { viewModel.pillarConfidences[pillar] ?? 5 },
+                                    set: { viewModel.pillarConfidences[pillar] = $0 }
+                                ),
+                                in: 1...10,
+                                step: 1
+                            )
+                            .tint(AppColors.primary)
+                        }
                     }
                 }
+                .padding(AppSpacing.sm)
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMd))
 
-                // Add your own
-                if showCustomInput {
-                    HStack(spacing: AppSpacing.xxs) {
-                        TextField("Skill name...", text: $customSkillInput)
-                            .font(.system(size: 14, design: .rounded))
-                            .padding(.horizontal, AppSpacing.xs)
-                            .padding(.vertical, AppSpacing.xxs)
-                            .background(AppColors.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .autocorrectionDisabled()
-
-                        Button {
-                            let trimmed = customSkillInput.trimmingCharacters(in: .whitespacesAndNewlines)
-                            guard !trimmed.isEmpty else { showCustomInput = false; return }
-                            let custom = SuggestedSkill(name: trimmed, icon: "✨", categoryRaw: "offense")
-                            customSkillList.append(custom)
-                            customSkillInput = ""
-                            showCustomInput = false
-                            toggleSkillSelection(custom)
-                        } label: {
-                            Text("Add")
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 7)
-                                .background(AppColors.primary)
-                                .clipShape(Capsule())
-                        }
-
-                        Button { showCustomInput = false; customSkillInput = "" } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                    }
-                    .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
-                } else {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) { showCustomInput = true }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "plus.circle")
-                                .font(.system(size: 14))
-                            Text("Add your own skill")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                        }
-                        .foregroundStyle(AppColors.primary)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                // Continue / Skip
-                HStack(spacing: AppSpacing.xs) {
-                    if !selectedSkills.isEmpty {
-                        Button { completeOnboarding() } label: {
-                            Text("Continue")
-                                .font(AppTypography.headline)
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppSpacing.sm)
-                                .background(AppColors.primary)
-                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(isCompleting)
-                    }
-
-                    Button { completeOnboarding() } label: {
-                        Text("Skip")
-                            .font(AppTypography.headline)
-                            .foregroundStyle(AppColors.textSecondary)
-                            .frame(maxWidth: selectedSkills.isEmpty ? .infinity : nil)
+                Button {
+                    completeOnboarding()
+                } label: {
+                    if isCompleting {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
                             .padding(.vertical, AppSpacing.sm)
-                            .padding(.horizontal, selectedSkills.isEmpty ? 0 : AppSpacing.lg)
-                            .background(AppColors.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isCompleting)
-                }
-                .padding(.top, AppSpacing.xxs)
-
-                if isCompleting { ProgressView().padding(.top, AppSpacing.xxs) }
-            }
-        }
-    }
-
-    private func skillChip(_ skill: SuggestedSkill) -> some View {
-        let selectedIndex = selectedSkills.firstIndex(where: { $0.name == skill.name })
-        let isSelected = selectedIndex != nil
-
-        return Button { toggleSkillSelection(skill) } label: {
-            VStack(spacing: 4) {
-                ZStack(alignment: .topTrailing) {
-                    Text(skill.icon)
-                        .font(.system(size: 22))
-                    if let idx = selectedIndex {
-                        Text("\(idx + 1)")
-                            .font(.system(size: 10, weight: .bold))
+                    } else {
+                        Text("Get Started")
+                            .font(AppTypography.headline)
                             .foregroundStyle(.white)
-                            .frame(width: 16, height: 16)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppSpacing.sm)
                             .background(AppColors.primary)
-                            .clipShape(Circle())
-                            .offset(x: 6, y: -4)
+                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMd))
                     }
                 }
-                Text(skill.name)
-                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .rounded))
-                    .foregroundStyle(isSelected ? AppColors.primary : AppColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
+                .buttonStyle(.plain)
+                .disabled(isCompleting)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, AppSpacing.xs)
-            .background(isSelected ? AppColors.primary.opacity(0.1) : AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(isSelected ? AppColors.primary : Color.clear, lineWidth: 1.5)
-            )
-        }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.15), value: isSelected)
-    }
-
-    private func toggleSkillSelection(_ skill: SuggestedSkill) {
-        if let idx = selectedSkills.firstIndex(where: { $0.name == skill.name }) {
-            selectedSkills.remove(at: idx)
-            // Re-index remaining skills
-            for i in selectedSkills.indices {
-                selectedSkills[i].priorityIndex = i
-            }
-        } else {
-            guard selectedSkills.count < 3 else { return }
-            let pending = PendingFocusSkill(
-                name: skill.name,
-                icon: skill.icon,
-                categoryRaw: skill.categoryRaw,
-                priorityIndex: selectedSkills.count
-            )
-            selectedSkills.append(pending)
         }
     }
-
-    static let suggestedSkills: [SuggestedSkill] = [
-        SuggestedSkill(name: "Dinking",          icon: "🥒", categoryRaw: "dinking"),
-        SuggestedSkill(name: "3rd Shot Drop",    icon: "⬇️", categoryRaw: "drops"),
-        SuggestedSkill(name: "Reset",            icon: "🔄", categoryRaw: "defense"),
-        SuggestedSkill(name: "Drive",            icon: "🚀", categoryRaw: "drives"),
-        SuggestedSkill(name: "Serve",            icon: "🎯", categoryRaw: "serves"),
-        SuggestedSkill(name: "Return of Serve",  icon: "↩️", categoryRaw: "strategy"),
-        SuggestedSkill(name: "Speed-Up",         icon: "⚡", categoryRaw: "offense"),
-        SuggestedSkill(name: "Volley",           icon: "🤚", categoryRaw: "offense"),
-        SuggestedSkill(name: "Overhead",         icon: "💥", categoryRaw: "offense"),
-        SuggestedSkill(name: "Lob",              icon: "🪂", categoryRaw: "offense"),
-        SuggestedSkill(name: "Block",            icon: "🛡️", categoryRaw: "defense"),
-        SuggestedSkill(name: "Footwork",         icon: "👟", categoryRaw: "drives"),
-        SuggestedSkill(name: "Court Position",   icon: "📍", categoryRaw: "strategy"),
-        SuggestedSkill(name: "Stacking",         icon: "♟️", categoryRaw: "strategy"),
-        SuggestedSkill(name: "Erne",             icon: "✈️", categoryRaw: "offense"),
-    ]
 
     // MARK: - Actions
 
@@ -792,9 +674,10 @@ struct OnboardingView: View {
         guard !isCompleting else { return }
         isCompleting = true
 
-        viewModel.pendingFocusSkills = selectedSkills
-        viewModel.completeOnboarding()
-        onComplete()
+        Task {
+            await viewModel.completeOnboarding()
+            onComplete()
+        }
     }
 }
 

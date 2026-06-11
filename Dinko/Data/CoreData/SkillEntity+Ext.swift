@@ -10,12 +10,20 @@ extension SkillEntity {
             resolvedStatus = SkillStatus(rawValue: status ?? "active") ?? .active
         }
 
+        let resolvedCategory = SkillCategory(rawValue: category ?? "dinking") ?? .dinking
+        let resolvedPillar: SkillPillar
+        if let pillarRaw = pillar, let p = SkillPillar(rawValue: pillarRaw) {
+            resolvedPillar = p
+        } else {
+            resolvedPillar = SkillPillar.from(category: resolvedCategory)
+        }
+
         return Skill(
             id: id ?? UUID(),
             name: name ?? "",
             parentSkillId: parentSkillId,
             hierarchyLevel: Int(hierarchyLevel),
-            category: SkillCategory(rawValue: category ?? "dinking") ?? .dinking,
+            category: resolvedCategory,
             description: descriptionText ?? "",
             createdDate: createdDate ?? Date(),
             updatedAt: updatedAt ?? Date(),
@@ -23,7 +31,9 @@ extension SkillEntity {
             archivedDate: archivedDate,
             displayOrder: Int(displayOrder),
             autoCalculateRating: autoCalculateRating,
-            iconName: (SkillCategory(rawValue: category ?? "dinking") ?? .dinking).iconName
+            iconName: resolvedCategory.iconName,
+            pillar: resolvedPillar,
+            canonicalId: canonicalId
         )
     }
 
@@ -41,5 +51,7 @@ extension SkillEntity {
         displayOrder = Int16(skill.displayOrder)
         autoCalculateRating = skill.autoCalculateRating
         iconName = skill.iconName
+        pillar = skill.pillar.rawValue
+        canonicalId = skill.canonicalId
     }
 }

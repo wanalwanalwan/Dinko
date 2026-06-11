@@ -15,7 +15,7 @@ struct SessionTypeSheet: View {
                 .foregroundStyle(AppColors.textPrimary)
 
             HStack(spacing: AppSpacing.sm) {
-                ForEach(SessionType.allCases) { type in
+                ForEach(SessionType.loggableTypes) { type in
                     SessionTypeCard(type: type) {
                         onSelectType(type)
                     }

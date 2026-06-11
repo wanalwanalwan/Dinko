@@ -17,11 +17,17 @@ final class LogSessionViewModel {
     var completedDrillIds: Set<UUID> = []
     var isQuickMode: Bool = false
 
+    // Post-session check-in
+    var focusSkillId: UUID?
+    var focusSkillName: String?
+    var showPostCheckIn: Bool = false
+
     private let skillRepository: SkillRepository
     private let sessionRepository: SessionRepository
     private let journalEntryRepository: JournalEntryRepository
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
+    private let confidenceEntryRepository: ConfidenceEntryRepository
 
     var canSave: Bool {
         !isSaving
@@ -40,13 +46,15 @@ final class LogSessionViewModel {
         sessionRepository: SessionRepository,
         journalEntryRepository: JournalEntryRepository,
         skillRatingRepository: SkillRatingRepository,
-        drillRepository: DrillRepository
+        drillRepository: DrillRepository,
+        confidenceEntryRepository: ConfidenceEntryRepository
     ) {
         self.skillRepository = skillRepository
         self.sessionRepository = sessionRepository
         self.journalEntryRepository = journalEntryRepository
         self.skillRatingRepository = skillRatingRepository
         self.drillRepository = drillRepository
+        self.confidenceEntryRepository = confidenceEntryRepository
     }
 
     func loadSkills() async {
@@ -185,12 +193,72 @@ final class LogSessionViewModel {
                 try await drillRepository.updateStatus(drillId, status: .completed)
             }
 
-            saveSucceeded = true
+            // Award XP for session
+            XPManager.awardForSession(type: sessionType)
+
+            // Show post-session check-in if focus skill is set
+            if focusSkillId != nil {
+                showPostCheckIn = true
+            } else {
+                saveSucceeded = true
+            }
         } catch {
             errorMessage = "Failed to save session. Please try again."
         }
 
         isSaving = false
+    }
+
+    /// Post-session check-in response.
+    enum CheckInResponse: String {
+        case struggling   // -1
+        case improving    // 0 (no change, just log)
+        case comfortable  // +1
+        case confident    // +2
+        case skip         // no entry
+
+        var confidenceAdjustment: Int {
+            switch self {
+            case .struggling: return -1
+            case .improving: return 0
+            case .comfortable: return 1
+            case .confident: return 2
+            case .skip: return 0
+            }
+        }
+    }
+
+    func handleCheckIn(_ response: CheckInResponse) async {
+        guard let skillId = focusSkillId, response != .skip else {
+            saveSucceeded = true
+            return
+        }
+
+        do {
+            // Get current confidence
+            let currentConf: Int
+            if let latest = try await confidenceEntryRepository.fetchLatest(skillId) {
+                currentConf = latest.confidence
+            } else {
+                currentConf = 1
+            }
+
+            let newConf = min(max(currentConf + response.confidenceAdjustment, 1), 10)
+
+            let entry = ConfidenceEntry(
+                skillId: skillId,
+                confidence: newConf,
+                source: .checkIn
+            )
+            try await confidenceEntryRepository.save(entry)
+            XPManager.award(.checkIn)
+        } catch {
+            #if DEBUG
+            print("LogSessionViewModel.handleCheckIn error: \(error)")
+            #endif
+        }
+
+        saveSucceeded = true
     }
 
     func reset() {
@@ -204,5 +272,6 @@ final class LogSessionViewModel {
         isSaving = false
         errorMessage = nil
         saveSucceeded = false
+        showPostCheckIn = false
     }
 }

@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 @Observable
 final class ProfileViewModel {
+    var goalDUPR: String?
     var duprRange: String?
     var playStyle: String?
     var gameFormat: String?
@@ -21,6 +22,7 @@ final class ProfileViewModel {
     }
 
     func loadFromDefaults() {
+        goalDUPR = defaults.string(forKey: "pkkl_goal_dupr")
         duprRange = defaults.string(forKey: "pkkl_dupr_range")
         playStyle = defaults.string(forKey: "pkkl_play_style")
         gameFormat = defaults.string(forKey: "pkkl_game_format")
