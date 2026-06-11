@@ -167,7 +167,7 @@ final class SkillDetailViewModel {
             for canonical in allCanonicals {
                 let prereqs = SkillPrerequisite.prerequisites(for: canonical.id)
                 for prereq in prereqs {
-                    if prereq.requiredCanonicalId == skill.canonicalId {
+                    if prereq.requiredSkillCanonicalId == skill.canonicalId {
                         prereqFor.append(canonical.name)
                     }
                 }

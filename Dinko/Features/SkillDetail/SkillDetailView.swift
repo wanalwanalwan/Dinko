@@ -229,8 +229,8 @@ struct SkillDetailView: View {
                     .foregroundStyle(AppColors.textPrimary)
             }
 
-            ForEach(viewModel.unmetPrereqs, id: \.requiredCanonicalId) { prereq in
-                if let canonical = CanonicalSkill.find(prereq.requiredCanonicalId) {
+            ForEach(viewModel.unmetPrereqs, id: \.requiredSkillCanonicalId) { prereq in
+                if let canonical = CanonicalSkill.find(prereq.requiredSkillCanonicalId) {
                     HStack(spacing: 4) {
                         Image(systemName: "circle")
                             .font(.system(size: 8))
