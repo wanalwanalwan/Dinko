@@ -786,12 +786,16 @@ struct HomeView: View {
                     .font(.system(size: 14, weight: day.isToday ? .semibold : .regular, design: .rounded))
                     .foregroundStyle(day.isToday ? AppColors.primary : isPast ? AppColors.textSecondary : AppColors.textPrimary)
                 if day.isPracticeDay {
-                    Text(day.suggestedType)
+                    let dayIndex = Calendar.current.component(.weekday, from: day.date)
+                    let mondayIndex = (dayIndex + 5) % 7
+                    let sessionLabel = viewModel.sessionTitle(forDayIndex: mondayIndex) ?? day.suggestedType
+                    Text(sessionLabel)
                         .font(.system(size: 10, weight: .bold, design: .rounded))
                         .foregroundStyle(isGame ? AppColors.coral : AppColors.primary)
                         .padding(.horizontal, 7).padding(.vertical, 3)
                         .background((isGame ? AppColors.coral : AppColors.primary).opacity(0.1))
                         .clipShape(Capsule())
+                        .lineLimit(1)
                 }
                 if day.isToday {
                     Text("Today")
@@ -2199,11 +2203,11 @@ struct HomeView: View {
 
     @ViewBuilder
     private func todayCard(_ viewModel: HomeViewModel) -> some View {
-        if let program = viewModel.activeProgram, program.status == .active {
-            // State 1: Active Program Session Available
+        if let session = viewModel.todayProgramSession, let program = viewModel.activeProgram {
+            // State 1: Today has an active program session — hero card with drill preview
             VStack(spacing: 0) {
                 HStack {
-                    Text("CURRENT TRAINING")
+                    Text("TODAY'S SESSION")
                         .font(AppTypography.sectionLabel)
                         .tracking(0.8)
                         .foregroundStyle(AppColors.textSecondary)
@@ -2233,6 +2237,203 @@ struct HomeView: View {
                 Divider().padding(.horizontal, AppSpacing.sm)
 
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(session.title)
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    HStack(spacing: 12) {
+                        Label("\(session.estimatedMinutes) min", systemImage: "clock")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                        if viewModel.todayDrillCount > 0 {
+                            Label("\(viewModel.todayDrillCount) drills", systemImage: "list.bullet")
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+
+                    // Drill preview list
+                    if !viewModel.todayProgramDrills.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(viewModel.todayProgramDrills.prefix(4)) { drill in
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .stroke(AppColors.textSecondary.opacity(0.3), lineWidth: 1.5)
+                                        .frame(width: 14, height: 14)
+                                    Text(drill.name)
+                                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                                        .foregroundStyle(AppColors.textPrimary)
+                                        .lineLimit(1)
+                                }
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+
+                    NavigationLink(value: session) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 11))
+                            Text("Start Session")
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            LinearGradient(
+                                colors: [AppColors.successGreen, AppColors.successGreen.opacity(0.85)],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: AppColors.successGreen.opacity(0.3), radius: 6, y: 3)
+                    }
+                    .buttonStyle(.pressable)
+                    .padding(.top, 4)
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if let completedSession = viewModel.todayProgramSessionCompleted, let program = viewModel.activeProgram, program.status == .active {
+            // State 2: Today's program session already completed
+            VStack(spacing: 0) {
+                HStack {
+                    HStack(spacing: 6) {
+                        Text("TODAY'S SESSION")
+                            .font(AppTypography.sectionLabel)
+                            .tracking(0.8)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(AppColors.successGreen)
+                    }
+                    Spacer()
+                    Text("Week \(program.currentWeek)/\(program.totalWeeks)")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(AppColors.primary.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(AppColors.successGreen)
+                        Text("\(completedSession.title) complete!")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                    }
+
+                    if let next = viewModel.nextScheduledSession {
+                        Text("Next up: \(next.dayName) \u{2014} \(next.session.title)")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    Button {
+                        selectedTab = 2
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Rate Skills")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundStyle(AppColors.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if let program = viewModel.activeProgram, program.status == .active, !viewModel.isTodayPracticeDay {
+            // State 3: Rest day with active program
+            VStack(spacing: 0) {
+                HStack {
+                    HStack(spacing: 6) {
+                        Text("TODAY")
+                            .font(AppTypography.sectionLabel)
+                            .tracking(0.8)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Text("Recovery Day")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                        Image(systemName: "moon.zzz")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppColors.textSecondary.opacity(0.6))
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Rest is part of the process.")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    if let next = viewModel.nextScheduledSession {
+                        Text("Next up: \(next.dayName) \u{2014} \(next.session.title)")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    } else if let nextDay = viewModel.nextPracticeDay {
+                        Text("Next session: \(nextDay)")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    Button {
+                        selectedTab = 4
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Review Progress")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundStyle(AppColors.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(AppSpacing.sm)
+            }
+            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if let program = viewModel.activeProgram, program.status == .active {
+            // State 4: Active program, current session fallback (no day mapping)
+            VStack(spacing: 0) {
+                HStack {
+                    Text("CURRENT TRAINING")
+                        .font(AppTypography.sectionLabel)
+                        .tracking(0.8)
+                        .foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                    Text("Week \(program.currentWeek)/\(program.totalWeeks)")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(AppColors.primary.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.xs)
+
+                Divider().padding(.horizontal, AppSpacing.sm)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     Text(viewModel.currentProgramSession?.title ?? program.name)
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
@@ -2247,32 +2448,44 @@ struct HomeView: View {
                                 .font(.system(size: 12, design: .rounded))
                                 .foregroundStyle(AppColors.textSecondary)
                         }
-                    }
 
-                    Button {
-                        selectedTab = 3
-                    } label: {
-                        Text("Continue")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(
-                                LinearGradient(
-                                    colors: [AppColors.successGreen, AppColors.successGreen.opacity(0.85)],
-                                    startPoint: .top, endPoint: .bottom
+                        NavigationLink(value: session) {
+                            Text("Continue")
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    LinearGradient(
+                                        colors: [AppColors.successGreen, AppColors.successGreen.opacity(0.85)],
+                                        startPoint: .top, endPoint: .bottom
+                                    )
                                 )
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .shadow(color: AppColors.successGreen.opacity(0.3), radius: 6, y: 3)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .shadow(color: AppColors.successGreen.opacity(0.3), radius: 6, y: 3)
+                        }
+                        .buttonStyle(.pressable)
+                    } else {
+                        Button {
+                            selectedTab = 3
+                        } label: {
+                            Text("View Program")
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(AppColors.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .shadow(color: AppColors.primary.opacity(0.25), radius: 6, y: 3)
+                        }
+                        .buttonStyle(.pressable)
                     }
-                    .buttonStyle(.pressable)
                 }
                 .padding(AppSpacing.sm)
             }
             .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         } else if let drill = viewModel.topDrill, !viewModel.skillsWithRatings.isEmpty {
-            // State 2: No Program, Has Top Drill
+            // State 5: No Program, Has Top Drill
             VStack(spacing: 0) {
                 HStack {
                     Text("NEXT DRILL")
@@ -2331,7 +2544,7 @@ struct HomeView: View {
             }
             .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         } else if viewModel.todayHasSession {
-            // State 4: Session Already Logged Today
+            // State 6: Session Already Logged Today (no active program)
             VStack(spacing: 0) {
                 HStack {
                     HStack(spacing: 6) {
@@ -2403,7 +2616,7 @@ struct HomeView: View {
             }
             .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         } else if !viewModel.isTodayPracticeDay {
-            // State 5: Rest Day
+            // State 7: Rest Day (no active program)
             VStack(spacing: 0) {
                 HStack {
                     HStack(spacing: 6) {
@@ -2454,7 +2667,7 @@ struct HomeView: View {
             }
             .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         } else {
-            // State 3: Practice Day, No Session Logged Today
+            // State 8: Practice Day, No Session Logged Today, No Active Program
             VStack(spacing: 0) {
                 HStack {
                     Text("TODAY")

@@ -19,6 +19,13 @@ struct ContentView: View {
                             selectedSessionDate = Date()
                             showSessionForm = true
                         }, refreshID: homeRefreshID)
+                    .navigationDestination(for: ProgramSession.self) { session in
+                        ProgramSessionDetailView(
+                            session: session,
+                            programRepository: dependencies.programRepository,
+                            onSessionComplete: { homeRefreshID = UUID() }
+                        )
+                    }
             }
             .tag(0)
 

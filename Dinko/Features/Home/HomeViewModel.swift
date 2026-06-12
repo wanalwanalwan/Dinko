@@ -256,6 +256,57 @@ final class HomeViewModel {
         return min(100, Int(consistencyTotal + momentumTotal + engageTotal + focusTotal))
     }
 
+    // MARK: - Today's Program Session
+
+    var todayProgramSession: ProgramSession? {
+        guard let program = activeProgram, program.status == .active else { return nil }
+        let calendar = Calendar.current
+        let todayDayIndex = (calendar.component(.weekday, from: Date()) + 5) % 7  // 0=Mon
+        return allProgramSessions
+            .first(where: { $0.weekNumber == program.currentWeek
+                            && $0.scheduledDayOfWeek == todayDayIndex
+                            && $0.status != .completed })
+    }
+
+    var todayProgramSessionCompleted: ProgramSession? {
+        guard let program = activeProgram, program.status == .active else { return nil }
+        let calendar = Calendar.current
+        let todayDayIndex = (calendar.component(.weekday, from: Date()) + 5) % 7
+        return allProgramSessions
+            .first(where: { $0.weekNumber == program.currentWeek
+                            && $0.scheduledDayOfWeek == todayDayIndex
+                            && $0.status == .completed })
+    }
+
+    var nextScheduledSession: (session: ProgramSession, dayName: String)? {
+        let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        let calendar = Calendar.current
+        let todayIndex = (calendar.component(.weekday, from: Date()) + 5) % 7
+
+        for session in allProgramSessions where session.status != .completed {
+            if let dow = session.scheduledDayOfWeek {
+                if session.weekNumber == activeProgram?.currentWeek && dow > todayIndex {
+                    return (session, dayNames[dow])
+                }
+                if session.weekNumber > (activeProgram?.currentWeek ?? 0) {
+                    return (session, dayNames[dow])
+                }
+            }
+        }
+        return nil
+    }
+
+    func sessionTitle(forDayIndex dayIndex: Int) -> String? {
+        guard let program = activeProgram else { return nil }
+        return allProgramSessions
+            .first(where: { $0.weekNumber == program.currentWeek && $0.scheduledDayOfWeek == dayIndex })?
+            .title
+    }
+
+    var todayDrillCount: Int {
+        todayProgramDrills.count
+    }
+
     private(set) var scheduledDays: [WeekScheduleDay] = []
     private(set) var weekDayDetails: [Date: DaySessionInfo] = [:]
 
@@ -321,6 +372,8 @@ final class HomeViewModel {
     // Program state for home card
     private(set) var activeProgram: Program?
     private(set) var currentProgramSession: ProgramSession?
+    private(set) var allProgramSessions: [ProgramSession] = []
+    private(set) var todayProgramDrills: [ProgramDrill] = []
 
     // Cached data for time range switching
     private var cachedSkills: [Skill] = []
@@ -1477,14 +1530,25 @@ final class HomeViewModel {
         do {
             activeProgram = try await programRepository.fetchActive()
             if let program = activeProgram {
-                let sessions = try await programRepository.fetchSessions(for: program.id)
-                currentProgramSession = sessions.first { $0.status == .available }
+                allProgramSessions = try await programRepository.fetchSessions(for: program.id)
+                currentProgramSession = allProgramSessions.first { $0.status == .available }
+
+                // Load drills for today's session
+                if let todaySession = todayProgramSession {
+                    todayProgramDrills = try await programRepository.fetchDrills(for: todaySession.id)
+                } else {
+                    todayProgramDrills = []
+                }
             } else {
+                allProgramSessions = []
                 currentProgramSession = nil
+                todayProgramDrills = []
             }
         } catch {
             activeProgram = nil
+            allProgramSessions = []
             currentProgramSession = nil
+            todayProgramDrills = []
         }
     }
 

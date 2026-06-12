@@ -106,6 +106,7 @@
         <attribute name="focus" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="programId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="scheduledDayOfWeek" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="sessionNumber" attributeType="Integer 16" defaultValueString="1" usesScalarValueType="YES"/>
         <attribute name="status" attributeType="String" defaultValueString="locked"/>
         <attribute name="syncStatus" attributeType="String" defaultValueString="pending"/>

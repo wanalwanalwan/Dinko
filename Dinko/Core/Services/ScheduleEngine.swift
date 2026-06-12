@@ -45,27 +45,6 @@ enum ScheduleEngine {
             catalog: catalog
         )
 
-        // Build 4 weeks of drill selections with weekly progression
-        var allWeekDrills: [[SelectedDrill]] = []
-        for week in 1...4 {
-            var weekDrills: [SelectedDrill] = []
-            for entry in skillScores {
-                let weekMinutes = (minuteBudgets[entry.skillId] ?? 0) / 4
-                guard weekMinutes > 0 else { continue }
-                let selected = selectDrills(
-                    forCategory: entry.categoryRaw,
-                    minuteBudget: weekMinutes,
-                    week: week,
-                    profile: profile,
-                    catalog: catalog,
-                    struggleAreas: profile.struggleAreas ?? [],
-                    skillName: entry.skillName
-                )
-                weekDrills.append(contentsOf: selected)
-            }
-            allWeekDrills.append(weekDrills)
-        }
-
         // Assemble sessions
         let programId = UUID()
         var sessions: [ProgramSession] = []
@@ -74,31 +53,48 @@ enum ScheduleEngine {
 
         let sortedDayTypes = input.availableDayTypes.sorted { $0.key < $1.key }
 
+        // Identify drill days sorted by day index for skill rotation
+        let drillDayIndices = sortedDayTypes.filter { $0.value == "Drill" }.map(\.key)
+
         for week in 1...4 {
-            let weekDrills = allWeekDrills[week - 1]
-            var drillQueue = weekDrills
             let topFocusCategory = skillScores.first?.categoryRaw ?? "dinking"
             let topFocusName = skillScores.first?.skillName ?? "General"
             let topStruggle = (profile.struggleAreas ?? []).first ?? "Execution"
+
+            // Build per-day drill selections: each drill day gets a primary focus skill
+            var drillDaySelections: [Int: [SelectedDrill]] = [:]
+            for (drillDayOffset, dayIdx) in drillDayIndices.enumerated() {
+                let primarySkill = skillScores[drillDayOffset % skillScores.count]
+                let weekMinutes = (minuteBudgets[primarySkill.skillId] ?? 0) / 4
+                guard weekMinutes > 0 else { continue }
+                let selected = selectDrills(
+                    forCategory: primarySkill.categoryRaw,
+                    minuteBudget: max(weekMinutes, sessionDuration),
+                    week: week,
+                    profile: profile,
+                    catalog: catalog,
+                    struggleAreas: profile.struggleAreas ?? [],
+                    skillName: primarySkill.skillName
+                )
+                drillDaySelections[dayIdx] = selected
+            }
 
             for (dayIndex, dayType) in sortedDayTypes {
                 guard dayType != "Rest" else { continue }
                 sessionCounter += 1
 
                 if dayType == "Drill" {
-                    // Distribute drills across drill-day sessions
-                    let drillsPerSession = max(1, drillQueue.count / max(1, drillDays))
-                    let taken = Array(drillQueue.prefix(drillsPerSession))
-                    drillQueue = Array(drillQueue.dropFirst(taken.count))
+                    let taken = drillDaySelections[dayIndex] ?? []
 
                     let focusLabel = taken.first?.skillName ?? topFocusName
                     let session = ProgramSession(
                         programId: programId,
                         weekNumber: week,
                         sessionNumber: sessionCounter,
-                        title: "Week \(week) — \(focusLabel) Focus",
-                        focus: "\(focusLabel) drills",
+                        title: "\(focusLabel) Day",
+                        focus: taken.prefix(3).map(\.name).joined(separator: ", "),
                         estimatedMinutes: min(sessionDuration, taken.reduce(0) { $0 + $1.durationMinutes }),
+                        scheduledDayOfWeek: dayIndex,
                         status: sessions.isEmpty ? .available : .locked
                     )
                     sessions.append(session)
@@ -132,9 +128,10 @@ enum ScheduleEngine {
                         programId: programId,
                         weekNumber: week,
                         sessionNumber: sessionCounter,
-                        title: "Week \(week) — Game Day",
+                        title: "Game Day",
                         focus: "Game play with \(topFocusName.lowercased()) focus",
                         estimatedMinutes: sessionDuration,
+                        scheduledDayOfWeek: dayIndex,
                         status: sessions.isEmpty ? .available : .locked
                     )
                     sessions.append(session)
@@ -165,8 +162,6 @@ enum ScheduleEngine {
                     drillsMap[session.id] = gameDrills
                 }
             }
-
-            // Reset session counter per week is not needed — sessionNumber is global
         }
 
         // Flush any remaining drill queue drills into the last drill session
