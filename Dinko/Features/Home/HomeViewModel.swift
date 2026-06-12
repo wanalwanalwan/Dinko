@@ -460,18 +460,19 @@ final class HomeViewModel {
         let allSessions = (try? await sessionRepository.fetchAll()) ?? []
         totalSessionsAllTime = allSessions.count
 
-        let drillsCompleted = UserDefaults.standard.integer(forKey: "pkkl_total_drills_completed")
-
         let context = AchievementManager.Context(
             streakDays: streakDays,
             weeklyGoalMet: thisWeekSessionCount >= weeklySessionGoal,
-            totalActiveSkills: totalActiveSkills,
-            averageRating: averageRating,
-            completedSkillCount: completedSkills.count,
             totalSessionsAllTime: allSessions.count,
-            weeklySkillMovers: weeklySkillMovers.map { (delta: $0.delta, currentRating: $0.currentRating) },
-            skillRatings: skillsWithRatings.map(\.rating),
-            totalDrillsCompleted: drillsCompleted
+            skillsAtTarget: 0,
+            totalTrackableSkills: totalActiveSkills,
+            pillarsFullyAtTarget: 0,
+            pillarsWithAnyAtTarget: 0,
+            goalDUPR: PlayerProfile.current().goalDUPR,
+            allSkillsAtTarget: false,
+            hasUnlockedSkill: false,
+            hasCompletedCycle: false,
+            bottleneckImprovedBy2: false
         )
 
         newlyUnlockedAchievements = AchievementManager.evaluate(context: context)
