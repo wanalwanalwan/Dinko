@@ -96,6 +96,7 @@ struct WeekScheduleDay: Identifiable {
     let isFuture: Bool
     let hasLoggedSession: Bool
     let sessionCount: Int
+    let suggestedType: String  // "Drill", "Game", or "Rest"
 }
 
 // MARK: - ViewModel
@@ -992,8 +993,14 @@ final class HomeViewModel {
         cachedSessions = sessions
         let calendar = Calendar.current
 
-        let savedGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
-        let weeklyGoal = savedGoal > 0 ? savedGoal : 3
+        let profile = PlayerProfile.current()
+        let weeklyGoal: Int
+        if let available = profile.availableDays, !available.isEmpty {
+            weeklyGoal = available.count
+        } else {
+            let savedGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
+            weeklyGoal = savedGoal > 0 ? savedGoal : 3
+        }
         weeklySessionGoal = weeklyGoal
 
         var activityDates: Set<Date> = []
@@ -1201,16 +1208,21 @@ final class HomeViewModel {
         let daysFromMonday = (weekday + 5) % 7
         guard let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) else { return }
 
-        // Distribute practice days evenly based on weekly goal
+        let profile = PlayerProfile.current()
         let practiceIndices: Set<Int>
-        switch weeklySessionGoal {
-        case 1:      practiceIndices = [0]
-        case 2:      practiceIndices = [0, 3]
-        case 3:      practiceIndices = [0, 2, 4]
-        case 4:      practiceIndices = [0, 1, 3, 4]
-        case 5:      practiceIndices = [0, 1, 2, 3, 4]
-        case 6:      practiceIndices = [0, 1, 2, 3, 4, 5]
-        default:     practiceIndices = Set(0...6)
+        let suggestedTypes: [Int: String]
+
+        if let available = profile.availableDays, !available.isEmpty {
+            practiceIndices = Set(available)
+            suggestedTypes = Self.buildSuggestedTypes(
+                availableDays: available,
+                preferredGameDay: profile.preferredGameDay,
+                drillBalance: profile.drillBalance
+            )
+        } else {
+            // Fallback: legacy hardcoded distribution
+            practiceIndices = practiceIndicesForGoal(weeklySessionGoal)
+            suggestedTypes = [:]
         }
 
         let dayNames   = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -1228,6 +1240,7 @@ final class HomeViewModel {
         scheduledDays = (0..<7).compactMap { offset in
             guard let date = calendar.date(byAdding: .day, value: offset, to: monday) else { return nil }
             let dayStart = calendar.startOfDay(for: date)
+            let typeForDay = suggestedTypes[offset] ?? (practiceIndices.contains(offset) ? "Drill" : "Rest")
             return WeekScheduleDay(
                 id: date,
                 date: date,
@@ -1238,10 +1251,54 @@ final class HomeViewModel {
                 isToday: calendar.isDateInToday(date),
                 isFuture: date > today,
                 hasLoggedSession: sessionDatesThisWeek.contains(dayStart),
-                sessionCount: sessionCountByDay[dayStart] ?? 0
+                sessionCount: sessionCountByDay[dayStart] ?? 0,
+                suggestedType: typeForDay
             )
         }
         buildWeekDayDetails()
+    }
+
+    /// Builds a mapping of day index (0=Mon..6=Sun) → "Drill" / "Game" / "Rest"
+    static func buildSuggestedTypes(
+        availableDays: [Int],
+        preferredGameDay: Int?,
+        drillBalance: String?
+    ) -> [Int: String] {
+        var types: [Int: String] = [:]
+
+        // All 7 days default to Rest
+        for i in 0..<7 { types[i] = "Rest" }
+
+        let available = Set(availableDays)
+        let balance = drillBalance ?? "Mix of drills & games"
+
+        for day in available {
+            if day == preferredGameDay {
+                types[day] = "Game"
+            } else {
+                types[day] = "Drill"  // default, overridden below
+            }
+        }
+
+        // Now apply drill balance to non-game available days
+        let nonGameDays = available.filter { $0 != preferredGameDay }.sorted()
+
+        switch balance {
+        case "Mostly drills":
+            for day in nonGameDays { types[day] = "Drill" }
+        case "Mostly game play":
+            // One drill day, rest are game
+            for (i, day) in nonGameDays.enumerated() {
+                types[day] = i == 0 ? "Drill" : "Game"
+            }
+        default:
+            // "Mix of drills & games" — alternate
+            for (i, day) in nonGameDays.enumerated() {
+                types[day] = i % 2 == 0 ? "Drill" : "Game"
+            }
+        }
+
+        return types
     }
 
     // MARK: - Arbitrary-Week Helpers (used by the scrollable week strip)
@@ -1266,13 +1323,29 @@ final class HomeViewModel {
             }
         }
 
-        let practiceIndices = practiceIndicesForGoal(weeklySessionGoal)
+        let profile = PlayerProfile.current()
+        let practiceIndices: Set<Int>
+        let suggestedTypes: [Int: String]
+
+        if let available = profile.availableDays, !available.isEmpty {
+            practiceIndices = Set(available)
+            suggestedTypes = Self.buildSuggestedTypes(
+                availableDays: available,
+                preferredGameDay: profile.preferredGameDay,
+                drillBalance: profile.drillBalance
+            )
+        } else {
+            practiceIndices = practiceIndicesForGoal(weeklySessionGoal)
+            suggestedTypes = [:]
+        }
+
         let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         let monthFmt = DateFormatter(); monthFmt.dateFormat = "MMM"
 
         return (0..<7).compactMap { i in
             guard let date = calendar.date(byAdding: .day, value: i, to: targetMonday) else { return nil }
             let dayStart = calendar.startOfDay(for: date)
+            let typeForDay = suggestedTypes[i] ?? (practiceIndices.contains(i) ? "Drill" : "Rest")
             return WeekScheduleDay(
                 id: date, date: date,
                 dayName: dayNames[i],
@@ -1282,7 +1355,8 @@ final class HomeViewModel {
                 isToday: calendar.isDateInToday(date),
                 isFuture: date > today,
                 hasLoggedSession: sessionDates.contains(dayStart),
-                sessionCount: sessionCountByDay[dayStart] ?? 0
+                sessionCount: sessionCountByDay[dayStart] ?? 0,
+                suggestedType: typeForDay
             )
         }
     }

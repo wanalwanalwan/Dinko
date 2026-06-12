@@ -12,10 +12,27 @@ struct PlayerProfile {
     let injuries: [String]?
     let drillPreferences: [String]?
     let drillBalance: String?
+    let availableDays: [Int]?
+    let preferredGameDay: Int?
+    let sessionDuration: Int?
 
     static func current() -> PlayerProfile {
         let defaults = UserDefaults.standard
         let weeklyGoalRaw = defaults.integer(forKey: "pkkl_weekly_goal")
+
+        let availableDays: [Int]?
+        if let stored = defaults.array(forKey: "pkkl_available_days") as? [Int], !stored.isEmpty {
+            availableDays = stored
+        } else {
+            availableDays = nil
+        }
+
+        let preferredGameDayRaw = defaults.integer(forKey: "pkkl_preferred_game_day")
+        let preferredGameDay: Int? = defaults.object(forKey: "pkkl_preferred_game_day") != nil ? preferredGameDayRaw : nil
+
+        let sessionDurationRaw = defaults.integer(forKey: "pkkl_session_duration")
+        let sessionDuration: Int? = sessionDurationRaw > 0 ? sessionDurationRaw : nil
+
         return PlayerProfile(
             duprRange: defaults.string(forKey: "pkkl_dupr_range"),
             playStyle: defaults.string(forKey: "pkkl_play_style"),
@@ -27,7 +44,10 @@ struct PlayerProfile {
             experienceLevel: defaults.string(forKey: "pkkl_experience_level"),
             injuries: defaults.stringArray(forKey: "pkkl_injuries"),
             drillPreferences: defaults.stringArray(forKey: "pkkl_drill_preferences"),
-            drillBalance: defaults.string(forKey: "pkkl_drill_balance")
+            drillBalance: defaults.string(forKey: "pkkl_drill_balance"),
+            availableDays: availableDays,
+            preferredGameDay: preferredGameDay,
+            sessionDuration: sessionDuration
         )
     }
 
@@ -50,6 +70,15 @@ struct PlayerProfile {
         if let drillBalance {
             dict["drill_balance"] = drillBalance
         }
+        if let availableDays, !availableDays.isEmpty {
+            dict["available_days"] = availableDays
+        }
+        if let preferredGameDay {
+            dict["preferred_game_day"] = preferredGameDay
+        }
+        if let sessionDuration {
+            dict["session_duration"] = sessionDuration
+        }
         return dict
     }
 
@@ -58,6 +87,6 @@ struct PlayerProfile {
         playStyle != nil &&
         gameFormat != nil &&
         primaryGoal != nil &&
-        ageRange != nil
+        (ageRange != nil || availableDays != nil)
     }
 }

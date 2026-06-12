@@ -23,12 +23,12 @@ struct OnboardingView: View {
                 playStyleStep.tag(1)
                 gameFormatStep.tag(2)
                 primaryGoalStep.tag(3)
-                frequencyStep.tag(4)
-                ageRangeStep.tag(5)
-                practiceSettingStep.tag(6)
-                experienceLevelStep.tag(7)
-                injuriesStep.tag(8)
-                drillBalanceStep.tag(9)
+                experienceLevelStep.tag(4)
+                availableDaysStep.tag(5)
+                preferredGameDayStep.tag(6)
+                sessionDurationStep.tag(7)
+                drillBalanceStep.tag(8)
+                injuriesStep.tag(9)
                 focusSkillsStep.tag(10)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -298,83 +298,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 5: Training Frequency
-
-    private var frequencyStep: some View {
-        stepContainer(
-            title: "How often do you want to train?",
-            subtitle: "We'll set your weekly goal to match."
-        ) {
-            VStack(spacing: AppSpacing.xs) {
-                selectionCard("1-2x / week", icon: "calendar", isSelected: viewModel.trainingDaysPerWeek == 2) {
-                    viewModel.trainingDaysPerWeek = 2
-                    advanceAfterDelay()
-                }
-                selectionCard("3-4x / week", icon: "calendar.badge.plus", isSelected: viewModel.trainingDaysPerWeek == 4) {
-                    viewModel.trainingDaysPerWeek = 4
-                    advanceAfterDelay()
-                }
-                selectionCard("5+ / week", icon: "flame.fill", isSelected: viewModel.trainingDaysPerWeek == 5) {
-                    viewModel.trainingDaysPerWeek = 5
-                    advanceAfterDelay()
-                }
-            }
-        }
-    }
-
-    // MARK: - Step 6: Age Range
-
-    private var ageRangeStep: some View {
-        stepContainer(
-            title: "What's your age range?",
-            subtitle: "We'll adjust drill intensity and recovery recommendations."
-        ) {
-            VStack(spacing: AppSpacing.xs) {
-                selectionCard("Under 30", icon: "hare.fill", isSelected: viewModel.ageRange == "Under 30") {
-                    viewModel.ageRange = "Under 30"
-                    advanceAfterDelay()
-                }
-                selectionCard("30-50", icon: "figure.walk", isSelected: viewModel.ageRange == "30-50") {
-                    viewModel.ageRange = "30-50"
-                    advanceAfterDelay()
-                }
-                selectionCard("50+", icon: "figure.and.child.holdinghands", isSelected: viewModel.ageRange == "50+") {
-                    viewModel.ageRange = "50+"
-                    advanceAfterDelay()
-                }
-            }
-        }
-    }
-
-    // MARK: - Step 7: Practice Setting
-
-    private var practiceSettingStep: some View {
-        stepContainer(
-            title: "Where do you usually practice?",
-            subtitle: "We'll suggest drills that fit your environment."
-        ) {
-            VStack(spacing: AppSpacing.xs) {
-                selectionCard("Public courts", icon: "tennisball.fill", isSelected: viewModel.practiceSetting == "Public courts") {
-                    viewModel.practiceSetting = "Public courts"
-                    advanceAfterDelay()
-                }
-                selectionCard("Club or rec center", icon: "building.2", isSelected: viewModel.practiceSetting == "Club or rec center") {
-                    viewModel.practiceSetting = "Club or rec center"
-                    advanceAfterDelay()
-                }
-                selectionCard("At home or driveway", icon: "house", isSelected: viewModel.practiceSetting == "At home or driveway") {
-                    viewModel.practiceSetting = "At home or driveway"
-                    advanceAfterDelay()
-                }
-                selectionCard("Varies", icon: "arrow.triangle.swap", isSelected: viewModel.practiceSetting == "Varies") {
-                    viewModel.practiceSetting = "Varies"
-                    advanceAfterDelay()
-                }
-            }
-        }
-    }
-
-    // MARK: - Step 8: Experience Level
+    // MARK: - Step 5: Experience Level
 
     private var experienceLevelStep: some View {
         stepContainer(
@@ -396,6 +320,116 @@ struct OnboardingView: View {
                 }
                 selectionCard("3+ years", icon: "star", isSelected: viewModel.experienceLevel == "3+ years") {
                     viewModel.experienceLevel = "3+ years"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 6: Available Days
+
+    private var availableDaysStep: some View {
+        stepContainer(
+            title: "Which days can you play?",
+            subtitle: "Select every day you're available. We'll build your schedule around them."
+        ) {
+            VStack(spacing: AppSpacing.sm) {
+                let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: AppSpacing.xxs), count: 4), spacing: AppSpacing.xxs) {
+                    ForEach(0..<7, id: \.self) { index in
+                        let isSelected = viewModel.availableDays.contains(index)
+                        Button {
+                            if isSelected {
+                                viewModel.availableDays.remove(index)
+                                if viewModel.preferredGameDay == index {
+                                    viewModel.preferredGameDay = nil
+                                }
+                            } else {
+                                viewModel.availableDays.insert(index)
+                            }
+                        } label: {
+                            Text(dayNames[index])
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundStyle(isSelected ? .white : AppColors.textPrimary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppSpacing.sm)
+                                .background(isSelected ? AppColors.primary : AppColors.cardBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: AppSpacing.xs)
+                                        .strokeBorder(isSelected ? AppColors.primary : AppColors.separator, lineWidth: 1.5)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                if !viewModel.availableDays.isEmpty {
+                    Text("\(viewModel.availableDays.count) day\(viewModel.availableDays.count == 1 ? "" : "s") selected")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    Button {
+                        advanceAfterDelay()
+                    } label: {
+                        Text("Continue")
+                            .font(AppTypography.headline)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppSpacing.sm)
+                            .background(AppColors.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 7: Preferred Game Day
+
+    private var preferredGameDayStep: some View {
+        stepContainer(
+            title: "Which day is your main game day?",
+            subtitle: "We'll schedule games here and drills on other days."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                let sortedDays = viewModel.availableDays.sorted()
+
+                ForEach(sortedDays, id: \.self) { index in
+                    selectionCard(dayNames[index], icon: "figure.pickleball", isSelected: viewModel.preferredGameDay == index) {
+                        viewModel.preferredGameDay = index
+                        advanceAfterDelay()
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 8: Session Duration
+
+    private var sessionDurationStep: some View {
+        stepContainer(
+            title: "How long is a typical session?",
+            subtitle: "We'll size your drills and plans to fit."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("30 min", icon: "clock", isSelected: viewModel.sessionDuration == 30) {
+                    viewModel.sessionDuration = 30
+                    advanceAfterDelay()
+                }
+                selectionCard("45 min", icon: "clock.fill", isSelected: viewModel.sessionDuration == 45) {
+                    viewModel.sessionDuration = 45
+                    advanceAfterDelay()
+                }
+                selectionCard("60 min", icon: "clock.arrow.circlepath", isSelected: viewModel.sessionDuration == 60) {
+                    viewModel.sessionDuration = 60
+                    advanceAfterDelay()
+                }
+                selectionCard("90 min", icon: "timer", isSelected: viewModel.sessionDuration == 90) {
+                    viewModel.sessionDuration = 90
                     advanceAfterDelay()
                 }
             }
@@ -468,7 +502,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 10: Drill Balance
+    // MARK: - Step 8: Drill Balance
 
     private var drillBalanceStep: some View {
         stepContainer(
@@ -573,7 +607,7 @@ struct OnboardingView: View {
 
     // MARK: - Actions
 
-    // MARK: - Step 11: Focus Skills
+    // MARK: - Step 10: Focus Skills
 
     private var focusSkillsStep: some View {
         stepContainer(

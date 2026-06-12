@@ -200,18 +200,6 @@ struct ProfileView: View {
 
                 Divider().padding(.leading, AppSpacing.md)
 
-                profileRow(title: "Age Range", value: viewModel.ageRange, options: [
-                    "Under 30", "30-50", "50+"
-                ]) { viewModel.ageRange = $0; viewModel.save() }
-
-                Divider().padding(.leading, AppSpacing.md)
-
-                profileRow(title: "Practice Setting", value: viewModel.practiceSetting, options: [
-                    "Public courts", "Club or rec center", "At home or driveway", "Varies"
-                ]) { viewModel.practiceSetting = $0; viewModel.save() }
-
-                Divider().padding(.leading, AppSpacing.md)
-
                 profileRow(title: "Experience", value: viewModel.experienceLevel, options: [
                     "Just started", "Under 1 year", "1-3 years", "3+ years"
                 ]) { viewModel.experienceLevel = $0; viewModel.save() }
@@ -233,17 +221,15 @@ struct ProfileView: View {
                 .foregroundStyle(AppColors.textSecondary)
 
             VStack(spacing: 0) {
-                profileRow(title: "Weekly Goal", value: weeklyGoalDisplayValue, options: [
-                    "1-2x / week", "3-4x / week", "5+ / week"
-                ]) { selected in
-                    switch selected {
-                    case "1-2x / week": viewModel.weeklyGoal = 2
-                    case "3-4x / week": viewModel.weeklyGoal = 4
-                    case "5+ / week": viewModel.weeklyGoal = 5
-                    default: break
-                    }
-                    viewModel.save()
-                }
+                availableDaysRow
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                preferredGameDayRow
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                sessionDurationRow
 
                 Divider().padding(.leading, AppSpacing.md)
 
@@ -253,12 +239,75 @@ struct ProfileView: View {
         }
     }
 
-    private var weeklyGoalDisplayValue: String? {
-        guard let goal = viewModel.weeklyGoal else { return nil }
-        switch goal {
-        case 1...2: return "1-2x / week"
-        case 3...4: return "3-4x / week"
-        default: return "5+ / week"
+    private var availableDaysRow: some View {
+        let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        let allDayIndices = Array(0..<7)
+
+        return VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            HStack {
+                Text("Available Days")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                Spacer()
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.top, AppSpacing.sm)
+
+            FlowLayout(spacing: AppSpacing.xxs) {
+                ForEach(allDayIndices, id: \.self) { index in
+                    Button {
+                        if viewModel.availableDays.contains(index) {
+                            viewModel.availableDays.remove(index)
+                            if viewModel.preferredGameDay == index {
+                                viewModel.preferredGameDay = nil
+                            }
+                        } else {
+                            viewModel.availableDays.insert(index)
+                        }
+                        viewModel.save()
+                    } label: {
+                        Text(dayNames[index])
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(viewModel.availableDays.contains(index) ? .white : AppColors.textPrimary)
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.vertical, AppSpacing.xxxs)
+                            .background(viewModel.availableDays.contains(index) ? AppColors.primary : AppColors.background)
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(viewModel.availableDays.contains(index) ? AppColors.primary : AppColors.separator, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.bottom, AppSpacing.sm)
+        }
+    }
+
+    private var preferredGameDayRow: some View {
+        let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        let sortedAvailable = viewModel.availableDays.sorted()
+        let options = sortedAvailable.map { dayNames[$0] }
+        let currentValue: String? = viewModel.preferredGameDay.map { dayNames[$0] }
+
+        return profileRow(title: "Game Day", value: currentValue, options: options) { selected in
+            if let idx = dayNames.firstIndex(of: selected) {
+                viewModel.preferredGameDay = idx
+            }
+            viewModel.save()
+        }
+    }
+
+    private var sessionDurationRow: some View {
+        let options = ["30 min", "45 min", "60 min", "90 min"]
+        let currentValue: String? = viewModel.sessionDuration.map { "\($0) min" }
+
+        return profileRow(title: "Session Duration", value: currentValue, options: options) { selected in
+            let minutes = Int(selected.replacingOccurrences(of: " min", with: ""))
+            viewModel.sessionDuration = minutes
+            viewModel.save()
         }
     }
 

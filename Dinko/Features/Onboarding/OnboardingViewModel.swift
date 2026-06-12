@@ -8,14 +8,16 @@ final class OnboardingViewModel {
     var playStyle: String?
     var gameFormat: String?
     var primaryGoal: String?
-    var ageRange: String?
-    var trainingDaysPerWeek: Int?
-    var practiceSetting: String?
     var experienceLevel: String?
+    var availableDays: Set<Int> = []  // 0=Mon..6=Sun
+    var preferredGameDay: Int?
+    var sessionDuration: Int?         // minutes: 30, 45, 60, 90
     var injuries: Set<String> = []
     var drillBalance: String?
     var drillPreferences: Set<String> = []
     var pendingFocusSkills: [PendingFocusSkill] = []
+
+    var trainingDaysPerWeek: Int { availableDays.count }
 
     func completeOnboarding() {
         persistPreferences()
@@ -44,17 +46,18 @@ final class OnboardingViewModel {
         if let goal = primaryGoal {
             UserDefaults.standard.set(goal, forKey: "pkkl_primary_goal")
         }
-        if let age = ageRange {
-            UserDefaults.standard.set(age, forKey: "pkkl_age_range")
-        }
-        if let days = trainingDaysPerWeek {
-            UserDefaults.standard.set(days, forKey: "pkkl_weekly_goal")
-        }
-        if let setting = practiceSetting {
-            UserDefaults.standard.set(setting, forKey: "pkkl_practice_setting")
-        }
         if let experience = experienceLevel {
             UserDefaults.standard.set(experience, forKey: "pkkl_experience_level")
+        }
+        if !availableDays.isEmpty {
+            UserDefaults.standard.set(Array(availableDays).sorted(), forKey: "pkkl_available_days")
+            UserDefaults.standard.set(availableDays.count, forKey: "pkkl_weekly_goal")
+        }
+        if let gameDay = preferredGameDay {
+            UserDefaults.standard.set(gameDay, forKey: "pkkl_preferred_game_day")
+        }
+        if let duration = sessionDuration {
+            UserDefaults.standard.set(duration, forKey: "pkkl_session_duration")
         }
         if !injuries.isEmpty {
             UserDefaults.standard.set(Array(injuries), forKey: "pkkl_injuries")

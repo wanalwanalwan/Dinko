@@ -762,6 +762,7 @@ struct HomeView: View {
 
     private func scheduleDayRow(_ day: WeekScheduleDay, viewModel: HomeViewModel) -> some View {
         let isPast = !day.isToday && !day.isFuture
+        let isGame = day.suggestedType == "Game"
 
         return HStack(spacing: AppSpacing.sm) {
             // Date badge circle
@@ -779,11 +780,19 @@ struct HomeView: View {
                 }
             }
 
-            // Day label + Today badge
+            // Day label + type tag + Today badge
             HStack(spacing: 6) {
                 Text(day.dayName)
                     .font(.system(size: 14, weight: day.isToday ? .semibold : .regular, design: .rounded))
                     .foregroundStyle(day.isToday ? AppColors.primary : isPast ? AppColors.textSecondary : AppColors.textPrimary)
+                if day.isPracticeDay {
+                    Text(day.suggestedType)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(isGame ? AppColors.coral : AppColors.primary)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background((isGame ? AppColors.coral : AppColors.primary).opacity(0.1))
+                        .clipShape(Capsule())
+                }
                 if day.isToday {
                     Text("Today")
                         .font(.system(size: 10, weight: .bold, design: .rounded))
@@ -811,11 +820,11 @@ struct HomeView: View {
                         Image(systemName: "plus").font(.system(size: 10, weight: .bold))
                         Text("Log Session").font(.system(size: 12, weight: .semibold, design: .rounded))
                     }
-                    .foregroundStyle(day.isToday ? .white : AppColors.primary)
+                    .foregroundStyle(day.isToday ? .white : isGame ? AppColors.coral : AppColors.primary)
                     .padding(.horizontal, 12).padding(.vertical, 7)
                     .background(day.isToday
                         ? LinearGradient(colors: [AppColors.primaryLight, AppColors.primaryDark], startPoint: .top, endPoint: .bottom)
-                        : LinearGradient(colors: [AppColors.primary.opacity(0.12), AppColors.primary.opacity(0.12)], startPoint: .top, endPoint: .bottom))
+                        : LinearGradient(colors: [(isGame ? AppColors.coral : AppColors.primary).opacity(0.12), (isGame ? AppColors.coral : AppColors.primary).opacity(0.12)], startPoint: .top, endPoint: .bottom))
                     .clipShape(Capsule())
                     .shadow(color: day.isToday ? AppColors.primary.opacity(0.3) : .clear, radius: 4, y: 2)
                 }
@@ -846,6 +855,7 @@ struct HomeView: View {
     private func dayBadgeColor(_ day: WeekScheduleDay) -> Color {
         if day.hasLoggedSession { return AppColors.successGreen }
         if day.isToday && day.isPracticeDay { return AppColors.primary }
+        if day.suggestedType == "Game" { return AppColors.coral.opacity(0.1) }
         if day.isPracticeDay { return AppColors.primary.opacity(0.1) }
         return AppColors.separator.opacity(0.4)
     }
@@ -853,6 +863,7 @@ struct HomeView: View {
     private func dayBadgeTextColor(_ day: WeekScheduleDay) -> Color {
         if day.hasLoggedSession { return .white }
         if day.isToday && day.isPracticeDay { return .white }
+        if day.suggestedType == "Game" { return AppColors.coral }
         if day.isPracticeDay { return AppColors.primary }
         return AppColors.textSecondary.opacity(0.5)
     }
@@ -1049,11 +1060,12 @@ struct HomeView: View {
         if day.hasLoggedSession {
             return AppColors.successGreen
         }
-        if hasProgram && day.isPracticeDay {
+        if day.isPracticeDay {
+            let baseColor = day.suggestedType == "Game" ? AppColors.coral : AppColors.primary
             if day.isFuture {
-                return AppColors.textSecondary.opacity(0.2)
+                return baseColor.opacity(0.2)
             } else {
-                return AppColors.primary.opacity(0.4)
+                return baseColor.opacity(0.4)
             }
         }
         return Color.clear

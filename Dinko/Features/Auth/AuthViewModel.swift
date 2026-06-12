@@ -311,6 +311,9 @@ final class AuthViewModel {
         UserDefaults.standard.removeObject(forKey: "pkkl_primary_goal")
         UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
         UserDefaults.standard.removeObject(forKey: "pkkl_practice_setting")
+        UserDefaults.standard.removeObject(forKey: "pkkl_available_days")
+        UserDefaults.standard.removeObject(forKey: "pkkl_preferred_game_day")
+        UserDefaults.standard.removeObject(forKey: "pkkl_session_duration")
 
         UserDefaults.standard.removeObject(forKey: "pkkl_experience_level")
         UserDefaults.standard.removeObject(forKey: "pkkl_injuries")
@@ -340,6 +343,9 @@ final class AuthViewModel {
         UserDefaults.standard.removeObject(forKey: "pkkl_primary_goal")
         UserDefaults.standard.removeObject(forKey: "pkkl_age_range")
         UserDefaults.standard.removeObject(forKey: "pkkl_practice_setting")
+        UserDefaults.standard.removeObject(forKey: "pkkl_available_days")
+        UserDefaults.standard.removeObject(forKey: "pkkl_preferred_game_day")
+        UserDefaults.standard.removeObject(forKey: "pkkl_session_duration")
 
         UserDefaults.standard.removeObject(forKey: "pkkl_experience_level")
         UserDefaults.standard.removeObject(forKey: "pkkl_injuries")
