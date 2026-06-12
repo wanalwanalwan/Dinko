@@ -16,16 +16,6 @@ final class SkillDetailViewModel {
     var showCompletionCelebration = false
     var errorMessage: String?
 
-    // Confidence-based properties
-    private(set) var currentConfidence: Int = 1
-    private(set) var targetConfidence: Int?
-    private(set) var confidenceGap: Int = 0
-    private(set) var confidenceHistory: [ConfidenceEntry] = []
-    private(set) var whyItMatters: String?
-    private(set) var prerequisiteFor: [String] = []
-    private(set) var isLocked: Bool = false
-    private(set) var unmetPrereqs: [SkillPrerequisite] = []
-
     var isParentSkill: Bool { skill.parentSkillId == nil }
 
     var completedCheckersCount: Int {
@@ -53,7 +43,6 @@ final class SkillDetailViewModel {
 
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
-    private let confidenceEntryRepository: ConfidenceEntryRepository
     private let drillRepository: DrillRepository
     private let progressCheckerRepository: ProgressCheckerRepository
 
@@ -61,14 +50,12 @@ final class SkillDetailViewModel {
         skill: Skill,
         skillRepository: SkillRepository,
         skillRatingRepository: SkillRatingRepository,
-        confidenceEntryRepository: ConfidenceEntryRepository,
         drillRepository: DrillRepository,
         progressCheckerRepository: ProgressCheckerRepository
     ) {
         self.skill = skill
         self.skillRepository = skillRepository
         self.skillRatingRepository = skillRatingRepository
-        self.confidenceEntryRepository = confidenceEntryRepository
         self.drillRepository = drillRepository
         self.progressCheckerRepository = progressCheckerRepository
     }
@@ -131,64 +118,6 @@ final class SkillDetailViewModel {
                 weeklyDelta = nil
             }
 
-            // Load confidence data
-            if let latestEntry = try await confidenceEntryRepository.fetchLatest(skill.id) {
-                currentConfidence = latestEntry.confidence
-            } else {
-                currentConfidence = 1
-            }
-
-            confidenceHistory = try await confidenceEntryRepository.fetchForSkill(skill.id)
-                .sorted { $0.date < $1.date }
-
-            // Compute target and gap from benchmarks
-            let profile = PlayerProfile.current()
-            if let canonicalId = skill.canonicalId,
-               let targetDUPR = ConfidenceBenchmark.targetDUPR(from: profile.goalDUPR) {
-                let target = ConfidenceBenchmark.target(canonicalId: canonicalId, targetDUPR: targetDUPR)
-                targetConfidence = target
-                confidenceGap = max(0, (target ?? 0) - currentConfidence)
-            } else {
-                targetConfidence = nil
-                confidenceGap = 0
-            }
-
-            // Why it matters
-            if let canonicalId = skill.canonicalId,
-               let canonical = CanonicalSkill.find(canonicalId) {
-                whyItMatters = canonical.whyItMatters
-            } else {
-                whyItMatters = nil
-            }
-
-            // Prerequisite for
-            let allCanonicals = CanonicalSkill.all
-            var prereqFor: [String] = []
-            for canonical in allCanonicals {
-                let prereqs = SkillPrerequisite.prerequisites(for: canonical.id)
-                for prereq in prereqs {
-                    if prereq.requiredSkillCanonicalId == skill.canonicalId {
-                        prereqFor.append(canonical.name)
-                    }
-                }
-            }
-            prerequisiteFor = prereqFor
-
-            // Check if this skill is locked
-            if let canonicalId = skill.canonicalId {
-                // Build confidence map for prerequisite check
-                var confidences: [String: Int] = [:]
-                for s in allSkills {
-                    if let cid = s.canonicalId {
-                        if let entry = try await confidenceEntryRepository.fetchLatest(s.id) {
-                            confidences[cid] = entry.confidence
-                        }
-                    }
-                }
-                isLocked = SkillPrerequisite.isLocked(canonicalId: canonicalId, confidences: confidences)
-                unmetPrereqs = SkillPrerequisite.unmetPrerequisites(for: canonicalId, confidences: confidences)
-            }
-
             // Load drills
             drills = try await drillRepository.fetchForSkill(skill.id)
 
@@ -199,27 +128,6 @@ final class SkillDetailViewModel {
             errorMessage = nil
         } catch {
             errorMessage = "Failed to load skill details."
-        }
-    }
-
-    func saveConfidence(_ confidence: Int) async {
-        let clamped = max(1, min(10, confidence))
-        let entry = ConfidenceEntry(
-            skillId: skill.id,
-            confidence: clamped,
-            source: .manual
-        )
-        do {
-            try await confidenceEntryRepository.save(entry)
-            currentConfidence = clamped
-            if let target = targetConfidence {
-                confidenceGap = max(0, target - clamped)
-            }
-            // Reload confidence history
-            confidenceHistory = try await confidenceEntryRepository.fetchForSkill(skill.id)
-                .sorted { $0.date < $1.date }
-        } catch {
-            errorMessage = "Failed to save confidence."
         }
     }
 

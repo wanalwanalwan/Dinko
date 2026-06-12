@@ -94,8 +94,6 @@ final class PersistenceController {
             "SkillEntity",
             "ProgressCheckerEntity",
             "SkillRatingEntity",
-            "ConfidenceEntryEntity",
-            "FocusHistoryEntity",
             "DrillEntity",
             "JournalEntryEntity",
             "SessionEntity",

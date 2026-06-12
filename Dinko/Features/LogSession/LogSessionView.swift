@@ -10,110 +10,42 @@ struct LogSessionView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if viewModel.showPostCheckIn {
-                postSessionCheckIn
-            } else {
-                sheetHeader
+            sheetHeader
 
-                ScrollView {
-                    VStack(spacing: AppSpacing.sm) {
-                        if viewModel.isQuickMode {
-                            dateCard
-                            durationCard
-                            quickSkillRatingsCard
-                        } else {
-                            sessionTypeCard
-                            dateCard
-                            durationCard
-                            skillsCard
-                        }
-                        notesCard
-
-                        if let error = viewModel.errorMessage {
-                            Text(error)
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.coral)
-                        }
-
-                        saveButton
-                            .padding(.top, AppSpacing.xxs)
+            ScrollView {
+                VStack(spacing: AppSpacing.sm) {
+                    if viewModel.isQuickMode {
+                        dateCard
+                        durationCard
+                        quickSkillRatingsCard
+                    } else {
+                        sessionTypeCard
+                        dateCard
+                        durationCard
+                        skillsCard
                     }
-                    .padding(.horizontal, AppSpacing.sm)
-                    .padding(.top, AppSpacing.xs)
-                    .padding(.bottom, AppSpacing.xl + 20)
+                    notesCard
+
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.coral)
+                    }
+
+                    saveButton
+                        .padding(.top, AppSpacing.xxs)
                 }
-                .scrollDismissesKeyboard(.interactively)
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.top, AppSpacing.xs)
+                .padding(.bottom, AppSpacing.xl + 20)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .background(AppColors.background.ignoresSafeArea())
         .task { await viewModel.loadSkills() }
         .onChange(of: viewModel.saveSucceeded) { _, succeeded in
             if succeeded { dismiss() }
         }
-    }
-
-    // MARK: - Post-Session Check-In
-
-    private var postSessionCheckIn: some View {
-        VStack(spacing: AppSpacing.md) {
-            Spacer()
-
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(AppColors.successGreen)
-
-            Text("Session logged!")
-                .font(AppTypography.title)
-                .foregroundStyle(AppColors.textPrimary)
-
-            if let name = viewModel.focusSkillName {
-                Text("How did \(name) feel today?")
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            VStack(spacing: AppSpacing.xs) {
-                checkInButton("Still struggling", icon: "cloud.rain", response: .struggling)
-                checkInButton("Improving", icon: "arrow.up.right", response: .improving)
-                checkInButton("Comfortable", icon: "hand.thumbsup", response: .comfortable)
-                checkInButton("Confident", icon: "star.fill", response: .confident)
-            }
-            .padding(.horizontal, AppSpacing.sm)
-
-            Button {
-                Task { await viewModel.handleCheckIn(.skip) }
-            } label: {
-                Text("Skip")
-                    .font(AppTypography.callout)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-            .buttonStyle(.plain)
-
-            Spacer()
-        }
-        .padding(.horizontal, AppSpacing.lg)
-    }
-
-    private func checkInButton(_ label: String, icon: String, response: LogSessionViewModel.CheckInResponse) -> some View {
-        Button {
-            Task { await viewModel.handleCheckIn(response) }
-        } label: {
-            HStack(spacing: AppSpacing.xs) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .frame(width: 24)
-                Text(label)
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                Spacer()
-            }
-            .foregroundStyle(AppColors.textPrimary)
-            .padding(.horizontal, AppSpacing.sm)
-            .padding(.vertical, AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMd))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Sheet Header
@@ -584,8 +516,7 @@ private struct SkillSelectionRow: View {
         sessionRepository: deps.sessionRepository,
         journalEntryRepository: deps.journalEntryRepository,
         skillRatingRepository: deps.skillRatingRepository,
-        drillRepository: deps.drillRepository,
-        confidenceEntryRepository: deps.confidenceEntryRepository
+        drillRepository: deps.drillRepository
     )
     LogSessionView(viewModel: vm)
 }

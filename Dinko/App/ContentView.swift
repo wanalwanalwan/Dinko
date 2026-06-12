@@ -12,27 +12,35 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            // Tab 0: Today
             NavigationStack {
-                TodayView()
+                HomeView(selectedTab: $selectedTab, showSessionTypeSheet: $showTypeSelection, selectedSessionDate: $selectedSessionDate, onQuickLog: {
+                            isQuickLog = true
+                            selectedSessionType = .game
+                            selectedSessionDate = Date()
+                            showSessionForm = true
+                        }, refreshID: homeRefreshID)
             }
             .tag(0)
 
-            // Tab 1: Journey
-            NavigationStack {
-                JourneyView()
-            }
-            .tag(1)
-
-            // Tab 2: Coach
             NavigationStack {
                 CoachTabView(selectedTab: $selectedTab)
             }
+            .tag(1)
+
+            NavigationStack {
+                SkillListView()
+            }
             .tag(2)
 
-            // Tab 3: Profile (promoted from sheet to full tab)
-            ProfileView()
+            NavigationStack {
+                ProgramView()
+            }
             .tag(3)
+
+            NavigationStack {
+                TimelineView()
+            }
+            .tag(4)
         }
         .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -57,8 +65,7 @@ struct ContentView: View {
                 sessionRepository: dependencies.sessionRepository,
                 journalEntryRepository: dependencies.journalEntryRepository,
                 skillRatingRepository: dependencies.skillRatingRepository,
-                drillRepository: dependencies.drillRepository,
-                confidenceEntryRepository: dependencies.confidenceEntryRepository
+                drillRepository: dependencies.drillRepository
             )
             LogSessionView(
                 viewModel: {
@@ -82,10 +89,11 @@ struct ContentView: View {
                 .frame(height: 0.5)
 
             HStack(spacing: 0) {
-                tabButton(icon: "house", filledIcon: "house.fill", label: "Today", tag: 0)
-                tabButton(icon: "map", filledIcon: "map.fill", label: "Journey", tag: 1)
-                tabButton(icon: "bubble.left", filledIcon: "bubble.left.fill", label: "Coach", tag: 2)
-                tabButton(icon: "person.circle", filledIcon: "person.circle.fill", label: "Profile", tag: 3)
+                tabButton(icon: "house", filledIcon: "house.fill", label: "Home", tag: 0)
+                tabButton(icon: "bubble.left", filledIcon: "bubble.left.fill", label: "Coach", tag: 1)
+                tabButton(icon: "doc.text", filledIcon: "doc.text.fill", label: "Progress", tag: 2)
+                tabButton(icon: "calendar", filledIcon: "calendar", label: "Train", tag: 3)
+                tabButton(icon: "book", filledIcon: "book.fill", label: "Sessions", tag: 4)
             }
             .padding(.top, 6)
             .padding(.bottom, 2)

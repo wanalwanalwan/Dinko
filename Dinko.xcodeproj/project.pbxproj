@@ -29,6 +29,7 @@
 		B10000010000000000000008 /* SparklineChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000008 /* SparklineChart.swift */; };
 		B10000010000000000000009 /* CheckerItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000009 /* CheckerItem.swift */; };
 		B1000001000000000000000A /* AchievementBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000A /* AchievementBadge.swift */; };
+		B1000001000000000000000B /* MotivationalBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000B /* MotivationalBanner.swift */; };
 		B1000001000000000000000C /* SkillCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000C /* SkillCard.swift */; };
 		B1000001000000000000000D /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000D /* SectionHeaderView.swift */; };
 		B1000001000000000000000E /* DrillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000000E /* DrillCardView.swift */; };
@@ -148,6 +149,7 @@
 				FS1000010000000000000001 /* FocusSkillManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FS2000010000000000000001 /* FocusSkillManager.swift */; };
 				FP1000010000000000000001 /* FocusSkillPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FP2000010000000000000001 /* FocusSkillPickerSheet.swift */; };
 		NM1000010000000000000001 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM2000010000000000000001 /* NotificationManager.swift */; };
+		SB1000010000000000000001 /* SkillBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = SB2000010000000000000001 /* SkillBenchmark.swift */; };
 		PG1000010000000000000001 /* Program.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG2000010000000000000001 /* Program.swift */; };
 		PG1000010000000000000002 /* ProgramSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG2000010000000000000002 /* ProgramSession.swift */; };
 		PG1000010000000000000003 /* ProgramDrill.swift in Sources */ = {isa = PBXBuildFile; fileRef = PG2000010000000000000003 /* ProgramDrill.swift */; };
@@ -174,44 +176,7 @@
 		FM1000010000000000000006 /* ProgramTemplateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000006 /* ProgramTemplateCard.swift */; };
 		FM1000010000000000000007 /* PaywalledWeekOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000007 /* PaywalledWeekOverlay.swift */; };
 		FM1000010000000000000008 /* curated_programs.json in Resources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000008 /* curated_programs.json */; };
-				BR100000000000000000001 /* CanonicalSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000001 /* CanonicalSkill.swift */; };
-		BR100000000000000000002 /* ConfidenceBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000002 /* ConfidenceBenchmark.swift */; };
-		BR100000000000000000003 /* ConfidenceEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000003 /* ConfidenceEntry.swift */; };
-		BR100000000000000000004 /* FocusHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000004 /* FocusHistoryEntry.swift */; };
-		BR100000000000000000005 /* RecommendedFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000005 /* RecommendedFocus.swift */; };
-		BR100000000000000000006 /* ScheduledDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000006 /* ScheduledDay.swift */; };
-		BR100000000000000000007 /* SkillPillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000007 /* SkillPillar.swift */; };
-		BR100000000000000000008 /* SkillPillarSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000008 /* SkillPillarSummary.swift */; };
-		BR100000000000000000009 /* SkillPrerequisite.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000009 /* SkillPrerequisite.swift */; };
-		BR10000000000000000000A /* ConfidenceEntryEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000000A /* ConfidenceEntryEntity+Ext.swift */; };
-		BR10000000000000000000B /* FocusHistoryEntity+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000000B /* FocusHistoryEntity+Ext.swift */; };
-		BR10000000000000000000C /* ConfidenceEntryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000000C /* ConfidenceEntryRepository.swift */; };
-		BR10000000000000000000D /* ConfidenceEntryRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000000D /* ConfidenceEntryRepositoryImpl.swift */; };
-		BR10000000000000000000E /* FocusHistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000000E /* FocusHistoryRepository.swift */; };
-		BR10000000000000000000F /* FocusHistoryRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000000F /* FocusHistoryRepositoryImpl.swift */; };
-		BR100000000000000000010 /* CoachInsightGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000010 /* CoachInsightGenerator.swift */; };
-		BR100000000000000000011 /* DataMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000011 /* DataMigrationService.swift */; };
-		BR100000000000000000012 /* MilestoneSuggestionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000012 /* MilestoneSuggestionEngine.swift */; };
-		BR100000000000000000013 /* RecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000013 /* RecommendationEngine.swift */; };
-		BR100000000000000000014 /* SchedulingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000014 /* SchedulingEngine.swift */; };
-		BR100000000000000000015 /* XPManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000015 /* XPManager.swift */; };
-		BR100000000000000000016 /* CelebrationOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000016 /* CelebrationOverlay.swift */; };
-		BR100000000000000000017 /* CoachInsightCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000017 /* CoachInsightCard.swift */; };
-		BR100000000000000000018 /* ConfidenceBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000018 /* ConfidenceBar.swift */; };
-		BR100000000000000000019 /* FocusHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000019 /* FocusHeroCard.swift */; };
-		BR10000000000000000001A /* MilestoneSuggestionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000001A /* MilestoneSuggestionCard.swift */; };
-		BR10000000000000000001B /* PillarCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000001B /* PillarCard.swift */; };
-		BR10000000000000000001C /* RoadToGoalBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000001C /* RoadToGoalBar.swift */; };
-		BR10000000000000000001D /* SkillConfidenceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000001D /* SkillConfidenceRow.swift */; };
-		BR10000000000000000001E /* StaleCheckInCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000001E /* StaleCheckInCard.swift */; };
-		BR10000000000000000001F /* WeekScheduleStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR20000000000000000001F /* WeekScheduleStrip.swift */; };
-		BR100000000000000000020 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000020 /* TodayView.swift */; };
-		BR100000000000000000021 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000021 /* TodayViewModel.swift */; };
-		BR100000000000000000022 /* JourneyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000022 /* JourneyView.swift */; };
-		BR100000000000000000023 /* JourneyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000023 /* JourneyViewModel.swift */; };
-		BR100000000000000000024 /* GoalDUPRPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000024 /* GoalDUPRPromptView.swift */; };
-		BR100000000000000000025 /* ConfidenceUpdateSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR200000000000000000025 /* ConfidenceUpdateSheet.swift */; };
-/* End PBXBuildFile section */
+		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		A30000010000000000000001 /* PBXContainerItemProxy */ = {
@@ -255,6 +220,7 @@
 		B20000010000000000000008 /* SparklineChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineChart.swift; sourceTree = "<group>"; };
 		B20000010000000000000009 /* CheckerItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckerItem.swift; sourceTree = "<group>"; };
 		B2000001000000000000000A /* AchievementBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementBadge.swift; sourceTree = "<group>"; };
+		B2000001000000000000000B /* MotivationalBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotivationalBanner.swift; sourceTree = "<group>"; };
 		B2000001000000000000000C /* SkillCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCard.swift; sourceTree = "<group>"; };
 		B2000001000000000000000D /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		B2000001000000000000000E /* DrillCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillCardView.swift; sourceTree = "<group>"; };
@@ -378,6 +344,7 @@
 				FS2000010000000000000001 /* FocusSkillManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSkillManager.swift; sourceTree = "<group>"; };
 				FP2000010000000000000001 /* FocusSkillPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSkillPickerSheet.swift; sourceTree = "<group>"; };
 		NM2000010000000000000001 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		SB2000010000000000000001 /* SkillBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillBenchmark.swift; sourceTree = "<group>"; };
 		PG2000010000000000000001 /* Program.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Program.swift; sourceTree = "<group>"; };
 		PG2000010000000000000002 /* ProgramSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramSession.swift; sourceTree = "<group>"; };
 		PG2000010000000000000003 /* ProgramDrill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDrill.swift; sourceTree = "<group>"; };
@@ -404,43 +371,6 @@
 		FM2000010000000000000006 /* ProgramTemplateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplateCard.swift; sourceTree = "<group>"; };
 		FM2000010000000000000007 /* PaywalledWeekOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywalledWeekOverlay.swift; sourceTree = "<group>"; };
 		FM2000010000000000000008 /* curated_programs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = curated_programs.json; sourceTree = "<group>"; };
-		BR200000000000000000001 /* CanonicalSkill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanonicalSkill.swift; sourceTree = "<group>"; };
-		BR200000000000000000002 /* ConfidenceBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfidenceBenchmark.swift; sourceTree = "<group>"; };
-		BR200000000000000000003 /* ConfidenceEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfidenceEntry.swift; sourceTree = "<group>"; };
-		BR200000000000000000004 /* FocusHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHistoryEntry.swift; sourceTree = "<group>"; };
-		BR200000000000000000005 /* RecommendedFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendedFocus.swift; sourceTree = "<group>"; };
-		BR200000000000000000006 /* ScheduledDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledDay.swift; sourceTree = "<group>"; };
-		BR200000000000000000007 /* SkillPillar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillPillar.swift; sourceTree = "<group>"; };
-		BR200000000000000000008 /* SkillPillarSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillPillarSummary.swift; sourceTree = "<group>"; };
-		BR200000000000000000009 /* SkillPrerequisite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillPrerequisite.swift; sourceTree = "<group>"; };
-		BR20000000000000000000A /* ConfidenceEntryEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConfidenceEntryEntity+Ext.swift"; sourceTree = "<group>"; };
-		BR20000000000000000000B /* FocusHistoryEntity+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FocusHistoryEntity+Ext.swift"; sourceTree = "<group>"; };
-		BR20000000000000000000C /* ConfidenceEntryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfidenceEntryRepository.swift; sourceTree = "<group>"; };
-		BR20000000000000000000D /* ConfidenceEntryRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfidenceEntryRepositoryImpl.swift; sourceTree = "<group>"; };
-		BR20000000000000000000E /* FocusHistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHistoryRepository.swift; sourceTree = "<group>"; };
-		BR20000000000000000000F /* FocusHistoryRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHistoryRepositoryImpl.swift; sourceTree = "<group>"; };
-		BR200000000000000000010 /* CoachInsightGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachInsightGenerator.swift; sourceTree = "<group>"; };
-		BR200000000000000000011 /* DataMigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataMigrationService.swift; sourceTree = "<group>"; };
-		BR200000000000000000012 /* MilestoneSuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MilestoneSuggestionEngine.swift; sourceTree = "<group>"; };
-		BR200000000000000000013 /* RecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationEngine.swift; sourceTree = "<group>"; };
-		BR200000000000000000014 /* SchedulingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingEngine.swift; sourceTree = "<group>"; };
-		BR200000000000000000015 /* XPManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPManager.swift; sourceTree = "<group>"; };
-		BR200000000000000000016 /* CelebrationOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationOverlay.swift; sourceTree = "<group>"; };
-		BR200000000000000000017 /* CoachInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachInsightCard.swift; sourceTree = "<group>"; };
-		BR200000000000000000018 /* ConfidenceBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfidenceBar.swift; sourceTree = "<group>"; };
-		BR200000000000000000019 /* FocusHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHeroCard.swift; sourceTree = "<group>"; };
-		BR20000000000000000001A /* MilestoneSuggestionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MilestoneSuggestionCard.swift; sourceTree = "<group>"; };
-		BR20000000000000000001B /* PillarCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillarCard.swift; sourceTree = "<group>"; };
-		BR20000000000000000001C /* RoadToGoalBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadToGoalBar.swift; sourceTree = "<group>"; };
-		BR20000000000000000001D /* SkillConfidenceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillConfidenceRow.swift; sourceTree = "<group>"; };
-		BR20000000000000000001E /* StaleCheckInCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaleCheckInCard.swift; sourceTree = "<group>"; };
-		BR20000000000000000001F /* WeekScheduleStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekScheduleStrip.swift; sourceTree = "<group>"; };
-		BR200000000000000000020 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
-		BR200000000000000000021 /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
-		BR200000000000000000022 /* JourneyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyView.swift; sourceTree = "<group>"; };
-		BR200000000000000000023 /* JourneyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyViewModel.swift; sourceTree = "<group>"; };
-		BR200000000000000000024 /* GoalDUPRPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDUPRPromptView.swift; sourceTree = "<group>"; };
-		BR200000000000000000025 /* ConfidenceUpdateSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfidenceUpdateSheet.swift; sourceTree = "<group>"; };
 		/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -588,6 +518,7 @@
 				B2000001000000000000000F /* CompletedSkillCardView.swift */,
 				B20000010000000000000011 /* PremiumRatingSlider.swift */,
 				B2000001000000000000000E /* DrillCardView.swift */,
+				B2000001000000000000000B /* MotivationalBanner.swift */,
 				B20000010000000000000005 /* PreviewData.swift */,
 				B20000010000000000000006 /* ProgressBar.swift */,
 				B20000010000000000000007 /* RatingBadge.swift */,
@@ -602,16 +533,6 @@
 				PG2000010000000000000011 /* GenerationModeCard.swift */,
 				FM2000010000000000000006 /* ProgramTemplateCard.swift */,
 				FM2000010000000000000007 /* PaywalledWeekOverlay.swift */,
-				BR200000000000000000016 /* CelebrationOverlay.swift */,
-				BR200000000000000000017 /* CoachInsightCard.swift */,
-				BR200000000000000000018 /* ConfidenceBar.swift */,
-				BR200000000000000000019 /* FocusHeroCard.swift */,
-				BR20000000000000000001A /* MilestoneSuggestionCard.swift */,
-				BR20000000000000000001B /* PillarCard.swift */,
-				BR20000000000000000001C /* RoadToGoalBar.swift */,
-				BR20000000000000000001D /* SkillConfidenceRow.swift */,
-				BR20000000000000000001E /* StaleCheckInCard.swift */,
-				BR20000000000000000001F /* WeekScheduleStrip.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -656,8 +577,6 @@
 				PG2000010000000000000004 /* ProgramEntity+Ext.swift */,
 				PG2000010000000000000005 /* ProgramSessionEntity+Ext.swift */,
 				PG2000010000000000000006 /* ProgramDrillEntity+Ext.swift */,
-				BR20000000000000000000A /* ConfidenceEntryEntity+Ext.swift */,
-				BR20000000000000000000B /* FocusHistoryEntity+Ext.swift */,
 			);
 			path = CoreData;
 			sourceTree = "<group>";
@@ -680,10 +599,6 @@
 				J20000010000000000000004 /* JournalEntryRepositoryImpl.swift */,
 				PG2000010000000000000007 /* ProgramRepository.swift */,
 				PG2000010000000000000008 /* ProgramRepositoryImpl.swift */,
-				BR20000000000000000000C /* ConfidenceEntryRepository.swift */,
-				BR20000000000000000000D /* ConfidenceEntryRepositoryImpl.swift */,
-				BR20000000000000000000E /* FocusHistoryRepository.swift */,
-				BR20000000000000000000F /* FocusHistoryRepositoryImpl.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -711,19 +626,11 @@
 				CC200001000000000000000E /* CoachProfile.swift */,
 				AC2000010000000000000001 /* Achievement.swift */,
 				D12000010000000000000003 /* DUPRModels.swift */,
+				SB2000010000000000000001 /* SkillBenchmark.swift */,
 				PG2000010000000000000001 /* Program.swift */,
 				PG2000010000000000000002 /* ProgramSession.swift */,
 				PG2000010000000000000003 /* ProgramDrill.swift */,
 				FM2000010000000000000004 /* ProgramTemplate.swift */,
-				BR200000000000000000001 /* CanonicalSkill.swift */,
-				BR200000000000000000002 /* ConfidenceBenchmark.swift */,
-				BR200000000000000000003 /* ConfidenceEntry.swift */,
-				BR200000000000000000004 /* FocusHistoryEntry.swift */,
-				BR200000000000000000005 /* RecommendedFocus.swift */,
-				BR200000000000000000006 /* ScheduledDay.swift */,
-				BR200000000000000000007 /* SkillPillar.swift */,
-				BR200000000000000000008 /* SkillPillarSummary.swift */,
-				BR200000000000000000009 /* SkillPrerequisite.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -746,8 +653,6 @@
 				D17000010000000000000001 /* DUPR */,
 				PG7000010000000000000001 /* Program */,
 				FM7000010000000000000001 /* Subscription */,
-				BR700000000000000000001 /* Today */,
-				BR700000000000000000002 /* Journey */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -770,7 +675,6 @@
 				H20000010000000000000002 /* SkillNotesView.swift */,
 				T20000010000000000000002 /* SkillCoachingViewModel.swift */,
 				T20000010000000000000003 /* SkillCoachingView.swift */,
-				BR200000000000000000025 /* ConfidenceUpdateSheet.swift */,
 			);
 			path = SkillDetail;
 			sourceTree = "<group>";
@@ -791,12 +695,6 @@
 				FS2000010000000000000001 /* FocusSkillManager.swift */,
 				NM2000010000000000000001 /* NotificationManager.swift */,
 				FM2000010000000000000001 /* SubscriptionService.swift */,
-				BR200000000000000000010 /* CoachInsightGenerator.swift */,
-				BR200000000000000000011 /* DataMigrationService.swift */,
-				BR200000000000000000012 /* MilestoneSuggestionEngine.swift */,
-				BR200000000000000000013 /* RecommendationEngine.swift */,
-				BR200000000000000000014 /* SchedulingEngine.swift */,
-				BR200000000000000000015 /* XPManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -906,7 +804,6 @@
 			children = (
 				M20000000000000000000001 /* OnboardingViewModel.swift */,
 				M20000000000000000000002 /* OnboardingView.swift */,
-				BR200000000000000000024 /* GoalDUPRPromptView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -975,24 +872,6 @@
 				FM2000010000000000000008 /* curated_programs.json */,
 			);
 			path = Programs;
-			sourceTree = "<group>";
-		};
-		BR700000000000000000001 /* Today */ = {
-			isa = PBXGroup;
-			children = (
-				BR200000000000000000021 /* TodayViewModel.swift */,
-				BR200000000000000000020 /* TodayView.swift */,
-			);
-			path = Today;
-			sourceTree = "<group>";
-		};
-		BR700000000000000000002 /* Journey */ = {
-			isa = PBXGroup;
-			children = (
-				BR200000000000000000023 /* JourneyViewModel.swift */,
-				BR200000000000000000022 /* JourneyView.swift */,
-			);
-			path = Journey;
 			sourceTree = "<group>";
 		};
 		/* End PBXGroup section */
@@ -1151,6 +1030,7 @@
 				B10000010000000000000008 /* SparklineChart.swift in Sources */,
 				B10000010000000000000009 /* CheckerItem.swift in Sources */,
 				B1000001000000000000000A /* AchievementBadge.swift in Sources */,
+				B1000001000000000000000B /* MotivationalBanner.swift in Sources */,
 				B1000001000000000000000C /* SkillCard.swift in Sources */,
 				C10000010000000000000001 /* Skill.swift in Sources */,
 				C10000010000000000000002 /* ProgressChecker.swift in Sources */,
@@ -1195,6 +1075,7 @@
 				D11000010000000000000005 /* DUPRConnectSheet.swift in Sources */,
 				D11000010000000000000006 /* DUPRStatsView.swift in Sources */,
 				NM1000010000000000000001 /* NotificationManager.swift in Sources */,
+				SB1000010000000000000001 /* SkillBenchmark.swift in Sources */,
 
 				E10000020000000000000003 /* AgentService.swift in Sources */,
 				E10000020000000000000004 /* ChatViewModel.swift in Sources */,
@@ -1290,43 +1171,6 @@
 				FM1000010000000000000005 /* ProgramTemplateLoader.swift in Sources */,
 				FM1000010000000000000006 /* ProgramTemplateCard.swift in Sources */,
 				FM1000010000000000000007 /* PaywalledWeekOverlay.swift in Sources */,
-				BR100000000000000000001 /* CanonicalSkill.swift in Sources */,
-				BR100000000000000000002 /* ConfidenceBenchmark.swift in Sources */,
-				BR100000000000000000003 /* ConfidenceEntry.swift in Sources */,
-				BR100000000000000000004 /* FocusHistoryEntry.swift in Sources */,
-				BR100000000000000000005 /* RecommendedFocus.swift in Sources */,
-				BR100000000000000000006 /* ScheduledDay.swift in Sources */,
-				BR100000000000000000007 /* SkillPillar.swift in Sources */,
-				BR100000000000000000008 /* SkillPillarSummary.swift in Sources */,
-				BR100000000000000000009 /* SkillPrerequisite.swift in Sources */,
-				BR10000000000000000000A /* ConfidenceEntryEntity+Ext.swift in Sources */,
-				BR10000000000000000000B /* FocusHistoryEntity+Ext.swift in Sources */,
-				BR10000000000000000000C /* ConfidenceEntryRepository.swift in Sources */,
-				BR10000000000000000000D /* ConfidenceEntryRepositoryImpl.swift in Sources */,
-				BR10000000000000000000E /* FocusHistoryRepository.swift in Sources */,
-				BR10000000000000000000F /* FocusHistoryRepositoryImpl.swift in Sources */,
-				BR100000000000000000010 /* CoachInsightGenerator.swift in Sources */,
-				BR100000000000000000011 /* DataMigrationService.swift in Sources */,
-				BR100000000000000000012 /* MilestoneSuggestionEngine.swift in Sources */,
-				BR100000000000000000013 /* RecommendationEngine.swift in Sources */,
-				BR100000000000000000014 /* SchedulingEngine.swift in Sources */,
-				BR100000000000000000015 /* XPManager.swift in Sources */,
-				BR100000000000000000016 /* CelebrationOverlay.swift in Sources */,
-				BR100000000000000000017 /* CoachInsightCard.swift in Sources */,
-				BR100000000000000000018 /* ConfidenceBar.swift in Sources */,
-				BR100000000000000000019 /* FocusHeroCard.swift in Sources */,
-				BR10000000000000000001A /* MilestoneSuggestionCard.swift in Sources */,
-				BR10000000000000000001B /* PillarCard.swift in Sources */,
-				BR10000000000000000001C /* RoadToGoalBar.swift in Sources */,
-				BR10000000000000000001D /* SkillConfidenceRow.swift in Sources */,
-				BR10000000000000000001E /* StaleCheckInCard.swift in Sources */,
-				BR10000000000000000001F /* WeekScheduleStrip.swift in Sources */,
-				BR100000000000000000020 /* TodayView.swift in Sources */,
-				BR100000000000000000021 /* TodayViewModel.swift in Sources */,
-				BR100000000000000000022 /* JourneyView.swift in Sources */,
-				BR100000000000000000023 /* JourneyViewModel.swift in Sources */,
-				BR100000000000000000024 /* GoalDUPRPromptView.swift in Sources */,
-				BR100000000000000000025 /* ConfidenceUpdateSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

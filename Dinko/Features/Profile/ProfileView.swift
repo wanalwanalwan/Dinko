@@ -13,8 +13,6 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
-                    statsSection
-                    achievementsSection
                     duprSection
                     playerProfileSection
                     trainingSection
@@ -27,94 +25,13 @@ struct ProfileView: View {
             .background(AppColors.background)
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-
-    // MARK: - Stats Summary
-
-    private var statsSection: some View {
-        HStack(spacing: AppSpacing.sm) {
-            statCard(
-                icon: "flame.fill",
-                iconColor: AppColors.warningOrange,
-                value: "\(XPManager.currentLevel)",
-                label: "Level"
-            )
-            statCard(
-                icon: "bolt.fill",
-                iconColor: AppColors.primary,
-                value: "\(XPManager.xpInCurrentLevel)/100",
-                label: "XP"
-            )
-            statCard(
-                icon: "calendar.badge.checkmark",
-                iconColor: AppColors.successGreen,
-                value: "\(viewModel.weeklyGoal ?? 3)",
-                label: "Weekly Goal"
-            )
-        }
-    }
-
-    private func statCard(icon: String, iconColor: Color, value: String, label: String) -> some View {
-        VStack(spacing: AppSpacing.xxs) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundStyle(iconColor)
-            Text(value)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.textPrimary)
-            Text(label)
-                .font(.system(size: 11, design: .rounded))
-                .foregroundStyle(AppColors.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.sm)
-        .neumorphicRaised(intensity: .subtle, cornerRadius: AppSpacing.cardCornerRadius)
-    }
-
-    // MARK: - Achievements
-
-    private var achievementsSection: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            HStack {
-                Text("ACHIEVEMENTS")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textSecondary)
-                Spacer()
-                let unlockedCount = AchievementManager.unlockedIds.count
-                let totalCount = AchievementType.allCases.count
-                Text("\(unlockedCount)/\(totalCount)")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.primary)
-            }
-
-            let achievements = AchievementManager.allAchievements()
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: AppSpacing.sm) {
-                ForEach(achievements, id: \.achievement.id) { item in
-                    VStack(spacing: 4) {
-                        Image(systemName: item.achievement.iconName)
-                            .font(.system(size: 22))
-                            .foregroundStyle(item.isUnlocked ? item.achievement.color : AppColors.lockedGray)
-                        Text(item.achievement.name)
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundStyle(item.isUnlocked ? AppColors.textPrimary : AppColors.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xs)
-                    .opacity(item.isUnlocked ? 1 : 0.5)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .font(AppTypography.headline)
+                        .foregroundStyle(AppColors.primary)
                 }
             }
-            .padding(AppSpacing.sm)
-            .background(AppColors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
-            .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
         }
     }
 
@@ -259,16 +176,6 @@ struct ProfileView: View {
                 .foregroundStyle(AppColors.textSecondary)
 
             VStack(spacing: 0) {
-                profileRow(title: "Goal DUPR", value: viewModel.goalDUPR, options: [
-                    "3.0", "3.5", "4.0", "4.5", "5.0"
-                ]) {
-                    viewModel.goalDUPR = $0
-                    PlayerProfile.saveGoalDUPR($0)
-                    viewModel.save()
-                }
-
-                Divider().padding(.leading, AppSpacing.md)
-
                 profileRow(title: "DUPR Level", value: viewModel.duprRange, options: [
                     "Beginner (2.0-3.0)", "Intermediate (3.0-4.0)", "Advanced (4.0-5.0)", "Pro (5.0+)"
                 ]) { viewModel.duprRange = $0; viewModel.save() }
@@ -558,6 +465,7 @@ struct ProfileView: View {
 
                 Button {
                     Task { await authViewModel?.signOut() }
+                    dismiss()
                 } label: {
                     HStack {
                         Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
