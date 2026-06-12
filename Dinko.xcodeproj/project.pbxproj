@@ -176,6 +176,11 @@
 		FM1000010000000000000006 /* ProgramTemplateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000006 /* ProgramTemplateCard.swift */; };
 		FM1000010000000000000007 /* PaywalledWeekOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000007 /* PaywalledWeekOverlay.swift */; };
 		FM1000010000000000000008 /* curated_programs.json in Resources */ = {isa = PBXBuildFile; fileRef = FM2000010000000000000008 /* curated_programs.json */; };
+		AA1000010000000000000001 /* CatalogDrill.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000010000000000000001 /* CatalogDrill.swift */; };
+		AA1000010000000000000002 /* DrillCatalogLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000010000000000000002 /* DrillCatalogLoader.swift */; };
+		AA1000010000000000000003 /* ScheduleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000010000000000000003 /* ScheduleEngine.swift */; };
+		AA1000010000000000000004 /* drill_catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = AA2000010000000000000004 /* drill_catalog.json */; };
+		AA1000010000000000000005 /* ScheduleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000010000000000000005 /* ScheduleEngineTests.swift */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -371,6 +376,11 @@
 		FM2000010000000000000006 /* ProgramTemplateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplateCard.swift; sourceTree = "<group>"; };
 		FM2000010000000000000007 /* PaywalledWeekOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywalledWeekOverlay.swift; sourceTree = "<group>"; };
 		FM2000010000000000000008 /* curated_programs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = curated_programs.json; sourceTree = "<group>"; };
+		AA2000010000000000000001 /* CatalogDrill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogDrill.swift; sourceTree = "<group>"; };
+		AA2000010000000000000002 /* DrillCatalogLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillCatalogLoader.swift; sourceTree = "<group>"; };
+		AA2000010000000000000003 /* ScheduleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEngine.swift; sourceTree = "<group>"; };
+		AA2000010000000000000004 /* drill_catalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = drill_catalog.json; sourceTree = "<group>"; };
+		AA2000010000000000000005 /* ScheduleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEngineTests.swift; sourceTree = "<group>"; };
 		/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -443,6 +453,7 @@
 				A20000010000000000000010 /* DinkoTests.swift */,
 				D20000010000000000000010 /* SkillRepositoryTests.swift */,
 				D20000010000000000000011 /* ProgressCheckerRepositoryTests.swift */,
+				AA2000010000000000000005 /* ScheduleEngineTests.swift */,
 			);
 			path = DinkoTests;
 			sourceTree = "<group>";
@@ -559,6 +570,7 @@
 				A70000010000000000000060 /* CoreData */,
 				A70000010000000000000061 /* Repositories */,
 				FM2000010000000000000005 /* ProgramTemplateLoader.swift */,
+				AA2000010000000000000002 /* DrillCatalogLoader.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -631,6 +643,7 @@
 				PG2000010000000000000002 /* ProgramSession.swift */,
 				PG2000010000000000000003 /* ProgramDrill.swift */,
 				FM2000010000000000000004 /* ProgramTemplate.swift */,
+				AA2000010000000000000001 /* CatalogDrill.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -695,6 +708,7 @@
 				FS2000010000000000000001 /* FocusSkillManager.swift */,
 				NM2000010000000000000001 /* NotificationManager.swift */,
 				FM2000010000000000000001 /* SubscriptionService.swift */,
+				AA2000010000000000000003 /* ScheduleEngine.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -870,6 +884,7 @@
 			isa = PBXGroup;
 			children = (
 				FM2000010000000000000008 /* curated_programs.json */,
+				AA2000010000000000000004 /* drill_catalog.json */,
 			);
 			path = Programs;
 			sourceTree = "<group>";
@@ -989,6 +1004,7 @@
 				FT1000010000000000000002 /* Sora-SemiBold.ttf in Resources */,
 				FT1000010000000000000003 /* Sora-Bold.ttf in Resources */,
 				FM1000010000000000000008 /* curated_programs.json in Resources */,
+				AA1000010000000000000004 /* drill_catalog.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1171,6 +1187,9 @@
 				FM1000010000000000000005 /* ProgramTemplateLoader.swift in Sources */,
 				FM1000010000000000000006 /* ProgramTemplateCard.swift in Sources */,
 				FM1000010000000000000007 /* PaywalledWeekOverlay.swift in Sources */,
+				AA1000010000000000000001 /* CatalogDrill.swift in Sources */,
+				AA1000010000000000000002 /* DrillCatalogLoader.swift in Sources */,
+				AA1000010000000000000003 /* ScheduleEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1181,6 +1200,7 @@
 				A10000010000000000000010 /* DinkoTests.swift in Sources */,
 				D10000010000000000000010 /* SkillRepositoryTests.swift in Sources */,
 				D10000010000000000000011 /* ProgressCheckerRepositoryTests.swift in Sources */,
+				AA1000010000000000000005 /* ScheduleEngineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

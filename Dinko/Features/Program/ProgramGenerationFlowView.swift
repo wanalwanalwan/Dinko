@@ -64,7 +64,7 @@ struct ProgramGenerationFlowView: View {
                     .foregroundStyle(AppColors.textPrimary)
                     .padding(.top, AppSpacing.lg)
 
-                Text("Choose a balanced program or target specific skills.")
+                Text("Choose a balanced program or target specific skills. Your plan is personalized to your profile.")
                     .font(.system(size: 14, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -74,7 +74,7 @@ struct ProgramGenerationFlowView: View {
                     GenerationModeCard(
                         icon: "figure.run.circle",
                         title: "General Training",
-                        description: "Balanced program based on your overall skill level"
+                        description: "Personalized program based on your skill level and goals"
                     ) {
                         dismiss()
                         Task { await viewModel.generateProgram() }
@@ -83,7 +83,7 @@ struct ProgramGenerationFlowView: View {
                     GenerationModeCard(
                         icon: "target",
                         title: "Custom Focus",
-                        description: "Pick skills to prioritize and get a targeted plan"
+                        description: "Pick skills to prioritize and get a personalized plan"
                     ) {
                         withAnimation { showSkillPicker = true }
                     }
@@ -172,7 +172,7 @@ struct ProgramGenerationFlowView: View {
                     Task { await viewModel.generateCustomProgram(focusSkills: focusSkills) }
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: "sparkles")
+                        Image(systemName: "wand.and.stars")
                         Text("Generate Program")
                     }
                     .font(.system(size: 15, weight: .bold, design: .rounded))

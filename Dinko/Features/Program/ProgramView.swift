@@ -76,11 +76,11 @@ struct ProgramView: View {
                 .scaleEffect(1.2)
                 .tint(AppColors.primary)
 
-            Text("Generating your plan...")
+            Text("Building your plan...")
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("Your AI coach is crafting a training program tailored to your profile.")
+            Text("Creating a personalized training program based on your profile and goals.")
                 .font(.system(size: 14, design: .rounded))
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)
@@ -239,7 +239,7 @@ struct ProgramView: View {
     private func aiGeneratedSection(_ vm: ProgramViewModel) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.xxs) {
             if vm.activeProgram == nil {
-                Text("AI-GENERATED")
+                Text("PERSONALIZED")
                     .font(AppTypography.sectionLabel)
                     .tracking(0.8)
                     .foregroundStyle(AppColors.textSecondary)

@@ -15,6 +15,9 @@ final class OnboardingViewModel {
     var injuries: Set<String> = []
     var drillBalance: String?
     var drillPreferences: Set<String> = []
+    var partnerAccess: String?
+    var targetTimeline: String?
+    var struggleAreas: Set<String> = []
     var pendingFocusSkills: [PendingFocusSkill] = []
 
     var trainingDaysPerWeek: Int { availableDays.count }
@@ -67,6 +70,15 @@ final class OnboardingViewModel {
         }
         if !drillPreferences.isEmpty {
             UserDefaults.standard.set(Array(drillPreferences), forKey: "pkkl_drill_preferences")
+        }
+        if let partner = partnerAccess {
+            UserDefaults.standard.set(partner, forKey: "pkkl_partner_access")
+        }
+        if let timeline = targetTimeline {
+            UserDefaults.standard.set(timeline, forKey: "pkkl_target_timeline")
+        }
+        if !struggleAreas.isEmpty {
+            UserDefaults.standard.set(Array(struggleAreas), forKey: "pkkl_struggle_areas")
         }
     }
 

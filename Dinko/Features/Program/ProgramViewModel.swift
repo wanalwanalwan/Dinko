@@ -24,8 +24,6 @@ final class ProgramViewModel {
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
-    private let agentService = AgentService()
-    private let authService = AuthService.shared
 
     init(
         programRepository: ProgramRepository,
@@ -106,81 +104,26 @@ final class ProgramViewModel {
         errorMessage = nil
 
         do {
-            let token = await getAuthToken()
-            guard !token.isEmpty else {
-                errorMessage = "Please sign in to generate a program."
-                isGenerating = false
-                return
-            }
-
-            // Use in-memory focus skills instead of crawling CoreData
             let focusEntries = FocusSkillManager.shared.focusSkills
-            let snapshots = focusEntries.map { entry -> AgentService.SkillSnapshotPayload in
-                var snapshot = AgentService.SkillSnapshotPayload(
-                    id: entry.id.uuidString,
-                    name: entry.name,
-                    category: entry.categoryRaw,
-                    currentRating: entry.startingRating ?? 0,
-                    parentSkillId: nil,
-                    subskills: [],
-                    pendingDrillCount: 0
-                )
-                snapshot.priority = entry.priorityIndex
-                return snapshot
-            }
+            let ratings = await gatherSkillRatings(focusEntries)
+            let dayTypes = HomeViewModel.buildSuggestedTypes(
+                availableDays: profile.availableDays ?? [],
+                preferredGameDay: profile.preferredGameDay,
+                drillBalance: profile.drillBalance
+            )
+            let catalog = DrillCatalogLoader.loadAll()
 
-            let profilePayload = profile.toPayload()
-            let weeklyGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
-
-            let response = try await agentService.generateProgram(
-                focusSkills: snapshots,
-                playerProfile: profilePayload.isEmpty ? nil : profilePayload,
-                weeklyGoal: max(weeklyGoal, 3),
-                generationMode: "general",
-                authToken: token
+            let input = ScheduleEngineInput(
+                profile: profile,
+                focusSkills: focusEntries,
+                skillRatings: ratings,
+                availableDayTypes: dayTypes,
+                sessionDurationMinutes: profile.sessionDuration ?? 45,
+                catalog: catalog
             )
 
-            // Map response to domain models
-            let program = Program(
-                name: response.name,
-                programDescription: response.description,
-                totalWeeks: response.totalWeeks,
-                sessionsPerWeek: response.sessionsPerWeek,
-                skillFocus: response.skillFocus
-            )
-
-            var sessions: [ProgramSession] = []
-            var drillsMap: [UUID: [ProgramDrill]] = [:]
-
-            for (index, sessionResp) in response.sessions.enumerated() {
-                let isFirst = index == 0
-                let session = ProgramSession(
-                    programId: program.id,
-                    weekNumber: sessionResp.weekNumber,
-                    sessionNumber: sessionResp.sessionNumber,
-                    title: sessionResp.title,
-                    focus: sessionResp.focus,
-                    estimatedMinutes: sessionResp.estimatedMinutes,
-                    status: isFirst ? .available : .locked
-                )
-                sessions.append(session)
-
-                let drills = sessionResp.drills.enumerated().map { (order, drillResp) in
-                    ProgramDrill(
-                        programSessionId: session.id,
-                        name: drillResp.name,
-                        drillDescription: drillResp.description,
-                        durationMinutes: drillResp.durationMinutes,
-                        targetReps: drillResp.targetReps,
-                        equipment: drillResp.equipment,
-                        playerCount: drillResp.playerCount,
-                        displayOrder: order
-                    )
-                }
-                drillsMap[session.id] = drills
-            }
-
-            try await programRepository.saveFullProgram(program, sessions: sessions, drills: drillsMap)
+            let output = ScheduleEngine.generate(input: input)
+            try await programRepository.saveFullProgram(output.program, sessions: output.sessions, drills: output.drills)
             await loadProgram()
         } catch {
             errorMessage = error.localizedDescription
@@ -200,78 +143,41 @@ final class ProgramViewModel {
         errorMessage = nil
 
         do {
-            let token = await getAuthToken()
-            guard !token.isEmpty else {
-                errorMessage = "Please sign in to generate a program."
-                isGenerating = false
-                return
-            }
-
-            let snapshots = focusSkills.map { focus -> AgentService.SkillSnapshotPayload in
-                var snapshot = AgentService.SkillSnapshotPayload(
-                    id: focus.id.uuidString,
+            // Convert ProgramFocusSkill to FocusSkillEntry for the engine
+            let focusEntries = focusSkills.map { focus in
+                FocusSkillEntry(
+                    id: focus.id,
                     name: focus.name,
-                    category: focus.category,
-                    currentRating: focus.currentRating,
-                    parentSkillId: nil,
-                    subskills: [],
-                    pendingDrillCount: 0
+                    icon: focus.iconName,
+                    categoryRaw: focus.category,
+                    priorityIndex: focus.priority,
+                    startingRating: focus.currentRating
                 )
-                snapshot.priority = focus.priority
-                return snapshot
             }
 
-            let profilePayload = PlayerProfile.current().toPayload()
-            let weeklyGoal = UserDefaults.standard.integer(forKey: "pkkl_weekly_goal")
-
-            let response = try await agentService.generateProgram(
-                focusSkills: snapshots,
-                playerProfile: profilePayload.isEmpty ? nil : profilePayload,
-                weeklyGoal: max(weeklyGoal, 3),
-                generationMode: "custom_focus",
-                authToken: token
-            )
-
-            let program = Program(
-                name: response.name,
-                programDescription: response.description,
-                totalWeeks: response.totalWeeks,
-                sessionsPerWeek: response.sessionsPerWeek,
-                skillFocus: response.skillFocus
-            )
-
-            var sessions: [ProgramSession] = []
-            var drillsMap: [UUID: [ProgramDrill]] = [:]
-
-            for (index, sessionResp) in response.sessions.enumerated() {
-                let isFirst = index == 0
-                let session = ProgramSession(
-                    programId: program.id,
-                    weekNumber: sessionResp.weekNumber,
-                    sessionNumber: sessionResp.sessionNumber,
-                    title: sessionResp.title,
-                    focus: sessionResp.focus,
-                    estimatedMinutes: sessionResp.estimatedMinutes,
-                    status: isFirst ? .available : .locked
-                )
-                sessions.append(session)
-
-                let drills = sessionResp.drills.enumerated().map { (order, drillResp) in
-                    ProgramDrill(
-                        programSessionId: session.id,
-                        name: drillResp.name,
-                        drillDescription: drillResp.description,
-                        durationMinutes: drillResp.durationMinutes,
-                        targetReps: drillResp.targetReps,
-                        equipment: drillResp.equipment,
-                        playerCount: drillResp.playerCount,
-                        displayOrder: order
-                    )
-                }
-                drillsMap[session.id] = drills
+            var ratings: [UUID: Int] = [:]
+            for focus in focusSkills {
+                ratings[focus.id] = focus.currentRating
             }
 
-            try await programRepository.saveFullProgram(program, sessions: sessions, drills: drillsMap)
+            let dayTypes = HomeViewModel.buildSuggestedTypes(
+                availableDays: profile.availableDays ?? [],
+                preferredGameDay: profile.preferredGameDay,
+                drillBalance: profile.drillBalance
+            )
+            let catalog = DrillCatalogLoader.loadAll()
+
+            let input = ScheduleEngineInput(
+                profile: profile,
+                focusSkills: focusEntries,
+                skillRatings: ratings,
+                availableDayTypes: dayTypes,
+                sessionDurationMinutes: profile.sessionDuration ?? 45,
+                catalog: catalog
+            )
+
+            let output = ScheduleEngine.generate(input: input)
+            try await programRepository.saveFullProgram(output.program, sessions: output.sessions, drills: output.drills)
             await loadProgram()
         } catch {
             errorMessage = error.localizedDescription
@@ -384,11 +290,16 @@ final class ProgramViewModel {
 
     // MARK: - Private
 
-    private func getAuthToken() async -> String {
-        if let token = await authService.validAccessToken() {
-            return token
+    private func gatherSkillRatings(_ entries: [FocusSkillEntry]) async -> [UUID: Int] {
+        var ratings: [UUID: Int] = [:]
+        for entry in entries {
+            if let latestRating = try? await skillRatingRepository.fetchLatest(entry.id) {
+                ratings[entry.id] = latestRating.rating
+            } else {
+                ratings[entry.id] = entry.startingRating ?? 0
+            }
         }
-        return ""
+        return ratings
     }
 }
 

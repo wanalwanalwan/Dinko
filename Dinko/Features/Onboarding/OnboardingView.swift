@@ -10,7 +10,7 @@ struct OnboardingView: View {
 
     var onComplete: () -> Void
 
-    private let totalSteps = 11
+    private let totalSteps = 14
     @State private var selectedSkills: [PendingFocusSkill] = []
     @State private var customSkillInput = ""
     @State private var showCustomInput = false
@@ -29,7 +29,10 @@ struct OnboardingView: View {
                 sessionDurationStep.tag(7)
                 drillBalanceStep.tag(8)
                 injuriesStep.tag(9)
-                focusSkillsStep.tag(10)
+                partnerAccessStep.tag(10)
+                targetTimelineStep.tag(11)
+                struggleAreasStep.tag(12)
+                focusSkillsStep.tag(13)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: currentStep)
@@ -605,9 +608,114 @@ struct OnboardingView: View {
         .buttonStyle(.plain)
     }
 
+    // MARK: - Step 10: Partner Access
+
+    private var partnerAccessStep: some View {
+        stepContainer(
+            title: "Do you have a drill partner?",
+            subtitle: "Some drills work best with a partner. We'll adapt your program."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Always", icon: "person.2.fill", isSelected: viewModel.partnerAccess == "Always") {
+                    viewModel.partnerAccess = "Always"
+                    advanceAfterDelay()
+                }
+                selectionCard("Sometimes", icon: "person.2", isSelected: viewModel.partnerAccess == "Sometimes") {
+                    viewModel.partnerAccess = "Sometimes"
+                    advanceAfterDelay()
+                }
+                selectionCard("Solo only", icon: "person.fill", isSelected: viewModel.partnerAccess == "Solo only") {
+                    viewModel.partnerAccess = "Solo only"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 11: Target Timeline
+
+    private var targetTimelineStep: some View {
+        stepContainer(
+            title: "What's driving your training?",
+            subtitle: "This helps us set the right pace and intensity."
+        ) {
+            VStack(spacing: AppSpacing.xs) {
+                selectionCard("Tournament coming up", icon: "trophy.fill", isSelected: viewModel.targetTimeline == "Tournament coming up") {
+                    viewModel.targetTimeline = "Tournament coming up"
+                    advanceAfterDelay()
+                }
+                selectionCard("Hit a DUPR milestone", icon: "chart.line.uptrend.xyaxis", isSelected: viewModel.targetTimeline == "Hit a DUPR milestone") {
+                    viewModel.targetTimeline = "Hit a DUPR milestone"
+                    advanceAfterDelay()
+                }
+                selectionCard("General improvement", icon: "arrow.up.right", isSelected: viewModel.targetTimeline == "General improvement") {
+                    viewModel.targetTimeline = "General improvement"
+                    advanceAfterDelay()
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 12: Struggle Areas
+
+    private var struggleAreasStep: some View {
+        stepContainer(
+            title: "Where do you struggle most?",
+            subtitle: "We'll prioritize drills that target your weak spots."
+        ) {
+            VStack(spacing: AppSpacing.sm) {
+                let options = ["Execution", "Transfer to games", "Decision-making", "Pressure"]
+
+                FlowLayout(spacing: AppSpacing.xxs) {
+                    ForEach(options, id: \.self) { option in
+                        pillButton(option, isSelected: viewModel.struggleAreas.contains(option)) {
+                            if viewModel.struggleAreas.contains(option) {
+                                viewModel.struggleAreas.remove(option)
+                            } else {
+                                viewModel.struggleAreas.insert(option)
+                            }
+                        }
+                    }
+                }
+
+                HStack(spacing: AppSpacing.xs) {
+                    if !viewModel.struggleAreas.isEmpty {
+                        Button {
+                            advanceAfterDelay()
+                        } label: {
+                            Text("Continue")
+                                .font(AppTypography.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppSpacing.sm)
+                                .background(AppColors.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Button {
+                        advanceAfterDelay()
+                    } label: {
+                        Text("Skip")
+                            .font(AppTypography.headline)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .frame(maxWidth: viewModel.struggleAreas.isEmpty ? .infinity : nil)
+                            .padding(.vertical, AppSpacing.sm)
+                            .padding(.horizontal, viewModel.struggleAreas.isEmpty ? 0 : AppSpacing.lg)
+                            .background(AppColors.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: AppSpacing.xs))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, AppSpacing.xs)
+            }
+        }
+    }
+
     // MARK: - Actions
 
-    // MARK: - Step 10: Focus Skills
+    // MARK: - Step 13: Focus Skills
 
     private var focusSkillsStep: some View {
         stepContainer(

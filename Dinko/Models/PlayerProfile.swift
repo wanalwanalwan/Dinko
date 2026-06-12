@@ -15,6 +15,9 @@ struct PlayerProfile {
     let availableDays: [Int]?
     let preferredGameDay: Int?
     let sessionDuration: Int?
+    let partnerAccess: String?
+    let targetTimeline: String?
+    let struggleAreas: [String]?
 
     static func current() -> PlayerProfile {
         let defaults = UserDefaults.standard
@@ -47,7 +50,10 @@ struct PlayerProfile {
             drillBalance: defaults.string(forKey: "pkkl_drill_balance"),
             availableDays: availableDays,
             preferredGameDay: preferredGameDay,
-            sessionDuration: sessionDuration
+            sessionDuration: sessionDuration,
+            partnerAccess: defaults.string(forKey: "pkkl_partner_access"),
+            targetTimeline: defaults.string(forKey: "pkkl_target_timeline"),
+            struggleAreas: defaults.stringArray(forKey: "pkkl_struggle_areas")
         )
     }
 
@@ -78,6 +84,15 @@ struct PlayerProfile {
         }
         if let sessionDuration {
             dict["session_duration"] = sessionDuration
+        }
+        if let partnerAccess {
+            dict["partner_access"] = partnerAccess
+        }
+        if let targetTimeline {
+            dict["target_timeline"] = targetTimeline
+        }
+        if let struggleAreas, !struggleAreas.isEmpty {
+            dict["struggle_areas"] = struggleAreas
         }
         return dict
     }

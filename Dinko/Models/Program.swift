@@ -57,4 +57,5 @@ enum ProgramStatus: String {
 enum ProgramSource: String {
     case ai
     case curated
+    case generated
 }
