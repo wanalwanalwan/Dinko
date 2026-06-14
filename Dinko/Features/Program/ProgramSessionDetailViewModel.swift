@@ -11,11 +11,20 @@ final class ProgramSessionDetailViewModel {
     var errorMessage: String?
 
     private let programRepository: ProgramRepository
+    private let skillRepository: SkillRepository
+    private let skillRatingRepository: SkillRatingRepository
     private let agentService = AgentService()
 
-    init(session: ProgramSession, programRepository: ProgramRepository) {
+    init(
+        session: ProgramSession,
+        programRepository: ProgramRepository,
+        skillRepository: SkillRepository,
+        skillRatingRepository: SkillRatingRepository
+    ) {
         self.session = session
         self.programRepository = programRepository
+        self.skillRepository = skillRepository
+        self.skillRatingRepository = skillRatingRepository
     }
 
     // MARK: - Computed
@@ -67,16 +76,17 @@ final class ProgramSessionDetailViewModel {
                 .replacingOccurrences(of: " Drill Day", with: "")
                 .replacingOccurrences(of: " Day", with: "")
 
-            // Use the existing skill_coaching endpoint (already deployed)
-            // to generate drills for this session's focus skill
+            // Look up the actual skill from CoreData to get real ratings & subskills
+            let (matchedSkill, currentRating, subskillPayloads, trendPoints) = await lookupSkillData(skillName: skillName)
+
             let response = try await agentService.skillCoaching(
-                skillName: skillName,
-                category: skillCategoryGuess(for: skillName),
-                currentRating: 0,
+                skillName: matchedSkill?.name ?? skillName,
+                category: matchedSkill?.category.rawValue ?? skillCategoryGuess(for: skillName),
+                currentRating: currentRating,
                 skillDescription: session.focus,
-                subskills: [],
+                subskills: subskillPayloads,
                 pendingDrills: [],
-                ratingTrend: [],
+                ratingTrend: trendPoints,
                 playerProfile: profilePayload.isEmpty ? nil : profilePayload,
                 authToken: token
             )
@@ -163,6 +173,56 @@ final class ProgramSessionDetailViewModel {
     }
 
     // MARK: - Private
+
+    /// Look up the real skill from CoreData by matching the session's skill name,
+    /// then fetch its current rating, subskills with ratings, and rating trend.
+    private func lookupSkillData(
+        skillName: String
+    ) async -> (Skill?, Int, [AgentService.CoachingSubskillPayload], [AgentService.RatingTrendPoint]) {
+        do {
+            let allSkills = try await skillRepository.fetchActive()
+            let lowerName = skillName.lowercased()
+
+            // Match by name (case-insensitive, partial match)
+            let matched = allSkills.first { skill in
+                skill.name.lowercased() == lowerName
+                || skill.name.lowercased().contains(lowerName)
+                || lowerName.contains(skill.name.lowercased())
+            }
+
+            guard let skill = matched else {
+                return (nil, 0, [], [])
+            }
+
+            // Get current rating
+            let latestRating = try await skillRatingRepository.fetchLatest(skill.id)
+            let currentRating = latestRating?.rating ?? 0
+
+            // Get subskills and their ratings
+            let subskills = allSkills.filter { $0.parentSkillId == skill.id }
+            var subskillPayloads: [AgentService.CoachingSubskillPayload] = []
+            for sub in subskills {
+                let subRating = try await skillRatingRepository.fetchLatest(sub.id)
+                subskillPayloads.append(AgentService.CoachingSubskillPayload(
+                    name: sub.name,
+                    currentRating: subRating?.rating ?? 0
+                ))
+            }
+
+            // Get rating trend (last 10 ratings)
+            let allRatings = try await skillRatingRepository.fetchForSkill(skill.id)
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            let trendPoints = allRatings
+                .sorted { $0.date < $1.date }
+                .suffix(10)
+                .map { AgentService.RatingTrendPoint(date: formatter.string(from: $0.date), rating: $0.rating) }
+
+            return (skill, currentRating, subskillPayloads, trendPoints)
+        } catch {
+            return (nil, 0, [], [])
+        }
+    }
 
     /// Best-effort category guess from the skill name for the coaching endpoint
     private func skillCategoryGuess(for skillName: String) -> String {

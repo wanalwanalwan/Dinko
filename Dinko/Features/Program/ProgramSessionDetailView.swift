@@ -8,11 +8,15 @@ struct ProgramSessionDetailView: View {
     init(
         session: ProgramSession,
         programRepository: ProgramRepository,
+        skillRepository: SkillRepository,
+        skillRatingRepository: SkillRatingRepository,
         onSessionComplete: (() -> Void)? = nil
     ) {
         _viewModel = State(initialValue: ProgramSessionDetailViewModel(
             session: session,
-            programRepository: programRepository
+            programRepository: programRepository,
+            skillRepository: skillRepository,
+            skillRatingRepository: skillRatingRepository
         ))
         self.onSessionComplete = onSessionComplete
     }

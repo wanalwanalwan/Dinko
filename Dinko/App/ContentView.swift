@@ -23,6 +23,8 @@ struct ContentView: View {
                         ProgramSessionDetailView(
                             session: session,
                             programRepository: dependencies.programRepository,
+                            skillRepository: dependencies.skillRepository,
+                            skillRatingRepository: dependencies.skillRatingRepository,
                             onSessionComplete: { homeRefreshID = UUID() }
                         )
                     }
