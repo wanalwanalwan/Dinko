@@ -121,8 +121,8 @@ final class ScheduleEngineTests: XCTestCase {
 
         let drillSessions = output.sessions.filter { !$0.title.contains("Game Day") }
         for session in drillSessions {
-            XCTAssertTrue(session.title.hasSuffix(" Day"),
-                "Drill session title should end with ' Day', got: \(session.title)")
+            XCTAssertTrue(session.title.hasSuffix(" Drill Day"),
+                "Drill session title should end with ' Drill Day', got: \(session.title)")
         }
     }
 

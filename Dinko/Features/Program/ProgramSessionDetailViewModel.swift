@@ -63,7 +63,9 @@ final class ProgramSessionDetailViewModel {
             let profile = PlayerProfile.current()
             let profilePayload = profile.toPayload()
 
-            let skillName = session.title.replacingOccurrences(of: " Day", with: "")
+            let skillName = session.title
+                .replacingOccurrences(of: " Drill Day", with: "")
+                .replacingOccurrences(of: " Day", with: "")
             let sessionType = session.title.contains("Game") ? "game" : "drill"
 
             let response = try await agentService.generateDrills(

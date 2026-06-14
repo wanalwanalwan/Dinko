@@ -62,7 +62,7 @@ enum ScheduleEngine {
                         programId: programId,
                         weekNumber: week,
                         sessionNumber: sessionCounter,
-                        title: "\(focusLabel) Day",
+                        title: "\(focusLabel) Drill Day",
                         focus: focusLabel,
                         estimatedMinutes: sessionDuration,
                         scheduledDayOfWeek: dayIndex,

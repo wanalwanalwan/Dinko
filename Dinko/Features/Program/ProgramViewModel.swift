@@ -343,7 +343,9 @@ final class ProgramViewModel {
                     week: session.weekNumber,
                     day: session.scheduledDayOfWeek ?? 0,
                     type: session.title.contains("Game") ? "game" : "drill",
-                    skillName: session.focus.isEmpty ? session.title.replacingOccurrences(of: " Day", with: "") : session.focus
+                    skillName: session.focus.isEmpty
+                        ? session.title.replacingOccurrences(of: " Drill Day", with: "").replacingOccurrences(of: " Day", with: "")
+                        : session.focus
                 )
             }
 
