@@ -66,29 +66,38 @@ final class ProgramSessionDetailViewModel {
             let skillName = session.title
                 .replacingOccurrences(of: " Drill Day", with: "")
                 .replacingOccurrences(of: " Day", with: "")
-            let sessionType = session.title.contains("Game") ? "game" : "drill"
 
-            let response = try await agentService.generateDrills(
-                sessionFocus: session.focus,
+            // Use the existing skill_coaching endpoint (already deployed)
+            // to generate drills for this session's focus skill
+            let response = try await agentService.skillCoaching(
                 skillName: skillName,
-                skillRating: 0,
-                sessionType: sessionType,
-                durationMinutes: session.estimatedMinutes,
+                category: skillCategoryGuess(for: skillName),
+                currentRating: 0,
+                skillDescription: session.focus,
+                subskills: [],
+                pendingDrills: [],
+                ratingTrend: [],
                 playerProfile: profilePayload.isEmpty ? nil : profilePayload,
                 authToken: token
             )
 
-            let newDrills = response.enumerated().map { order, drill in
+            // Convert DrillRecommendations to ProgramDrills
+            let newDrills = response.drills.prefix(4).enumerated().map { order, drill in
                 ProgramDrill(
                     programSessionId: session.id,
                     name: drill.name,
                     drillDescription: drill.description,
                     durationMinutes: drill.durationMinutes,
-                    targetReps: drill.targetReps,
-                    equipment: drill.equipment,
-                    playerCount: drill.playerCount,
+                    targetReps: 1,
+                    equipment: drill.equipment ?? "Paddle, balls",
+                    playerCount: drill.playerCount ?? 1,
                     displayOrder: order
                 )
+            }
+
+            guard !newDrills.isEmpty else {
+                errorMessage = "No drills were generated. Please try again."
+                return
             }
 
             try await programRepository.saveDrillsForSession(session.id, drills: newDrills)
@@ -151,5 +160,21 @@ final class ProgramSessionDetailViewModel {
         } catch {
             errorMessage = "Failed to complete session."
         }
+    }
+
+    // MARK: - Private
+
+    /// Best-effort category guess from the skill name for the coaching endpoint
+    private func skillCategoryGuess(for skillName: String) -> String {
+        let lower = skillName.lowercased()
+        if lower.contains("dink") { return "dinking" }
+        if lower.contains("drop") || lower.contains("3rd shot") { return "drops" }
+        if lower.contains("drive") { return "drives" }
+        if lower.contains("serve") || lower.contains("return") { return "serves" }
+        if lower.contains("volley") || lower.contains("block") || lower.contains("reset") { return "defense" }
+        if lower.contains("lob") || lower.contains("smash") || lower.contains("erne") || lower.contains("attack") { return "offense" }
+        if lower.contains("stack") || lower.contains("position") || lower.contains("strateg") { return "strategy" }
+        if lower.contains("footwork") || lower.contains("movement") || lower.contains("transition") { return "movement" }
+        return "general"
     }
 }
