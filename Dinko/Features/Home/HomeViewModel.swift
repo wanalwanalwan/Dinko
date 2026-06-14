@@ -304,7 +304,7 @@ final class HomeViewModel {
     }
 
     var todayDrillCount: Int {
-        todayProgramDrills.count
+        0
     }
 
     private(set) var scheduledDays: [WeekScheduleDay] = []
@@ -373,7 +373,6 @@ final class HomeViewModel {
     private(set) var activeProgram: Program?
     private(set) var currentProgramSession: ProgramSession?
     private(set) var allProgramSessions: [ProgramSession] = []
-    private(set) var todayProgramDrills: [ProgramDrill] = []
 
     // Cached data for time range switching
     private var cachedSkills: [Skill] = []
@@ -1532,23 +1531,14 @@ final class HomeViewModel {
             if let program = activeProgram {
                 allProgramSessions = try await programRepository.fetchSessions(for: program.id)
                 currentProgramSession = allProgramSessions.first { $0.status == .available }
-
-                // Load drills for today's session
-                if let todaySession = todayProgramSession {
-                    todayProgramDrills = try await programRepository.fetchDrills(for: todaySession.id)
-                } else {
-                    todayProgramDrills = []
-                }
             } else {
                 allProgramSessions = []
                 currentProgramSession = nil
-                todayProgramDrills = []
             }
         } catch {
             activeProgram = nil
             allProgramSessions = []
             currentProgramSession = nil
-            todayProgramDrills = []
         }
     }
 

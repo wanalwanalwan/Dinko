@@ -2241,33 +2241,17 @@ struct HomeView: View {
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
 
-                    HStack(spacing: 12) {
-                        Label("\(session.estimatedMinutes) min", systemImage: "clock")
-                            .font(.system(size: 12, design: .rounded))
-                            .foregroundStyle(AppColors.textSecondary)
-                        if viewModel.todayDrillCount > 0 {
-                            Label("\(viewModel.todayDrillCount) drills", systemImage: "list.bullet")
-                                .font(.system(size: 12, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                    }
+                    Label("\(session.estimatedMinutes) min", systemImage: "clock")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
 
-                    // Drill preview list
-                    if !viewModel.todayProgramDrills.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            ForEach(viewModel.todayProgramDrills.prefix(4)) { drill in
-                                HStack(spacing: 8) {
-                                    Circle()
-                                        .stroke(AppColors.textSecondary.opacity(0.3), lineWidth: 1.5)
-                                        .frame(width: 14, height: 14)
-                                    Text(drill.name)
-                                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                                        .foregroundStyle(AppColors.textPrimary)
-                                        .lineLimit(1)
-                                }
-                            }
-                        }
-                        .padding(.top, 4)
+                    // Focus text preview
+                    if !session.focus.isEmpty {
+                        Text(session.focus)
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                            .lineLimit(2)
+                            .padding(.top, 4)
                     }
 
                     NavigationLink(value: session) {

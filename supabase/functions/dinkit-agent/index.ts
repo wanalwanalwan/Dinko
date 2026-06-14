@@ -1381,7 +1381,9 @@ Deno.serve(async (req: Request) => {
     const { action, note, skills, session_id, clarification_action,
       skill_name, category, current_rating, skill_description,
       subskills: coachingSubskills, pending_drills, rating_trend,
-      player_profile, weekly_goal, generation_mode } = body;
+      player_profile, weekly_goal, generation_mode,
+      sessions: scheduleSessions, session_focus, session_type,
+      duration_minutes, skill_rating, num_drills } = body;
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -2377,6 +2379,150 @@ Respond ONLY with a valid JSON object:
       }
 
       return jsonResponse({ confirmed: true, session_id });
+    }
+
+    // ---- action: generate_schedule_focus ----
+    if (action === "generate_schedule_focus") {
+      const userSkills: SkillSnapshot[] = Array.isArray(skills) ? skills : [];
+      const sessionsInput = Array.isArray(scheduleSessions) ? scheduleSessions : [];
+
+      if (sessionsInput.length === 0) {
+        return jsonResponse({ error: "sessions array is required" }, 400);
+      }
+
+      // Build player profile section
+      const profile = player_profile && typeof player_profile === "object" ? player_profile : {};
+      const profileLines: string[] = [];
+      if (profile.dupr_range) profileLines.push(`- DUPR Level: ${profile.dupr_range}`);
+      if (profile.play_style) profileLines.push(`- Play Style: ${profile.play_style}`);
+      if (profile.game_format) profileLines.push(`- Game Format: ${profile.game_format}`);
+      if (profile.primary_goal) profileLines.push(`- Primary Goal: ${profile.primary_goal}`);
+      if (profile.practice_setting) profileLines.push(`- Practice Setting: ${profile.practice_setting}`);
+      if (profile.experience_level) profileLines.push(`- Experience Level: ${profile.experience_level}`);
+      if (profile.injuries && Array.isArray(profile.injuries)) {
+        profileLines.push(`- Injuries/Limitations: ${profile.injuries.join(", ")}`);
+      }
+      if (profile.partner_access) profileLines.push(`- Partner Access: ${profile.partner_access}`);
+      const playerProfileSection = profileLines.length > 0
+        ? `\nPLAYER PROFILE:\n${profileLines.join("\n")}\n`
+        : "";
+
+      // Build skill summary
+      const skillLines = userSkills.map((s: Record<string, unknown>) => {
+        const priority = (s as Record<string, unknown>).priority;
+        let line = `- ${s.name} [${s.category}]: ${s.current_rating}%`;
+        if (priority) line += ` — Priority #${priority}`;
+        return line;
+      }).join("\n");
+
+      // Build session list
+      const sessionList = sessionsInput.map((s: Record<string, unknown>) =>
+        `- Week ${s.week}, Day ${s.day} (${s.type}): ${s.skill_name}`
+      ).join("\n");
+
+      const systemPrompt = `You are an expert pickleball coach. Generate a short, actionable focus description for each training session below. Each focus should be 1-2 sentences of coaching guidance — what to work on and key pointers. Be specific and practical, not generic.
+${playerProfileSection}
+PLAYER'S SKILLS:
+${skillLines || "(general fundamentals)"}
+
+SESSIONS:
+${sessionList}
+
+For drill days: focus on specific technique cues, positioning, or skill drills.
+For game days: focus on applying skills in game scenarios, what to watch for.
+
+Respond ONLY with a valid JSON array where each element has:
+- "index": the 0-based index matching the session list order
+- "focus": the coaching focus text (1-2 sentences, max 120 chars)
+
+Example: [{"index": 0, "focus": "Work on cross-court dink placement. Keep the ball below net tape and mix in spin variations."}]`;
+
+      const cleaned = await callClaude(
+        anthropicKey,
+        systemPrompt,
+        `Generate focus descriptions for ${sessionsInput.length} training sessions.`,
+        4096,
+        true  // use Haiku — lightweight
+      );
+
+      const parsed = JSON.parse(cleaned);
+      return jsonResponse({ focuses: parsed });
+    }
+
+    // ---- action: generate_drills ----
+    if (action === "generate_drills") {
+      const focus = typeof session_focus === "string" ? session_focus : "";
+      const sName = typeof skill_name === "string" ? skill_name : "General";
+      const sRating = typeof skill_rating === "number" ? skill_rating : 0;
+      const sType = typeof session_type === "string" ? session_type : "drill";
+      const duration = typeof duration_minutes === "number" ? duration_minutes : 45;
+      const count = typeof num_drills === "number" ? num_drills : 3;
+
+      // Build player profile section
+      const profile = player_profile && typeof player_profile === "object" ? player_profile : {};
+      const profileLines: string[] = [];
+      if (profile.dupr_range) profileLines.push(`- DUPR Level: ${profile.dupr_range}`);
+      if (profile.play_style) profileLines.push(`- Play Style: ${profile.play_style}`);
+      if (profile.game_format) profileLines.push(`- Game Format: ${profile.game_format}`);
+      if (profile.practice_setting) profileLines.push(`- Practice Setting: ${profile.practice_setting}`);
+      if (profile.experience_level) profileLines.push(`- Experience Level: ${profile.experience_level}`);
+      if (profile.injuries && Array.isArray(profile.injuries)) {
+        profileLines.push(`- Injuries/Limitations: ${profile.injuries.join(", ")}`);
+      }
+      if (profile.partner_access) profileLines.push(`- Partner Access: ${profile.partner_access}`);
+      const playerProfileSection = profileLines.length > 0
+        ? `\nPLAYER PROFILE:\n${profileLines.join("\n")}\n`
+        : "";
+
+      const partnerAccess = profile.partner_access ?? "";
+      let partnerInstruction = "";
+      if (partnerAccess === "Solo only" || partnerAccess === "Mostly solo") {
+        partnerInstruction = "\nIMPORTANT: Player practices solo. All drills MUST be doable alone (player_count: 1). Use wall drills, shadow practice, solo footwork, and self-feeding drills.";
+      }
+
+      const systemPrompt = `You are an expert pickleball coach creating drills for a specific training session.
+${playerProfileSection}
+SESSION DETAILS:
+- Focus: ${focus}
+- Primary Skill: ${sName} (current rating: ${sRating}%)
+- Session Type: ${sType}
+- Total Duration: ${duration} minutes
+${partnerInstruction}
+
+${sType === "game" ? "For game days: include a warm-up drill and game-scenario drills that apply the focus skill in live play." : "For drill days: create focused, progressive drills that build the target skill. Start with fundamentals and progress to more challenging variations."}
+
+If the player has injuries, avoid drills that would aggravate them:
+- Shoulder: no overhead smash or high-power serve drills
+- Knee: no deep lunges or heavy lateral shuffles
+- Back: no heavy rotation drills
+- Wrist: no high-impact volleys or power shots
+
+Generate exactly ${count} drills that fit within ${duration} minutes total.
+
+Respond ONLY with a valid JSON object:
+{
+  "drills": [
+    {
+      "name": "drill name (concise, 3-6 words)",
+      "description": "clear step-by-step instructions (1-2 sentences)",
+      "duration_minutes": 10,
+      "target_reps": 20,
+      "equipment": "paddle, balls",
+      "player_count": 1
+    }
+  ]
+}`;
+
+      const cleaned = await callClaude(
+        anthropicKey,
+        systemPrompt,
+        `Create ${count} pickleball drills for a ${duration}-minute ${sType} session focused on ${sName}.`,
+        4096,
+        true  // use Haiku
+      );
+
+      const parsed = JSON.parse(cleaned);
+      return jsonResponse(parsed);
     }
 
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);

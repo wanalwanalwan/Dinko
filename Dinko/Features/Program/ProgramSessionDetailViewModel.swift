@@ -6,10 +6,12 @@ final class ProgramSessionDetailViewModel {
     private(set) var session: ProgramSession
     private(set) var drills: [ProgramDrill] = []
     private(set) var isLoading = false
+    private(set) var isGeneratingDrills = false
     private(set) var showCelebration = false
     var errorMessage: String?
 
     private let programRepository: ProgramRepository
+    private let agentService = AgentService()
 
     init(session: ProgramSession, programRepository: ProgramRepository) {
         self.session = session
@@ -19,7 +21,9 @@ final class ProgramSessionDetailViewModel {
     // MARK: - Computed
 
     var allDrillsComplete: Bool {
-        !drills.isEmpty && drills.allSatisfy { $0.status != .pending }
+        // No drills = nothing to block on (user can complete with just focus text)
+        if drills.isEmpty { return true }
+        return drills.allSatisfy { $0.status != .pending }
     }
 
     var completedDrillCount: Int {
@@ -41,6 +45,54 @@ final class ProgramSessionDetailViewModel {
             errorMessage = nil
         } catch {
             errorMessage = "Failed to load drills."
+        }
+    }
+
+    func generateDrills() async {
+        isGeneratingDrills = true
+        errorMessage = nil
+        defer { isGeneratingDrills = false }
+
+        do {
+            let token = await AuthService.shared.validAccessToken() ?? ""
+            guard !token.isEmpty else {
+                errorMessage = "Please sign in to generate drills."
+                return
+            }
+
+            let profile = PlayerProfile.current()
+            let profilePayload = profile.toPayload()
+
+            let skillName = session.title.replacingOccurrences(of: " Day", with: "")
+            let sessionType = session.title.contains("Game") ? "game" : "drill"
+
+            let response = try await agentService.generateDrills(
+                sessionFocus: session.focus,
+                skillName: skillName,
+                skillRating: 0,
+                sessionType: sessionType,
+                durationMinutes: session.estimatedMinutes,
+                playerProfile: profilePayload.isEmpty ? nil : profilePayload,
+                authToken: token
+            )
+
+            let newDrills = response.enumerated().map { order, drill in
+                ProgramDrill(
+                    programSessionId: session.id,
+                    name: drill.name,
+                    drillDescription: drill.description,
+                    durationMinutes: drill.durationMinutes,
+                    targetReps: drill.targetReps,
+                    equipment: drill.equipment,
+                    playerCount: drill.playerCount,
+                    displayOrder: order
+                )
+            }
+
+            try await programRepository.saveDrillsForSession(session.id, drills: newDrills)
+            self.drills = newDrills
+        } catch {
+            errorMessage = "Failed to generate drills. Please try again."
         }
     }
 

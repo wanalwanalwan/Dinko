@@ -352,6 +352,106 @@ final class AgentService {
         return try await post(body: body, authToken: authToken)
     }
 
+    // MARK: - Schedule Focus Generation
+
+    struct SessionFocusRequest {
+        let week: Int
+        let day: Int
+        let type: String
+        let skillName: String
+    }
+
+    struct SessionFocusItem: Codable {
+        let index: Int
+        let focus: String
+    }
+
+    struct ScheduleFocusResponse: Codable {
+        let focuses: [SessionFocusItem]
+    }
+
+    /// Generate AI focus text for each session in a program
+    func generateScheduleFocus(
+        sessions: [SessionFocusRequest],
+        focusSkills: [SkillSnapshotPayload],
+        playerProfile: [String: Any]?,
+        authToken: String
+    ) async throws -> [SessionFocusItem] {
+        var body: [String: Any] = [
+            "action": "generate_schedule_focus",
+            "sessions": sessions.map { s in
+                [
+                    "week": s.week,
+                    "day": s.day,
+                    "type": s.type,
+                    "skill_name": s.skillName,
+                ] as [String: Any]
+            },
+            "skills": focusSkills.map { skill in
+                var dict: [String: Any] = [
+                    "id": skill.id,
+                    "name": skill.name,
+                    "category": skill.category,
+                    "current_rating": skill.currentRating,
+                    "pending_drill_count": skill.pendingDrillCount,
+                    "subskills": skill.subskills.map { sub in
+                        [
+                            "id": sub.id,
+                            "name": sub.name,
+                            "current_rating": sub.currentRating,
+                        ] as [String: Any]
+                    },
+                ]
+                if let priority = skill.priority {
+                    dict["priority"] = priority
+                }
+                return dict
+            },
+        ]
+
+        if let playerProfile, !playerProfile.isEmpty {
+            body["player_profile"] = playerProfile
+        }
+
+        let response: ScheduleFocusResponse = try await post(body: body, authToken: authToken)
+        return response.focuses
+    }
+
+    // MARK: - On-Demand Drill Generation
+
+    struct GenerateDrillsResponse: Codable {
+        let drills: [ProgramDrillResponse]
+    }
+
+    /// Generate drills on-demand for a specific session
+    func generateDrills(
+        sessionFocus: String,
+        skillName: String,
+        skillRating: Int,
+        sessionType: String,
+        durationMinutes: Int,
+        playerProfile: [String: Any]?,
+        authToken: String,
+        numDrills: Int = 3
+    ) async throws -> [ProgramDrillResponse] {
+        var body: [String: Any] = [
+            "action": "generate_drills",
+            "session_focus": sessionFocus,
+            "skill_name": skillName,
+            "skill_rating": skillRating,
+            "session_type": sessionType,
+            "duration_minutes": durationMinutes,
+            "num_drills": numDrills,
+        ]
+
+        if let playerProfile, !playerProfile.isEmpty {
+            body["player_profile"] = playerProfile
+        }
+
+        let response: GenerateDrillsResponse = try await post(body: body, authToken: authToken)
+        return response.drills
+    }
+
     /// Delete the user's account and all associated data
     func deleteAccount(authToken: String) async throws {
         let body: [String: Any] = [

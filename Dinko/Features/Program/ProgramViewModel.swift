@@ -24,6 +24,7 @@ final class ProgramViewModel {
     private let skillRepository: SkillRepository
     private let skillRatingRepository: SkillRatingRepository
     private let drillRepository: DrillRepository
+    private let agentService = AgentService()
 
     init(
         programRepository: ProgramRepository,
@@ -111,20 +112,26 @@ final class ProgramViewModel {
                 preferredGameDay: profile.preferredGameDay,
                 drillBalance: profile.drillBalance
             )
-            let catalog = DrillCatalogLoader.loadAll()
 
             let input = ScheduleEngineInput(
                 profile: profile,
                 focusSkills: focusEntries,
                 skillRatings: ratings,
                 availableDayTypes: dayTypes,
-                sessionDurationMinutes: profile.sessionDuration ?? 45,
-                catalog: catalog
+                sessionDurationMinutes: profile.sessionDuration ?? 45
             )
 
             let output = ScheduleEngine.generate(input: input)
-            try await programRepository.saveFullProgram(output.program, sessions: output.sessions, drills: output.drills)
+            try await programRepository.saveFullProgram(output.program, sessions: output.sessions, drills: [:])
             await loadProgram()
+
+            // Generate AI focus text in background
+            await generateFocusText(
+                sessions: output.sessions,
+                focusEntries: focusEntries,
+                ratings: ratings,
+                profile: profile
+            )
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -165,20 +172,26 @@ final class ProgramViewModel {
                 preferredGameDay: profile.preferredGameDay,
                 drillBalance: profile.drillBalance
             )
-            let catalog = DrillCatalogLoader.loadAll()
 
             let input = ScheduleEngineInput(
                 profile: profile,
                 focusSkills: focusEntries,
                 skillRatings: ratings,
                 availableDayTypes: dayTypes,
-                sessionDurationMinutes: profile.sessionDuration ?? 45,
-                catalog: catalog
+                sessionDurationMinutes: profile.sessionDuration ?? 45
             )
 
             let output = ScheduleEngine.generate(input: input)
-            try await programRepository.saveFullProgram(output.program, sessions: output.sessions, drills: output.drills)
+            try await programRepository.saveFullProgram(output.program, sessions: output.sessions, drills: [:])
             await loadProgram()
+
+            // Generate AI focus text in background
+            await generateFocusText(
+                sessions: output.sessions,
+                focusEntries: focusEntries,
+                ratings: ratings,
+                profile: profile
+            )
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -301,16 +314,61 @@ final class ProgramViewModel {
         }
         return ratings
     }
-}
 
-// Async map helper
-private extension Array {
-    func asyncMap<T>(_ transform: (Element) async -> T) async -> [T] {
-        var results: [T] = []
-        results.reserveCapacity(count)
-        for element in self {
-            results.append(await transform(element))
+    private func generateFocusText(
+        sessions: [ProgramSession],
+        focusEntries: [FocusSkillEntry],
+        ratings: [UUID: Int],
+        profile: PlayerProfile
+    ) async {
+        do {
+            let token = await AuthService.shared.validAccessToken() ?? ""
+            guard !token.isEmpty else { return }
+
+            let skillPayloads = focusEntries.enumerated().map { index, entry in
+                AgentService.SkillSnapshotPayload(
+                    id: entry.id.uuidString,
+                    name: entry.name,
+                    category: entry.categoryRaw,
+                    currentRating: ratings[entry.id] ?? entry.startingRating ?? 0,
+                    parentSkillId: nil,
+                    subskills: [],
+                    pendingDrillCount: 0,
+                    priority: index
+                )
+            }
+
+            let sessionRequests = sessions.map { session in
+                AgentService.SessionFocusRequest(
+                    week: session.weekNumber,
+                    day: session.scheduledDayOfWeek ?? 0,
+                    type: session.title.contains("Game") ? "game" : "drill",
+                    skillName: session.focus.isEmpty ? session.title.replacingOccurrences(of: " Day", with: "") : session.focus
+                )
+            }
+
+            let profilePayload = profile.toPayload()
+            let focuses = try await agentService.generateScheduleFocus(
+                sessions: sessionRequests,
+                focusSkills: skillPayloads,
+                playerProfile: profilePayload.isEmpty ? nil : profilePayload,
+                authToken: token
+            )
+
+            // Update each session's focus in CoreData
+            for focusItem in focuses {
+                guard focusItem.index >= 0, focusItem.index < sessions.count else { continue }
+                let sessionId = sessions[focusItem.index].id
+                try await programRepository.updateSessionFocus(sessionId, focus: focusItem.focus)
+            }
+
+            // Reload to reflect updated focus text
+            await loadProgram()
+        } catch {
+            #if DEBUG
+            print("[ProgramViewModel] Focus generation failed: \(error.localizedDescription)")
+            #endif
+            // Non-critical — the program still works with placeholder focus text
         }
-        return results
     }
 }

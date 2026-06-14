@@ -20,4 +20,7 @@ protocol ProgramRepository {
         sessions: [ProgramSession],
         drills: [UUID: [ProgramDrill]]
     ) async throws
+
+    func saveDrillsForSession(_ sessionId: UUID, drills: [ProgramDrill]) async throws
+    func updateSessionFocus(_ sessionId: UUID, focus: String) async throws
 }

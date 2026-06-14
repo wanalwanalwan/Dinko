@@ -211,6 +211,40 @@ final class ProgramRepositoryImpl: ProgramRepository {
         }
     }
 
+    // MARK: - On-Demand Drill & Focus Updates
+
+    func saveDrillsForSession(_ sessionId: UUID, drills: [ProgramDrill]) async throws {
+        let context = persistence.newBackgroundContext()
+        try await context.perform {
+            let sessionRequest = ProgramSessionEntity.fetchRequest()
+            sessionRequest.predicate = NSPredicate(format: "id == %@", sessionId as CVarArg)
+            sessionRequest.fetchLimit = 1
+            let sessionEntity = try context.fetch(sessionRequest).first
+
+            for drill in drills {
+                let drillEntity = ProgramDrillEntity(context: context)
+                drillEntity.update(from: drill)
+                drillEntity.session = sessionEntity
+            }
+
+            try context.save()
+        }
+    }
+
+    func updateSessionFocus(_ sessionId: UUID, focus: String) async throws {
+        let context = persistence.newBackgroundContext()
+        try await context.perform {
+            let request = ProgramSessionEntity.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", sessionId as CVarArg)
+            request.fetchLimit = 1
+            if let entity = try context.fetch(request).first {
+                entity.focus = focus
+                entity.updatedAt = Date()
+                try context.save()
+            }
+        }
+    }
+
     // MARK: - Atomic Full Program Save
 
     func saveFullProgram(
