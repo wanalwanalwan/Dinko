@@ -35,6 +35,7 @@ struct HomeView: View {
     @State private var newIdeaName = ""
     @State private var newIdeaNotes = ""
     @State private var expandedIdeaId: UUID? = nil
+    @State private var showSuggestedCoaching: Skill? = nil
 
     var body: some View {
         Group {
@@ -194,6 +195,9 @@ struct HomeView: View {
             AddEditSkillView()
                 .presentationDetents([.medium])
                 .onDisappear { Task { await viewModel.loadDashboard() } }
+        }
+        .sheet(item: $showSuggestedCoaching) { skill in
+            SuggestedCoachingLoader(skill: skill, dependencies: dependencies)
         }
     }
 
@@ -2468,65 +2472,9 @@ struct HomeView: View {
                 .padding(AppSpacing.sm)
             }
             .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
-        } else if let drill = viewModel.topDrill, !viewModel.skillsWithRatings.isEmpty {
-            // State 5: No Program, Has Top Drill
-            VStack(spacing: 0) {
-                HStack {
-                    Text("NEXT DRILL")
-                        .font(AppTypography.sectionLabel)
-                        .tracking(0.8)
-                        .foregroundStyle(AppColors.textSecondary)
-                    Spacer()
-                    Text(drill.priority.capitalized)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .foregroundStyle(drill.priority.lowercased() == "high" ? AppColors.coral : AppColors.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background((drill.priority.lowercased() == "high" ? AppColors.coral : AppColors.primary).opacity(0.12))
-                        .clipShape(Capsule())
-                }
-                .padding(.horizontal, AppSpacing.sm)
-                .padding(.top, AppSpacing.sm)
-                .padding(.bottom, AppSpacing.xs)
-
-                Divider().padding(.horizontal, AppSpacing.sm)
-
-                HStack(spacing: AppSpacing.xs) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(drill.drillName)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-                            .lineLimit(2)
-                        HStack(spacing: 8) {
-                            Label(drill.skillName, systemImage: "target")
-                                .font(.system(size: 12, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                            Label("\(drill.durationMinutes) min", systemImage: "clock")
-                                .font(.system(size: 12, design: .rounded))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                    }
-                    Spacer()
-                }
-                .padding(AppSpacing.sm)
-
-                Button {
-                    selectedTab = 3
-                } label: {
-                    Text("Start Drill")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(AppColors.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .shadow(color: AppColors.primary.opacity(0.25), radius: 6, y: 3)
-                }
-                .buttonStyle(.pressable)
-                .padding(.horizontal, AppSpacing.sm)
-                .padding(.bottom, AppSpacing.sm)
-            }
-            .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
+        } else if let suggestion = viewModel.suggestedPractice {
+            // State 5: No Program — Smart Suggested Practice
+            suggestedPracticeCard(suggestion)
         } else if viewModel.todayHasSession {
             // State 6: Session Already Logged Today (no active program)
             VStack(spacing: 0) {
@@ -2651,7 +2599,7 @@ struct HomeView: View {
             }
             .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         } else {
-            // State 8: Practice Day, No Session Logged Today, No Active Program
+            // State 8: No skills tracked yet — generic fallback
             VStack(spacing: 0) {
                 HStack {
                     Text("TODAY")
@@ -2712,6 +2660,90 @@ struct HomeView: View {
             }
             .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
         }
+    }
+
+    // MARK: - Suggested Practice Card
+
+    private func suggestedPracticeCard(_ suggestion: HomeViewModel.SuggestedPractice) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("SUGGESTED PRACTICE")
+                    .font(AppTypography.sectionLabel)
+                    .tracking(0.8)
+                    .foregroundStyle(AppColors.textSecondary)
+                Spacer()
+            }
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.top, AppSpacing.sm)
+            .padding(.bottom, AppSpacing.xs)
+
+            Divider().padding(.horizontal, AppSpacing.sm)
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                // Skill row: icon + name + rating badge
+                HStack {
+                    Text(suggestion.skill.iconName)
+                        .font(.system(size: 18))
+                    Text(suggestion.skill.name)
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Spacer()
+                    Text("\(suggestion.rating)%")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.primary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(AppColors.primary.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+
+                // Reason row
+                Label(suggestion.reason, systemImage: suggestion.reasonIcon)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.textSecondary)
+
+                // Primary CTA: Get Coaching & Drills
+                Button {
+                    showSuggestedCoaching = suggestion.skill
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("Get Coaching & Drills")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(
+                            colors: [AppColors.primaryLight, AppColors.primaryDark],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .shadow(color: AppColors.primary.opacity(0.3), radius: 6, y: 3)
+                }
+                .buttonStyle(.pressable)
+
+                // Secondary CTA: Log a session
+                Button {
+                    selectedSessionDate = Date()
+                    showSessionTypeSheet = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Or log a session")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundStyle(AppColors.primary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(AppSpacing.sm)
+        }
+        .neumorphicRaised(cornerRadius: AppSpacing.heroCornerRadius)
     }
 
     // MARK: - Coaching Insight (compact 1-line)
@@ -3243,6 +3275,72 @@ private struct AchievementCelebrationView: View {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
             withAnimation { onDismiss() }
+        }
+    }
+}
+
+// MARK: - Suggested Coaching Loader
+
+/// Loads subskills, ratings, and drills for a skill then presents SkillCoachingView.
+private struct SuggestedCoachingLoader: View {
+    let skill: Skill
+    let dependencies: DependencyContainer
+
+    @State private var coachingVM: SkillCoachingViewModel?
+
+    var body: some View {
+        Group {
+            if let vm = coachingVM {
+                SkillCoachingView(viewModel: vm)
+            } else {
+                VStack(spacing: AppSpacing.md) {
+                    ProgressView()
+                    Text("Loading coaching...")
+                        .font(.system(size: 14, design: .rounded))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(AppColors.background)
+            }
+        }
+        .task {
+            do {
+                let allSkills = try await dependencies.skillRepository.fetchActive()
+                let subskills = allSkills.filter { $0.parentSkillId == skill.id }
+
+                var subskillRatings: [UUID: Int] = [:]
+                for sub in subskills {
+                    if let latest = try await dependencies.skillRatingRepository.fetchLatest(sub.id) {
+                        subskillRatings[sub.id] = latest.rating
+                    }
+                }
+
+                let ratings = try await dependencies.skillRatingRepository.fetchForSkill(skill.id)
+                let currentRating = ratings.sorted(by: { $0.date < $1.date }).last?.rating ?? 0
+
+                let drills = try await dependencies.drillRepository.fetchForSkill(skill.id)
+
+                coachingVM = SkillCoachingViewModel(
+                    skill: skill,
+                    subskills: subskills,
+                    subskillRatings: subskillRatings,
+                    currentRating: currentRating,
+                    existingDrills: drills,
+                    ratings: ratings,
+                    drillRepository: dependencies.drillRepository
+                )
+            } catch {
+                // Still create the VM with minimal data so coaching can attempt generation
+                coachingVM = SkillCoachingViewModel(
+                    skill: skill,
+                    subskills: [],
+                    subskillRatings: [:],
+                    currentRating: 0,
+                    existingDrills: [],
+                    ratings: [],
+                    drillRepository: dependencies.drillRepository
+                )
+            }
         }
     }
 }

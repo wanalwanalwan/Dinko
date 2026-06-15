@@ -216,6 +216,97 @@ final class HomeViewModel {
         weeklySkillMovers.filter { $0.delta > 0 }.count
     }
 
+    // MARK: - Suggested Practice
+
+    struct SuggestedPractice {
+        let skill: Skill
+        let rating: Int
+        let reason: String
+        let reasonIcon: String  // SF Symbol
+    }
+
+    /// Personalized practice suggestion for the today card (no active program).
+    /// Priority: declining skill → stale skill → weakest skill → focus skill fallback.
+    var suggestedPractice: SuggestedPractice? {
+        guard !skillsWithRatings.isEmpty else { return nil }
+
+        // 1. Declining skill — first weekly mover with delta < -2
+        if let declining = weeklySkillMovers.first(where: { $0.delta < -2 }) {
+            if let pair = skillsWithRatings.first(where: { $0.skill.id == declining.skill.id }) {
+                return SuggestedPractice(
+                    skill: pair.skill,
+                    rating: pair.rating,
+                    reason: "Down \(abs(declining.delta))% this week",
+                    reasonIcon: "arrow.down.right"
+                )
+            }
+        }
+
+        // 2. Stale skill — oldest last-rated date > 7 days ago
+        if let stale = stalestSkill {
+            let days = Calendar.current.dateComponents([.day], from: stale.lastRatedDate, to: Date()).day ?? 0
+            return SuggestedPractice(
+                skill: stale.skill,
+                rating: stale.rating,
+                reason: "Not rated in \(days) days",
+                reasonIcon: "clock.arrow.circlepath"
+            )
+        }
+
+        // 3. Weakest skill — rating < 50
+        if let weak = weakestSkill, weak.rating < 50 {
+            return SuggestedPractice(
+                skill: weak.skill,
+                rating: weak.rating,
+                reason: "Your weakest at \(weak.rating)%",
+                reasonIcon: "chart.bar"
+            )
+        }
+
+        // 4. Focus skill fallback
+        let focusEntries = FocusSkillManager.shared.focusSkills
+        if let firstFocus = focusEntries.first,
+           let pair = skillsWithRatings.first(where: { $0.skill.id == firstFocus.id }) {
+            return SuggestedPractice(
+                skill: pair.skill,
+                rating: pair.rating,
+                reason: "Focus skill — keep building",
+                reasonIcon: "target"
+            )
+        }
+
+        return nil
+    }
+
+    /// Finds the skill whose last rating is the oldest and more than 7 days ago.
+    private var stalestSkill: (skill: Skill, rating: Int, lastRatedDate: Date)? {
+        let calendar = Calendar.current
+        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date()) else { return nil }
+
+        var oldest: (skill: Skill, rating: Int, lastRatedDate: Date)?
+
+        for pair in skillsWithRatings {
+            // For parent skills, check children's ratings too
+            let childSkills = cachedAllSkills.filter { $0.parentSkillId == pair.skill.id }
+            let lastDate: Date?
+
+            if childSkills.isEmpty {
+                lastDate = cachedRatings[pair.skill.id]?.last?.date
+            } else {
+                // Use the most recent date among all children
+                lastDate = childSkills.compactMap { cachedRatings[$0.id]?.last?.date }.max()
+            }
+
+            guard let date = lastDate, date < sevenDaysAgo else { continue }
+
+            if oldest == nil || date < oldest!.lastRatedDate {
+                oldest = (pair.skill, pair.rating, date)
+            }
+        }
+
+        return oldest
+    }
+
     /// Composite 0–100 score. Consistency is the primary driver.
     var brineScore: Int {
         let fm = FocusSkillManager.shared
