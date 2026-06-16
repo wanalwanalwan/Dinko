@@ -1548,7 +1548,7 @@ Generate two types of coaching content:
 
 1. GAME TIPS: 2-3 strategic tips the player can use during live play RIGHT NOW. Each tip should address a specific in-game situation relevant to their current level and weaknesses.
 
-2. DRILL SUGGESTIONS: 2-3 actionable practice drills. Each drill should be specific, have clear instructions, and directly target areas where the player needs improvement based on their ratings and trend.
+2. DRILL SUGGESTIONS: 5-6 actionable practice drills. Each drill should be specific, have clear instructions, and directly target areas where the player needs improvement based on their ratings and trend.
 
 RULES:
 - Do NOT suggest drills that duplicate the already-queued drills listed above.
@@ -1594,7 +1594,7 @@ Respond ONLY with a valid JSON object:
         anthropicKey,
         systemPrompt,
         `Generate personalized game tips and drill suggestions for my ${skill_name} skill.`,
-        2048
+        3072
       );
 
       const parsed = JSON.parse(cleaned);

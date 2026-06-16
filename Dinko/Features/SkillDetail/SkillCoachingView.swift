@@ -16,7 +16,7 @@ struct SkillCoachingView: View {
                 }
             }
             .background(AppColors.background)
-            .navigationTitle("AI Coaching")
+            .navigationTitle("Drill Suggestions")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -49,11 +49,11 @@ struct SkillCoachingView: View {
 
             CoachMascot(state: .thinking, size: 80)
 
-            Text("Analyzing your skill...")
+            Text("Finding drills for you...")
                 .font(AppTypography.headline)
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("Building personalized tips and drills")
+            Text("Personalized practice suggestions")
                 .font(AppTypography.caption)
                 .foregroundStyle(AppColors.textSecondary)
 
@@ -178,7 +178,7 @@ struct SkillCoachingView: View {
                     .font(.caption)
                     .foregroundStyle(AppColors.primary)
 
-                Text("DRILL SUGGESTIONS")
+                Text("SAVE DRILLS TO PRACTICE LATER")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
             }
@@ -222,11 +222,11 @@ struct SkillCoachingView: View {
                     Task { await viewModel.addDrill(at: index) }
                 } label: {
                     if isAdded {
-                        Label("Added", systemImage: "checkmark.circle.fill")
+                        Label("Saved", systemImage: "checkmark.circle.fill")
                             .font(AppTypography.caption)
                             .foregroundStyle(AppColors.successGreen)
                     } else {
-                        Label("Add", systemImage: "plus.circle.fill")
+                        Label("Save", systemImage: "plus.circle.fill")
                             .font(AppTypography.caption)
                             .foregroundStyle(AppColors.primary)
                     }

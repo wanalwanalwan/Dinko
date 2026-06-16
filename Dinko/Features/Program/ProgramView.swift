@@ -8,6 +8,7 @@ struct ProgramView: View {
     @State private var showReplaceAlert = false
     @State private var showGenerationFlow = false
     @State private var pendingTemplate: ProgramTemplate?
+    @State private var savedDrillCount: Int = 0
 
     private var subscriptionService: SubscriptionService {
         dependencies.subscriptionService
@@ -36,6 +37,16 @@ struct ProgramView: View {
             }
             viewModel?.loadTemplates()
             await viewModel?.loadProgram()
+            if let drills = try? await dependencies.drillRepository.fetchAll() {
+                savedDrillCount = drills.filter { $0.status == .pending }.count
+            }
+        }
+        .onAppear {
+            Task {
+                if let drills = try? await dependencies.drillRepository.fetchAll() {
+                    savedDrillCount = drills.filter { $0.status == .pending }.count
+                }
+            }
         }
         .sheet(isPresented: $showPaywall) {
             PaywallView()
@@ -97,6 +108,11 @@ struct ProgramView: View {
                     activeProgramSection(program, vm: vm)
                 }
 
+                // Saved Drills section
+                if savedDrillCount > 0 {
+                    savedDrillsSection
+                }
+
                 // AI-Generated section
                 aiGeneratedSection(vm)
 
@@ -127,6 +143,51 @@ struct ProgramView: View {
                     Task { await vm.loadProgram() }
                 }
             )
+        }
+    }
+
+    // MARK: - Saved Drills Section
+
+    private var savedDrillsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            Text("SAVED DRILLS")
+                .font(AppTypography.sectionLabel)
+                .tracking(0.8)
+                .foregroundStyle(AppColors.textSecondary)
+                .padding(.horizontal, AppSpacing.xxs)
+
+            NavigationLink {
+                DrillQueueView()
+            } label: {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "figure.run")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(AppColors.primary)
+                        .frame(width: 36, height: 36)
+                        .background(AppColors.primary.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Practice Queue")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Text("\(savedDrillCount) drill\(savedDrillCount == 1 ? "" : "s") saved")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .padding(AppSpacing.sm)
+                .background(AppColors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardCornerRadius))
+            }
+            .buttonStyle(.plain)
         }
     }
 
