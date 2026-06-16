@@ -109,9 +109,7 @@ struct ProgramView: View {
                 }
 
                 // Saved Drills section
-                if savedDrillCount > 0 {
-                    savedDrillsSection
-                }
+                savedDrillsSection
 
                 // AI-Generated section
                 aiGeneratedSection(vm)
@@ -172,7 +170,9 @@ struct ProgramView: View {
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)
 
-                        Text("\(savedDrillCount) drill\(savedDrillCount == 1 ? "" : "s") saved")
+                        Text(savedDrillCount > 0
+                            ? "\(savedDrillCount) drill\(savedDrillCount == 1 ? "" : "s") saved"
+                            : "Save drills from coaching suggestions")
                             .font(.system(size: 13, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
                     }

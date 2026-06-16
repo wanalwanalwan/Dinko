@@ -736,7 +736,7 @@ struct SkillDetailView: View {
                 ProgressView()
                     .scaleEffect(0.85)
                     .tint(AppColors.textSecondary)
-                Text("Checking your goals...")
+                Text("Finding drills for you...")
                     .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.textSecondary)
             }
@@ -780,7 +780,7 @@ struct SkillDetailView: View {
 
             // Header
             HStack {
-                Label("AI Coaching", systemImage: "sparkles")
+                Label("Drill Suggestions", systemImage: "sparkles")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppColors.primary)
                 Spacer()
@@ -861,7 +861,7 @@ struct SkillDetailView: View {
                         Image(systemName: "figure.run")
                             .font(.system(size: 10))
                             .foregroundStyle(AppColors.primary)
-                        Text("DRILL SUGGESTIONS")
+                        Text("SAVE DRILLS TO PRACTICE LATER")
                             .font(.system(size: 11, weight: .semibold, design: .rounded))
                             .foregroundStyle(AppColors.textSecondary)
                     }
@@ -896,11 +896,11 @@ struct SkillDetailView: View {
                                     }
                                 } label: {
                                     if isAdded {
-                                        Label("Added", systemImage: "checkmark.circle.fill")
+                                        Label("Saved", systemImage: "checkmark.circle.fill")
                                             .font(.system(size: 11, weight: .semibold, design: .rounded))
                                             .foregroundStyle(AppColors.successGreen)
                                     } else {
-                                        Label("Add", systemImage: "plus.circle.fill")
+                                        Label("Save", systemImage: "plus.circle.fill")
                                             .font(.system(size: 11, weight: .semibold, design: .rounded))
                                             .foregroundStyle(AppColors.primary)
                                     }
